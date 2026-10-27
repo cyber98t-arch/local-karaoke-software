@@ -25,4 +25,5 @@
 - Read the complete VS Code Dev Containers log after the container still failed before post-create.
 - Root cause: VS Code automatically injected a bind mount from `\\wsl.localhost\Ubuntu\mnt\wslg\runtime-dir\wayland-0`; Docker Desktop could not reach the Ubuntu distro mount service and returned `ubuntu.sock: no such file or directory`.
 - Repair: disable automatic Wayland socket mounting for this workspace. This development container does not run Linux desktop windows, so the socket is unnecessary; the Vite UI remains available through forwarded port 1420.
+- Preventive follow-up: prepare Codex and Cargo volume mount points as the non-root `vscode` user inside the image, and remove the unnecessary `node_modules` named volume. Direct permission probes showed that newly created empty volumes otherwise defaulted to root ownership.
 

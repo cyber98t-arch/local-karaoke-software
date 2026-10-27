@@ -9,5 +9,7 @@ RUN curl -fsSL https://deb.nodesource.com/setup_${NODE_VERSION}.x | bash - \
        libasound2-dev ffmpeg git-lfs \
     && npm install --global @openai/codex \
     && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* \
+    && mkdir -p /home/vscode/.codex /usr/local/cargo/registry \
+    && chown -R vscode:vscode /home/vscode/.codex /usr/local/cargo/registry
 
