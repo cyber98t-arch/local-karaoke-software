@@ -20,3 +20,9 @@
 - Repair: register only the active mounted workspace as a Git `safe.directory` before running post-create setup.
 - Complete post-create rerun: passed as the non-root `vscode` user. `npm ci`, Python virtual environment creation, local Git LFS initialization, Git repository detection, and `codex --version` all completed successfully.
 
+## 2026-10-27 — Windows container launch repair
+
+- Read the complete VS Code Dev Containers log after the container still failed before post-create.
+- Root cause: VS Code automatically injected a bind mount from `\\wsl.localhost\Ubuntu\mnt\wslg\runtime-dir\wayland-0`; Docker Desktop could not reach the Ubuntu distro mount service and returned `ubuntu.sock: no such file or directory`.
+- Repair: disable automatic Wayland socket mounting for this workspace. This development container does not run Linux desktop windows, so the socket is unnecessary; the Vite UI remains available through forwarded port 1420.
+
