@@ -6,7 +6,7 @@ Provide a polished, offline karaoke experience on Windows 11, including ordinary
 
 ## Functional requirements
 
-1. Select music through a polished library UI inspired by the clarity and density of modern desktop music players, without copying proprietary assets.
+1. Select music through a deliberate, information-dense library UI using Nightingale as the workflow reference, without copying proprietary assets, exact layouts, or trade dress; avoid generic AI-dashboard styling. Do not use the DAM Denmoku/handset UI as the selection reference.
 2. Import MP3, FLAC, and WAV by referencing a user-selected source folder.
 3. Treat every original source as immutable and read-only.
 4. Generate an accompaniment with local vocal separation.
@@ -15,8 +15,8 @@ Provide a polished, offline karaoke experience on Windows 11, including ordinary
 7. Finish and cache separation, pitch, waveform, lyric, and metadata processing before playback.
 8. Capture a microphone with low latency and perform real-time CPU-capable pitch scoring.
 9. Use Intel Arc, AMD Radeon, or NVIDIA GPU acceleration for pre-playback inference when available, with a CPU fallback.
-10. Show pitch, timing, lyrics, and feedback while singing, but never the total score.
-11. Reveal the total score and breakdown only after singing ends.
+10. Show pitch, timing, lyrics, and feedback while singing, but never the total score. Use the DAM main karaoke display as an interaction reference for across-the-room legibility, while keeping all graphics and presentation original.
+11. Reveal the total score and breakdown only after singing ends. Use the DAM main-unit result flow as a reference: prominent final reveal first, detailed diagnostics second, without copying its branded treatment.
 12. Show logs, stage progress, cache state, errors, and model-download progress in understandable language.
 13. Support CPU-only installation and smoke tests in a VMware Windows 11 Home guest.
 
