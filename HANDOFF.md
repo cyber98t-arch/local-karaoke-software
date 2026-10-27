@@ -4,9 +4,9 @@
 - Current phase: Phase 1 complete; Phase 2 not started.
 - Repository state: Initial Tauri/React skeleton, Dev Container, Codex CLI setup, durable project documents, terminal start/stop/resume guidance, and mock song-selection UI are present.
 - Verified: `npm run lint`, `npm test` (2 tests), and `npm run build` passed on the Windows host. The UI was opened in Chrome and visually inspected. Dockerfile parsing and base-image download started successfully; the full first container build was intentionally stopped when the user limited this step to environment setup.
-- Unverified: Full Dev Container post-create completion, Rust/Tauri check inside it, Windows Tauri launch, microphone, GPU providers, installer, VMware guest, and all future AI pipelines.
+- Unverified: Rust/Tauri check inside the Dev Container, Windows Tauri launch, microphone, GPU providers, installer, VMware guest, and all future AI pipelines.
 - Next safe action: Review the song-selection UI and decide whether to proceed to Phase 2. Do not choose a catalog/database implementation without updating `DECISIONS.md` and obtaining user approval.
-- Blockers: None for reviewing the UI. Phase 2 has a human decision gate.
+- Blockers: None for reviewing the UI. The Dev Container Git ownership setup failure was repaired and the complete post-create command passed. Phase 2 has a human decision gate.
 
 ## Resume checklist
 
