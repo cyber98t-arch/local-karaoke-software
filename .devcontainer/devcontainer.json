@@ -1,0 +1,20 @@
+{
+  "name": "Hibiki Local Karaoke",
+  "build": { "dockerfile": "Dockerfile", "context": ".." },
+  "remoteUser": "vscode",
+  "forwardPorts": [1420],
+  "portsAttributes": { "1420": { "label": "Hibiki UI", "onAutoForward": "openPreview" } },
+  "mounts": [
+    "source=hibiki-codex-home,target=/home/vscode/.codex,type=volume",
+    "source=hibiki-cargo-cache,target=/usr/local/cargo/registry,type=volume",
+    "source=hibiki-node-modules,target=${containerWorkspaceFolder}/node_modules,type=volume"
+  ],
+  "containerEnv": { "CODEX_HOME": "/home/vscode/.codex", "PYTHONUNBUFFERED": "1" },
+  "postCreateCommand": "bash .devcontainer/post-create.sh",
+  "customizations": {
+    "vscode": {
+      "extensions": ["rust-lang.rust-analyzer", "tauri-apps.tauri-vscode", "dbaeumer.vscode-eslint", "ms-python.python", "eamodio.gitlens"]
+    }
+  }
+}
+

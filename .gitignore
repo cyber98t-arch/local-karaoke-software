@@ -1,0 +1,16 @@
+node_modules/
+dist/
+target/
+.venv/
+__pycache__/
+.pytest_cache/
+.env
+.DS_Store
+*.log
+*.tsbuildinfo
+vite.config.js
+vite.config.d.ts
+src-tauri/gen/
+cache/
+models/
+
