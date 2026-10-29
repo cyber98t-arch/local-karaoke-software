@@ -27,3 +27,105 @@
 - Repair: disable automatic Wayland socket mounting for this workspace. This development container does not run Linux desktop windows, so the socket is unnecessary; the Vite UI remains available through forwarded port 1420.
 - Preventive follow-up: prepare Codex and Cargo volume mount points as the non-root `vscode` user inside the image, and remove the unnecessary `node_modules` named volume. Direct permission probes showed that newly created empty volumes otherwise defaulted to root ownership.
 
+## 2026-10-27 — Phase 2 read-only discovery slice
+
+- Added temporary-fixture tests for recursive, case-insensitive MP3, FLAC, and WAV discovery, ignoring unsupported files, and leaving source contents and directory entries unchanged.
+- RED evidence: `cargo test --manifest-path src-tauri/Cargo.toml --lib library::tests` ran 2 tests; both failed at the intentional unimplemented scanner `todo!`.
+- Implemented a typed scanner using only `std::fs::read_dir` and metadata inspection. It follows directories but not symbolic links, includes only regular supported files, and returns a deterministic path order. It contains no source write operation.
+- GREEN evidence: `cargo test --manifest-path src-tauri/Cargo.toml --lib library::tests` passed, 2 tests.
+- `rustfmt --check src-tauri/src/library.rs`: passed.
+- `git diff --check`: passed.
+- Full `cargo fmt --check`: failed because existing `src-tauri/build.rs`, `src-tauri/src/lib.rs`, and `src-tauri/src/main.rs` have file-ending formatting differences. No repository-wide formatting rewrite was made in this focused slice.
+- The first integration-test attempt did not reach the scanner because `tauri::generate_context!()` reported missing `src-tauri/icons/icon.png`. The pure library tests were isolated from desktop startup; normal Tauri build/check remains unverified.
+
+## 2026-10-27 — Tauri icon repair
+
+- Generated an original transparent RGBA application icon with a gold/navy karaoke microphone and teal sound-wave accent, matching the existing UI palette, and saved it at `src-tauri/icons/icon.png`.
+- Source asset inspection: PNG, 1254 x 1254, 8-bit RGBA.
+- `cargo check --manifest-path src-tauri/Cargo.toml`: passed; the earlier `tauri::generate_context!()` missing-icon error is resolved.
+- `cargo test --manifest-path src-tauri/Cargo.toml`: passed; 2 library tests, 0 binary tests, and 0 doc tests failed.
+- `git diff --check`: passed.
+- Windows icon rendering and installer packaging remain unverified. Additional target-specific icon formats may be generated when packaging requirements are exercised in Phase 8.
+
+## 2026-10-27 — Phase 2 SQLite catalog foundation
+
+- Added `rusqlite` with only the `bundled` feature. Cargo resolved `rusqlite` 0.40.2 and `libsqlite3-sys` 0.38.2 and updated the existing untracked lockfile.
+- Added tests for creating schema version 1 at an injected application-data path and preserving an inserted source record across close/reopen.
+- RED evidence: `cargo test --manifest-path src-tauri/Cargo.toml --lib catalog::tests` ran 2 catalog tests; both failed at the intentional migration `todo!`.
+- Implemented an application-local `Catalog` that enables SQLite foreign keys and applies the initial `library_sources` schema in an immediate transaction. The schema stores a unique source path and a validated 64-character content SHA-256 string.
+- GREEN evidence: focused catalog tests passed, 2 tests. Full `cargo test --manifest-path src-tauri/Cargo.toml` passed, 4 tests total.
+- `cargo check --manifest-path src-tauri/Cargo.toml`: passed.
+- `rustfmt --check src-tauri/src/catalog.rs src-tauri/src/library.rs`: passed.
+- `cargo tree --manifest-path src-tauri/Cargo.toml -p rusqlite --prefix none`: completed and listed 15 packages including `rusqlite` itself on the Linux development target.
+- `git diff --check`: passed.
+- Windows compilation and binary-size impact remain unverified.
+
+## 2026-10-27 — UI reference clarification and cache identity slice
+
+- Recorded the user-approved UI direction in `docs/ui-direction.md`: Nightingale informs local-library song selection; only the DAM main karaoke display informs singing and post-performance result presentation. DAM Denmoku/handset UI is explicitly not a selection reference.
+- Added `sha2` 0.10.9 as a direct dependency for content identity.
+- Added tests for the known SHA-256 of a source fixture, source-content preservation, content-addressed manifest paths, and rejection of a traversal pipeline version.
+- RED evidence: `cargo test --manifest-path src-tauri/Cargo.toml --lib cache::tests` ran 3 tests; all failed at the intentional hashing/path `todo!` implementations.
+- Implemented streaming SHA-256 through `File::open` and a fixed-size read buffer. Implemented strict lowercase SHA-256 and safe pipeline-version validation before constructing `<cache-root>/<hash>/<pipeline-version>/manifest.json`.
+- GREEN evidence: focused cache tests passed, 3 tests. Full Rust tests passed, 7 tests total.
+- `npm run lint`: passed.
+- `npm test`: passed, 2 tests.
+- `npm run build`: passed.
+- `cargo check --manifest-path src-tauri/Cargo.toml`: passed.
+- Atomic JSON manifest writing and recovery behavior remain unimplemented and unverified.
+
+## 2026-10-27 — Phase 2 atomic cache manifest
+
+- Defined the minimal manifest schema with schema version, source SHA-256, and pipeline version; no artifact format or model choice was introduced.
+- Added tests for atomic JSON commit, retry after a stale `manifest.json.tmp`, and preservation of an existing valid manifest.
+- RED evidence: focused cache tests ran 6 tests; the 3 existing identity tests passed and the 3 new manifest-write tests failed at the intentional `todo!`.
+- Implemented validation of schema and cache identity, same-directory temporary writing, file synchronization, and final rename. A matching existing manifest is retained byte-for-byte and any stale temporary file is removed.
+- GREEN evidence: focused cache tests passed, 6 tests. Full `cargo test --manifest-path src-tauri/Cargo.toml` passed, 10 tests total.
+- `cargo check --manifest-path src-tauri/Cargo.toml`: passed.
+- `rustfmt --check src-tauri/src/cache.rs src-tauri/src/catalog.rs src-tauri/src/library.rs`: passed.
+- `git diff --check`: passed.
+- Windows filesystem behavior remains unverified and belongs in the Windows test plan execution.
+
+## 2026-10-27 — Phase 2 read-only audio metadata
+
+- Generated small, original sine-wave MP3, FLAC, and WAV test fixtures with title and artist tags. `ffprobe` confirmed all three formats, tags, and nonzero durations; the fixtures contain no user or copyrighted audio.
+- Added `lofty` with default features disabled and only `id3v2_compression_support` enabled. Cargo resolved version 0.25.5.
+- Observed dependency issue: `lofty` 0.25.5 failed to compile with every feature disabled because its no-compression ID3v2 branch referenced unavailable error types. Enabling the read-only compression feature resolved the crate error.
+- Added tests for title, artist, and duration extraction across MP3, FLAC, and WAV and for byte-for-byte source preservation.
+- RED evidence: after the dependency compiled, both focused metadata tests failed at the intentional reader `todo!`.
+- Implemented a read-only `lofty::Probe` boundary that copies only title, artist, and duration into the application-owned `TrackMetadata` type; no tag writer is exposed.
+- GREEN evidence: focused metadata tests passed, 2 tests. Full `cargo test --manifest-path src-tauri/Cargo.toml` passed, 12 tests total.
+- `cargo check --manifest-path src-tauri/Cargo.toml`: passed.
+- Targeted Rust formatting, `cargo tree -p lofty`, and `git diff --check`: passed.
+- Windows metadata parsing remains unverified.
+
+## 2026-10-27 — Phase 2 transactional library indexing
+
+- Added service-level tests covering discovery, metadata extraction, content hashing, SQLite persistence, complete source-byte preservation, and all-or-nothing behavior when one supported file is invalid.
+- Added a migration test from catalog schema version 1 to version 2 with preservation of an existing record.
+- RED evidence: both service tests failed at the intentional indexing `todo!`; the migration test separately failed because the catalog remained at version 1.
+- Migrated the catalog to schema version 2, adding nullable title/artist and nonnegative duration fields. New and version 1 databases migrate inside immediate SQLite transactions.
+- Implemented transactional catalog replacement. The service completes all read-only source work before beginning the database transaction, so a metadata/hash failure cannot leave a partial new catalog.
+- GREEN evidence: library-only tests passed, 15 tests. Full `cargo test --manifest-path src-tauri/Cargo.toml` passed, 15 tests total.
+- `cargo check --manifest-path src-tauri/Cargo.toml`: passed.
+- Targeted Rust formatting and `git diff --check`: passed.
+- Windows path round-tripping and Windows filesystem execution remain unverified.
+
+## 2026-10-27 — Stop-point verification
+
+- `npm run lint`: passed.
+- `npm test`: passed, 2 tests.
+- `npm run build`: passed; production assets generated.
+- `cargo test --manifest-path src-tauri/Cargo.toml`: passed, 15 tests.
+- `cargo check --manifest-path src-tauri/Cargo.toml`: passed.
+- `git diff --check`: passed after the handoff update.
+- No Windows-only validation was performed at this stop point.
+
+## 2026-10-29 — Commit preparation
+
+- Reviewed the accumulated Phase 2 diff and separated it into UI/decision documentation, the generated Tauri icon, the read-only library/catalog foundation, and final progress/handoff documentation.
+- Created `39f15b0` (`docs: record phase 2 and UI direction decisions`).
+- Created `2bf667c` (`build: add Tauri application icon`).
+- Created `e36e99a` (`feat: add read-only library catalog foundation`).
+- No push, tag, release, history rewrite, or destructive operation was performed.
+
