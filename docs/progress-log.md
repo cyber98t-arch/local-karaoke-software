@@ -262,3 +262,14 @@
 - GREEN evidence: focused audio-device tests passed, 2 tests. Full `cargo test --manifest-path src-tauri/Cargo.toml` passed, 24 tests total; `cargo check --manifest-path src-tauri/Cargo.toml`, targeted Rust formatting, and `git diff --check` passed.
 - CPAL has not yet been added, no Tauri command exposes this service, and no audio device or stream was opened.
 
+## 2026-10-29 — CPAL enumeration and output probe
+
+- Added CPAL 0.18.2 with its empty default feature set; no optional feature such as ASIO was enabled. The resolved Linux CPAL subtree contains four direct/transitive audio packages and all inspected licenses are Apache-2.0, MIT, or both.
+- Implemented a CPAL adapter that reads stable device IDs and names from input/output enumerators and system defaults, then exposed it through `list_audio_devices`. Enumeration does not open a stream.
+- Added typed React invocation and compact input/output selectors. The system default is selected by ID; empty and backend-error states provide recovery text.
+- RED evidence: the frontend device test failed because no accessible input/output selectors existed.
+- Added a selected-output probe that negotiates the default format, generates a 440 Hz sine at 0.15 amplitude for 500 ms, supports CPAL's integer and floating sample formats, and reports stream failures without reading a source file.
+- RED evidence: the oscillator test failed at its intentional `todo!`. GREEN evidence: the focused oscillator test and full Rust suite passed; full Rust count is 25 tests.
+- Frontend tests passed, 8 tests without React warnings. `npm run lint`, `npm run build`, `cargo check --manifest-path src-tauri/Cargo.toml`, targeted Rust formatting, and `git diff --check` passed.
+- Windows WASAPI device enumeration and audible test-tone confirmation remain pending user observation. Microphone capture has not been implemented.
+

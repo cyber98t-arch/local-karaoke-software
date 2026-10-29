@@ -19,7 +19,7 @@ Rodio is not selected for this phase. It would simplify playback but still uses 
 - The published CPAL 0.18.2 manifest and included `LICENSE` declare Apache-2.0.
 - CPAL 0.18.2 requires Rust 1.85; the current Dev Container reports Rust 1.99.0.
 - CPAL's default feature set is empty. ASIO and its additional toolchain/driver requirements therefore remain excluded.
-- The next implementation slice must resolve the lockfile and inspect the actual target dependency tree before claiming a final dependency count or license inventory.
+- The resolved Linux target added CPAL, `alsa`, `alsa-sys`, and `dasp_sample`; their published licenses are Apache-2.0, Apache-2.0/MIT, MIT, and MIT OR Apache-2.0 respectively. Other target-specific packages remain in the lockfile but are not Linux runtime dependencies.
 
 ## Platform and build constraints
 
@@ -30,7 +30,7 @@ Rodio is not selected for this phase. It would simplify playback but still uses 
 
 ## Initial integration boundary
 
-The first code slice may enumerate devices and configurations only. It must use an injected trait for tests and return application-owned value types. It must not open an input/output stream, perform loopback capture, monitor the microphone, or expose CPAL objects to React.
+The first code slice enumerates devices only through an injected trait and returns application-owned value types. The subsequent playback probe opens a selected output stream for 500 ms using a generated low-amplitude tone. It does not read source audio, perform loopback capture, monitor the microphone, or expose CPAL objects to React.
 
 ## Sources
 
