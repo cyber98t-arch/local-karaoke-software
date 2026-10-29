@@ -42,12 +42,14 @@ Official references:
 
 ## Visual constraints
 
+- Use Material Design 2 as a loose visual-system reference for hierarchy, compact surfaces, restrained elevation, interaction states, and a consistent 4/8 px rhythm. Do not add a Material component dependency solely for appearance.
 - Do not copy DAM or Nightingale logos, icons, artwork, exact layouts, colors, or branded terminology.
 - Avoid the common generated-dashboard look: excessive rounded cards, glass blur, glowing gradients, floating pills, oversized empty hero areas, and ornamental status copy.
 - Use a restrained neutral base, one primary action color, one semantic status palette, and borders/spacing before shadows.
 - Prefer a consistent 4/8 px spacing rhythm, modest corner radii, tabular alignment, and system/Japanese UI typefaces.
 - Use album artwork only where it improves recognition; do not turn every row into a decorative card.
 - Text labels must remain useful without icons. Motion should explain state changes, not decorate idle screens.
+- Do not display a decorative product-name lockup in the song-selection navigation; lead with the user's library and tasks.
 
 ## Song-selection structure
 

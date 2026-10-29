@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
-import { Disc3, FolderOpen, Mic2, Search, Settings2, SlidersHorizontal, Sparkles } from "lucide-react";
+import { Disc3, FolderOpen, ListMusic, Mic2, Search, Settings2, SlidersHorizontal } from "lucide-react";
 import { songs } from "./data/songs";
 import { tauriLibraryClient, type IndexedSong, type LibraryClient } from "./tauri/libraryClient";
 import type { Song } from "./types";
 
 const stateLabel: Record<Song["state"], string> = {
   ready: "歌唱できます",
-  processing: "AI解析中",
+  processing: "解析中",
   waiting: "解析待ち",
 };
 
@@ -108,10 +108,9 @@ function App({ libraryClient = tauriLibraryClient }: AppProps) {
   return (
     <main className="app-shell">
       <aside className="sidebar">
-        <div className="brand"><span className="brand-mark"><Mic2 size={20} /></span><span>HIBIKI</span></div>
         <nav aria-label="メインメニュー">
           <button className="nav-item active"><Disc3 size={19} />楽曲を選ぶ</button>
-          <button className="nav-item"><Sparkles size={19} />解析キュー<span className="badge">2</span></button>
+          <button className="nav-item"><ListMusic size={19} />解析キュー<span className="badge">2</span></button>
           <button className="nav-item"><Settings2 size={19} />設定</button>
         </nav>
         <div className="device-card">
@@ -125,7 +124,7 @@ function App({ libraryClient = tauriLibraryClient }: AppProps) {
 
       <section className="content">
         <header>
-          <div><span className="eyebrow">LOCAL KARAOKE LIBRARY</span><h1>今日は、何を歌いますか。</h1></div>
+          <div><h1>曲ライブラリ</h1><p className="page-description">このPCに保存された音源から選択します</p></div>
           <button className="import-button" disabled={importing} onClick={importLibrary}>
             <FolderOpen size={18} />
             {catalogLoading ? "ライブラリを読込中" : importStatus === "selecting" ? "フォルダーを選択中" : importStatus === "indexing" ? "ライブラリを索引中" : "音源フォルダーを追加"}
@@ -142,20 +141,25 @@ function App({ libraryClient = tauriLibraryClient }: AppProps) {
 
         <div className="library-layout">
           <section className="song-list" aria-label="楽曲一覧">
-            {visibleSongs.map((song) => (
-              <button key={song.id} className={`song-row ${selectedId === song.id ? "selected" : ""}`} onClick={() => setSelectedId(song.id)}>
-                <span className="cover" style={{ "--accent": song.accent } as React.CSSProperties}><Disc3 size={24} /></span>
-                <span className="song-copy"><strong>{song.title}</strong><small>{song.artist}</small></span>
-                <span className="song-meta">{song.format}<small>{song.duration}</small></span>
-                <span className={`state ${song.state}`}><i />{stateLabel[song.state]}{song.progress ? ` ${song.progress}%` : ""}</span>
-              </button>
-            ))}
+            <table>
+              <thead><tr><th>曲名</th><th>アーティスト</th><th>形式</th><th>時間</th><th>状態</th></tr></thead>
+              <tbody>
+                {visibleSongs.map((song) => (
+                  <tr key={song.id} className={selectedId === song.id ? "selected" : ""}>
+                    <td><button className="song-select" onClick={() => setSelectedId(song.id)}><Disc3 size={17} /><strong>{song.title}</strong></button></td>
+                    <td>{song.artist}</td>
+                    <td>{song.format}</td>
+                    <td>{song.duration}</td>
+                    <td><span className={`state ${song.state}`}><i />{stateLabel[song.state]}{song.progress ? ` ${song.progress}%` : ""}</span></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
             {visibleSongs.length === 0 && <div className="empty">一致する楽曲がありません。</div>}
           </section>
 
           {selected ? <aside className="now-card">
-            <div className="hero-art" style={{ "--accent": selected.accent } as React.CSSProperties}><span>選択中</span><Disc3 size={74} strokeWidth={1.2} /></div>
-            <span className="eyebrow">SELECTED SONG</span>
+            <div className="detail-heading"><span className="detail-icon" style={{ "--accent": selected.accent } as React.CSSProperties}><Disc3 size={24} /></span><span>選択中の曲</span></div>
             <h2>{selected.title}</h2>
             <p>{selected.artist}</p>
             <div className="facts"><span>キー <strong>{selected.key}</strong></span><span>長さ <strong>{selected.duration}</strong></span></div>

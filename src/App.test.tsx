@@ -3,6 +3,16 @@ import { vi } from "vitest";
 import App from "./App";
 
 describe("song library", () => {
+  it("uses a compact library table with plain analysis wording", () => {
+    render(<App libraryClient={{}} />);
+
+    expect(screen.getByRole("columnheader", { name: "曲名" })).toBeInTheDocument();
+    expect(screen.getByRole("columnheader", { name: "アーティスト" })).toBeInTheDocument();
+    expect(screen.getByRole("columnheader", { name: "時間" })).toBeInTheDocument();
+    expect(screen.getByText("解析中 68%")).toBeInTheDocument();
+    expect(screen.queryByText(/AI解析中/)).not.toBeInTheDocument();
+  });
+
   it("filters songs by Japanese title", () => {
     render(<App libraryClient={{}} />);
     fireEvent.change(screen.getByLabelText("曲名またはアーティストを検索"), { target: { value: "透明" } });
