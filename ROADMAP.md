@@ -5,7 +5,7 @@
 | 0. Repository foundation | Complete | Git, Dev Container, Codex continuity, requirements and verification baseline | Approved: Tauri 2 + React + Rust + Python |
 | 1. Song-selection UI skeleton | Complete | Searchable/selectable mock library with analysis states | No new gate |
 | 2. Read-only library and cache catalog | Complete | Scan MP3/FLAC/WAV without changing sources; content-addressed catalog | Approved: D-003 SQLite catalog + JSON artifact manifests |
-| 3. Playback and microphone probe | Not started | Windows audio device selection, playback, loopback-free mic monitoring | Decision required: Windows audio engine/library |
+| 3. Playback and microphone probe | In progress | Windows audio device selection, playback, loopback-free mic monitoring | Approved: D-005 CPAL + default Windows WASAPI |
 | 4. Analysis pipeline prototype | Not started | Local separation, melody extraction, Japanese lyric alignment, progress reporting | Decision required: model families and licenses |
 | 5. GPU provider matrix | Not started | DirectML/CUDA/other supported providers with measured CPU fallback | Decision required after hardware probes |
 | 6. Singing and scoring UI | Not started | Low-latency live pitch/timing feedback; no live total score | Scoring weights require approval |
@@ -44,4 +44,23 @@ Additional Phase 2 progress: the React import action now invokes native selectio
 Additional Phase 2 progress: React now restores an existing application-local catalog through a path-free Rust command on startup; a missing catalog remains non-creating. Native Windows end-to-end verification was completed at Phase 2 closure below.
 
 Phase 2 completed 2026-10-29: automated tests cover read-only discovery, metadata, hashing, transactional catalog updates, path-free command responses, and restoration. Windows native testing confirmed application launch, folder selection, song display, restart restoration, Japanese/whitespace path handling, and no observed source-folder changes.
+
+## Phase 3 acceptance criteria
+
+- Rust owns audio-device access and exposes typed, purpose-specific commands to React; the UI does not open audio streams directly.
+- Users can enumerate and select Windows input and output devices, including clearly identified system defaults.
+- A short local playback probe reports the selected device, negotiated stream configuration, completion, and actionable errors.
+- A microphone probe captures input without loopback capture or audible monitoring and reports negotiated configuration, level activity, and measured callback cadence.
+- Device loss, permission denial, unsupported configurations, and stream failures identify the failed stage and a safe retry action.
+- The real-time callback path performs no filesystem, database, network, model, or UI work and remains CPU-capable.
+- Automated tests use an injected audio boundary; Windows-only device, playback, microphone, and latency evidence follows `docs/windows-test-plan.md`.
+
+## Phase 3 initial test-first steps
+
+1. Review the selected CPAL version, license, dependency impact, Windows WASAPI behavior, and Linux build prerequisites before adding it.
+2. Add failing tests for a typed audio-device service using an injected fake backend; cover defaults, input/output separation, duplicate display names, and backend errors.
+3. Implement the smallest read-only CPAL adapter and path-free Tauri command needed to enumerate devices and supported/default configurations; do not open streams yet.
+4. Connect device selection in React and verify safe empty/error states without starting playback or capture.
+5. Add a generated-tone playback probe behind the injected boundary, then validate it on Windows shared-mode WASAPI.
+6. Add a bounded microphone-level probe with no loopback or monitoring, then measure callback cadence on Windows.
 

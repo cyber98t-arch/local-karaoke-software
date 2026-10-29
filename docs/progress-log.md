@@ -241,3 +241,9 @@
 - Reviewed current official audio-library information for the Phase 3 gate. CPAL directly over its default Windows WASAPI backend is the recommended option; Rodio plus CPAL and direct WASAPI bindings remain documented alternatives in D-005.
 - Phase-close `cargo test --manifest-path src-tauri/Cargo.toml` passed, 22 tests; `cargo check --manifest-path src-tauri/Cargo.toml` and `git diff --check` passed. The frontend baseline awaits the documented Dev Container rebuild because host Windows `npm ci` replaced the shared Linux-native optional dependency.
 
+## 2026-10-29 — Phase 3 audio-engine approval
+
+- The user approved D-005: direct CPAL audio I/O using the default Windows WASAPI backend.
+- Approval is limited to shared-mode device enumeration plus playback and microphone probes. ASIO, loopback capture, audible microphone monitoring, scoring, and production playback remain outside this decision.
+- Added explicit Phase 3 acceptance criteria and a test-first sequence. No audio dependency or implementation was added at this stop point.
+
