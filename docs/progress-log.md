@@ -228,6 +228,7 @@
 - `cargo check --manifest-path src-tauri/Cargo.toml` and `git diff --check` passed after adding the ICO.
 - `npm run build` in the Linux Dev Container could not run because the Windows-host `npm ci` replaced the shared `node_modules` with platform-specific dependencies and left the Linux Rollup optional package absent. Added a dedicated Dev Container `node_modules` volume to prevent future Windows/Linux dependency collisions; a container rebuild is required to verify it.
 - After the ICO addition, the user successfully launched the native application on Windows, selected a folder, and saw its songs in the library.
+- The user then closed and relaunched the Windows application and confirmed that the previously indexed song list restored without selecting the folder again.
 - A simultaneously open Dev Container forwarded port 1420 and repeatedly opened VS Code preview tabs during diagnosis. Changed the port behavior from `openPreview` to `notify`; Windows-native testing should not run concurrently with a container dev server on the same host port.
-- Windows restart restoration, source-directory immutability, and a path containing Japanese characters and spaces remain unverified.
+- Windows source-directory immutability and a path containing Japanese characters and spaces remain unverified.
 
