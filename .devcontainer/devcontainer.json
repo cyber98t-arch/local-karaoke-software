@@ -3,7 +3,7 @@
   "build": { "dockerfile": "Dockerfile", "context": ".." },
   "remoteUser": "vscode",
   "forwardPorts": [1420],
-  "portsAttributes": { "1420": { "label": "Hibiki UI", "onAutoForward": "openPreview" } },
+  "portsAttributes": { "1420": { "label": "Karaoke UI", "onAutoForward": "notify" } },
   "mounts": [
     "source=hibiki-codex-home,target=/home/vscode/.codex,type=volume",
     "source=hibiki-cargo-cache,target=/usr/local/cargo/registry,type=volume",
