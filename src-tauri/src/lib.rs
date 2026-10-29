@@ -6,6 +6,7 @@ pub mod library;
 pub mod library_commands;
 pub mod library_service;
 pub mod metadata;
+pub mod model_manifest;
 
 #[cfg(not(test))]
 use library_commands::LibraryState;
