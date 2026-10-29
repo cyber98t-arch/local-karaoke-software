@@ -24,6 +24,7 @@ fn runtime_status() -> serde_json::Value {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_dialog::init())
         .setup(|app| {
             let application_data = app.path().app_data_dir()?;
             std::fs::create_dir_all(&application_data)?;
@@ -32,6 +33,7 @@ pub fn run() {
         })
         .invoke_handler(tauri::generate_handler![
             runtime_status,
+            library_commands::select_library_folder,
             library_commands::index_selected_library
         ])
         .run(tauri::generate_context!())

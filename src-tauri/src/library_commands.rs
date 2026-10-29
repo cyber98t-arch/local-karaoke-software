@@ -81,6 +81,44 @@ pub struct IndexedSong {
     pub duration_ms: u64,
 }
 
+#[derive(Debug, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct LibrarySelectionResult {
+    pub selected: bool,
+}
+
+fn apply_picker_selection(
+    state: &LibraryState,
+    selected: Option<PathBuf>,
+) -> Result<LibrarySelectionResult, String> {
+    let Some(selected) = selected else {
+        return Ok(LibrarySelectionResult { selected: false });
+    };
+
+    state.select_library(&selected)?;
+    Ok(LibrarySelectionResult { selected: true })
+}
+
+#[tauri::command]
+pub async fn select_library_folder(
+    app: tauri::AppHandle,
+    state: tauri::State<'_, LibraryState>,
+) -> Result<LibrarySelectionResult, String> {
+    use tauri_plugin_dialog::DialogExt;
+
+    let selected = app
+        .dialog()
+        .file()
+        .set_title("音楽ライブラリを選択")
+        .blocking_pick_folder()
+        .map(|path| {
+            path.into_path()
+                .map_err(|_| "The selected library location is not a local folder.".to_owned())
+        })
+        .transpose()?;
+    apply_picker_selection(&state, selected)
+}
+
 #[tauri::command]
 pub fn index_selected_library(
     state: tauri::State<'_, LibraryState>,
@@ -90,7 +128,7 @@ pub fn index_selected_library(
 
 #[cfg(test)]
 mod tests {
-    use super::LibraryState;
+    use super::{apply_picker_selection, LibrarySelectionResult, LibraryState};
     use std::{
         fs,
         path::PathBuf,
@@ -185,5 +223,48 @@ mod tests {
         );
         assert!(result.songs[0].duration_ms > 0);
         assert!(!format!("{result:?}").contains(&library.to_string_lossy().as_ref()));
+    }
+
+    #[test]
+    fn cancelling_folder_selection_does_not_create_or_change_library_state() {
+        let directory = TestDirectory::new();
+        let state = LibraryState::new(directory.path.join("catalog.sqlite3"));
+
+        let result = apply_picker_selection(&state, None)
+            .expect("cancelling folder selection should not fail");
+
+        assert_eq!(result, LibrarySelectionResult { selected: false });
+        assert_eq!(
+            state
+                .index_selected_library()
+                .expect_err("cancelled selection should leave no selected root"),
+            "No library folder has been selected."
+        );
+        assert!(!directory.path.join("catalog.sqlite3").exists());
+    }
+
+    #[test]
+    fn native_folder_selection_updates_rust_state_without_returning_the_path() {
+        let directory = TestDirectory::new();
+        let library = directory.path.join("music");
+        fs::create_dir(&library).expect("library should be created");
+        fs::copy(fixture("metadata.flac"), library.join("song.flac"))
+            .expect("fixture should be copied");
+        let state = LibraryState::new(directory.path.join("catalog.sqlite3"));
+
+        let result = apply_picker_selection(&state, Some(library.clone()))
+            .expect("native folder selection should succeed");
+
+        assert_eq!(result, LibrarySelectionResult { selected: true });
+        assert!(!serde_json::to_string(&result)
+            .expect("selection result should serialize")
+            .contains(&library.to_string_lossy().as_ref()));
+        assert_eq!(
+            state
+                .index_selected_library()
+                .expect("selected library should be indexable")
+                .song_count,
+            1
+        );
     }
 }
