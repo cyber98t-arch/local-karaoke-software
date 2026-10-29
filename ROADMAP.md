@@ -62,5 +62,5 @@ Phase 2 completed 2026-10-29: automated tests cover read-only discovery, metadat
 3. Completed 2026-10-29: added CPAL 0.18.2 with no optional features, implemented the smallest read-only adapter, and exposed a typed Tauri device-enumeration command without opening streams.
 4. Completed 2026-10-29: connected input/output device selection in React with default selection, empty states, and safe errors; selection alone does not start playback or capture.
 5. Implementation completed 2026-10-29; Windows validation pending: added a 500 ms, low-amplitude generated sine-tone probe for the selected output device with negotiated configuration and actionable errors.
-6. Add a bounded microphone-level probe with no loopback or monitoring, then measure callback cadence on Windows.
+6. Implementation completed 2026-10-29; Windows validation pending: added a 1.5 second microphone-level probe that accepts only enumerated input devices, stores no samples, creates no output stream, and reports peak plus callback cadence.
 

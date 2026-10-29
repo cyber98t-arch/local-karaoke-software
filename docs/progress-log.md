@@ -278,3 +278,12 @@
 - The user confirmed on Windows that input/output selectors populated, defaults were identified, output selection worked, the 500 ms test tone was audible, and no error or application stop occurred.
 - This completes native validation of Phase 3 device enumeration and the bounded shared-mode output probe. Microphone capture and callback-cadence evidence remain pending.
 
+## 2026-10-29 — Bounded microphone-level probe
+
+- Added a selected-input Tauri probe that accepts only IDs found through CPAL's input-device iterator, negotiates the default input format, and runs for 1.5 seconds.
+- The real-time callback computes a bounded peak and increments an atomic callback counter. It performs no filesystem, database, network, model, UI, output-stream, loopback, monitoring, or sample-retention work.
+- The result reports device name, sample rate, channels, duration, callback count, average callback interval, and peak level. No captured samples cross the Rust boundary.
+- Added a UI action and safe microphone-permission/reconnection errors; the UI displays peak percentage, callback count, and average callback interval without exposing samples.
+- Automated tests cover bounded peak calculation and selected-input invocation. Full Rust tests passed, 26 tests; frontend tests passed, 9 tests. `cargo check`, lint, production build, targeted formatting, and `git diff --check` passed.
+- Windows microphone permission, visible peak response to speech, absence of audible monitoring, and callback cadence remain pending user observation.
+
