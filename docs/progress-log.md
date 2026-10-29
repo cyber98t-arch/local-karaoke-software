@@ -315,3 +315,11 @@
 - Added Phase 4 acceptance criteria and a test-first sequence centered on read-only sources, cache-only atomic artifacts, model provenance, resumable jobs, and a required Windows CPU path.
 - No model, runtime, or dependency was downloaded or added during this approval step.
 
+## 2026-10-30 — Validated model artifact manifest
+
+- Added an application-owned serialized model manifest covering family, stable ID, version/revision, HTTPS artifact source, SHA-256, exact byte size, SPDX license identifier, and HTTPS license evidence.
+- RED evidence: the focused tests failed at the intentional validation `todo!` for both valid and unsafe metadata cases.
+- GREEN evidence: the focused suite passed 3 tests. The validator rejects traversal-capable IDs, non-HTTPS sources/evidence, malformed hashes, zero-byte artifacts, missing license identifiers, and unsupported schema versions.
+- Phase-step baseline passed: frontend lint, 10 frontend tests, production build, 29 Rust tests, Rust check, targeted Rust formatting, and `git diff --check`.
+- No network access, model download, runtime dependency, source-audio access, or cache write was added by this implementation.
+
