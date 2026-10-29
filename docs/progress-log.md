@@ -193,3 +193,15 @@
 - Source files and HTML already used UTF-8, so no application text or encoding conversion was needed.
 - Dockerfile inspection and `git diff --check`: passed. Dev Container rebuild, post-rebuild Japanese rendering, and dconf warning removal remain unverified.
 
+## 2026-10-29 — Phase 2 continuation preflight
+
+- Confirmed Phase 2 remains the only approved in-progress phase and that no decision is waiting.
+- `npm run lint`: passed.
+- `npm test -- --run`: passed, 5 tests.
+- `npm run build`: passed; production assets generated.
+- `cargo test --manifest-path src-tauri/Cargo.toml`: passed, 22 tests.
+- `cargo check --manifest-path src-tauri/Cargo.toml`: passed.
+- `git diff --check`: passed before this documentation update.
+- Inspected the untracked screenshot read-only. It shows Japanese glyphs as missing boxes, so it does not verify the Dev Container font repair; whether it was captured before or after the required rebuild is unknown.
+- No Windows-only validation was performed. The Phase 2 native Windows dialog/index/restart round trip remains the next required evidence.
+
