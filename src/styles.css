@@ -23,6 +23,8 @@ header { display: flex; justify-content: space-between; align-items: flex-end; }
 h1 { margin: 8px 0 0; font-size: clamp(27px, 3vw, 42px); letter-spacing: -.04em; font-weight: 600; }
 .import-button, .filter { border: 1px solid #29445b; background: #102131; border-radius: 10px; padding: 11px 15px; display: flex; gap: 9px; align-items: center; cursor: pointer; }
 .import-button:hover, .filter:hover { border-color: #4c6d87; }
+.import-button:disabled { cursor: wait; color: #71899e; border-color: #20374a; }
+.import-error { margin: 16px 0 -18px; border: 1px solid #774553; background: #2a1620; color: #ffb7c6; border-radius: 10px; padding: 10px 13px; font-size: 12px; }
 .toolbar { margin: 34px 0 18px; display: flex; align-items: center; gap: 12px; }
 .search { flex: 1; max-width: 520px; display: flex; gap: 10px; align-items: center; background: #0b1723; border: 1px solid #1c3245; border-radius: 11px; padding: 0 14px; color: #68849c; }
 .search input { width: 100%; padding: 12px 0; border: 0; outline: 0; background: transparent; color: white; }
@@ -39,5 +41,6 @@ h1 { margin: 8px 0 0; font-size: clamp(27px, 3vw, 42px); letter-spacing: -.04em;
 .now-card h2{margin:8px 0 3px;font-size:21px}.now-card>p{margin:0;color:#8299ad;font-size:12px}.facts{display:flex;gap:10px;margin:17px 0}.facts span{flex:1;background:#091522;padding:9px;border-radius:8px;color:#71899e;font-size:10px}.facts strong{display:block;color:#eaf2fb;font-size:13px;margin-top:3px}
 .cache-status{border-top:1px solid #1d3346;padding:14px 2px;display:flex;align-items:center;gap:10px}.cache-status>i{width:8px;height:8px;border-radius:50%;background:#687f91}.cache-status>i.ready{background:#5dd3c8;box-shadow:0 0 12px #5dd3c8}.cache-status div{display:grid;gap:3px}.cache-status strong{font-size:11px}.cache-status small{color:#617b90;font-size:9px}
 .sing-button{width:100%;border:0;border-radius:11px;background:#f0b65a;color:#13171b;padding:12px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer}.sing-button:disabled{background:#263a4b;color:#617a8f;cursor:not-allowed}.score-note{display:block;text-align:center;color:#617a90;font-size:9px;line-height:1.5;margin:10px 8px 1px}.empty{padding:50px;text-align:center;color:#698299}
+.empty-selection { min-height: 260px; display: grid; place-items: center; align-content: center; gap: 10px; color: #68849c; text-align: center; }.empty-selection strong{color:#eaf2fb}.empty-selection small{max-width:210px;line-height:1.6}
 @media(max-width:1100px){.library-layout{grid-template-columns:1fr}.now-card{display:none}}
 

@@ -6,7 +6,7 @@ export type Song = {
   artist: string;
   duration: string;
   key: string;
-  format: "MP3" | "FLAC" | "WAV";
+  format: "MP3" | "FLAC" | "WAV" | "LOCAL";
   state: AnalysisState;
   progress?: number;
   accent: string;
