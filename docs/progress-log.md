@@ -218,5 +218,6 @@
 - Replaced the repeated song cards with a semantic compact table containing title, artist, format, duration, and analysis-state columns. Replaced `AI解析中` with the plain status `解析中`.
 - RED evidence: the new table/wording test failed because the prior card list had no column headers and still rendered `AI解析中`.
 - GREEN evidence: `npm test -- --run` passed, 6 tests. `npm run lint` and `npm run build` passed.
-- Native visual review at the target Windows size remains unverified.
+- The user subsequently reported that the revised UI was substantially improved and that registering the untracked `sample music/` folder containing audio files worked in the Linux Dev Container Tauri application.
+- Native visual review at the target Windows size remains unverified. The contents of `sample music/` were not inspected or added to Git.
 
