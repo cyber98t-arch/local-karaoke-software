@@ -205,3 +205,9 @@
 - Inspected the untracked screenshot read-only. It shows Japanese glyphs as missing boxes, so it does not verify the Dev Container font repair; whether it was captured before or after the required rebuild is unknown.
 - No Windows-only validation was performed. The Phase 2 native Windows dialog/index/restart round trip remains the next required evidence.
 
+## 2026-10-29 — Linux Dev Container manual smoke observation
+
+- The user reported that Japanese text rendered correctly after launching the Tauri application with `npm run tauri dev`.
+- The user also reported that adding files through the application appeared to work.
+- This is user-observed Linux Dev Container smoke evidence. Exact imported formats, catalog restoration after restart, source immutability, dconf warning removal, and all Windows-specific behavior were not independently verified in this observation.
+
