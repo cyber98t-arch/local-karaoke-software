@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Disc3, FolderOpen, ListMusic, Mic2, Search, Settings2, SlidersHorizontal } from "lucide-react";
 import { songs } from "./data/songs";
+import { tauriAudioClient, type AudioClient, type AudioDevice } from "./tauri/audioClient";
 import { tauriLibraryClient, type IndexedSong, type LibraryClient } from "./tauri/libraryClient";
 import type { Song } from "./types";
 
@@ -33,14 +34,19 @@ function mapIndexedSongs(indexedSongs: IndexedSong[]): Song[] {
 
 type AppProps = {
   libraryClient?: Partial<LibraryClient>;
+  audioClient?: Partial<AudioClient>;
 };
 
-function App({ libraryClient = tauriLibraryClient }: AppProps) {
+function App({ libraryClient = tauriLibraryClient, audioClient }: AppProps) {
   const [query, setQuery] = useState("");
   const [selectedId, setSelectedId] = useState("1");
   const [librarySongs, setLibrarySongs] = useState<Song[]>(songs);
   const [importStatus, setImportStatus] = useState<"idle" | "selecting" | "indexing">("idle");
   const [importError, setImportError] = useState<string | null>(null);
+  const [audioDevices, setAudioDevices] = useState<AudioDevice[]>([]);
+  const [selectedInputId, setSelectedInputId] = useState("");
+  const [selectedOutputId, setSelectedOutputId] = useState("");
+  const [audioError, setAudioError] = useState<string | null>(null);
   const loadLibraryCatalog = libraryClient
     ? libraryClient.loadLibraryCatalog
     : tauriLibraryClient.loadLibraryCatalog;
@@ -51,6 +57,35 @@ function App({ libraryClient = tauriLibraryClient }: AppProps) {
   );
   const selected = librarySongs.find((song) => song.id === selectedId) ?? librarySongs[0];
   const importing = catalogLoading || importStatus !== "idle";
+  const listAudioDevices = audioClient ? audioClient.listAudioDevices : tauriAudioClient.listAudioDevices;
+  const inputDevices = audioDevices.filter((device) => device.direction === "input");
+  const outputDevices = audioDevices.filter((device) => device.direction === "output");
+
+  useEffect(() => {
+    if (!listAudioDevices) {
+      return;
+    }
+
+    let active = true;
+    listAudioDevices()
+      .then((devices) => {
+        if (!active) return;
+        setAudioDevices(devices);
+        const inputs = devices.filter((device) => device.direction === "input");
+        const outputs = devices.filter((device) => device.direction === "output");
+        setSelectedInputId((inputs.find((device) => device.isDefault) ?? inputs[0])?.id ?? "");
+        setSelectedOutputId((outputs.find((device) => device.isDefault) ?? outputs[0])?.id ?? "");
+      })
+      .catch(() => {
+        if (active) {
+          setAudioError("音声デバイスを読み込めませんでした。接続とWindowsのサウンド設定を確認してください。");
+        }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [listAudioDevices]);
 
   useEffect(() => {
     if (!loadLibraryCatalog) {
@@ -114,10 +149,15 @@ function App({ libraryClient = tauriLibraryClient }: AppProps) {
           <button className="nav-item"><Settings2 size={19} />設定</button>
         </nav>
         <div className="device-card">
-          <span className="eyebrow">入力デバイス</span>
-          <strong>既定のマイク</strong>
-          <span className="level"><i /><i /><i /><i /><i /></span>
-          <small>待機中 · CPU採点</small>
+          <label><span>入力デバイス</span><select aria-label="入力デバイス" value={selectedInputId} onChange={(event) => setSelectedInputId(event.target.value)} disabled={inputDevices.length === 0}>
+            {inputDevices.length === 0 && <option value="">利用可能なマイクなし</option>}
+            {inputDevices.map((device) => <option key={device.id} value={device.id}>{device.name}{device.isDefault ? "（既定）" : ""}</option>)}
+          </select></label>
+          <label><span>出力デバイス</span><select aria-label="出力デバイス" value={selectedOutputId} onChange={(event) => setSelectedOutputId(event.target.value)} disabled={outputDevices.length === 0}>
+            {outputDevices.length === 0 && <option value="">利用可能な出力なし</option>}
+            {outputDevices.map((device) => <option key={device.id} value={device.id}>{device.name}{device.isDefault ? "（既定）" : ""}</option>)}
+          </select></label>
+          {audioError ? <small className="device-error" role="alert">{audioError}</small> : <small>デバイス確認のみ · ストリーム停止中</small>}
         </div>
         <p className="privacy-note">音源と歌声は、このPCの外へ送信されません。</p>
       </aside>

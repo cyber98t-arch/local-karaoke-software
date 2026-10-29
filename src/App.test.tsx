@@ -3,8 +3,23 @@ import { vi } from "vitest";
 import App from "./App";
 
 describe("song library", () => {
+  it("shows enumerated input and output devices without starting a stream", async () => {
+    const listAudioDevices = vi.fn().mockResolvedValue([
+      { id: "mic-1", name: "Built-in Microphone", direction: "input", isDefault: true },
+      { id: "out-1", name: "Laptop Speakers", direction: "output", isDefault: true },
+    ]);
+
+    render(<App libraryClient={{}} audioClient={{ listAudioDevices }} />);
+
+    expect(await screen.findByRole("combobox", { name: "入力デバイス" })).toHaveValue("mic-1");
+    expect(screen.getByRole("combobox", { name: "出力デバイス" })).toHaveValue("out-1");
+    expect(screen.getByRole("option", { name: "Built-in Microphone（既定）" })).toBeInTheDocument();
+    expect(screen.getByRole("option", { name: "Laptop Speakers（既定）" })).toBeInTheDocument();
+    expect(listAudioDevices).toHaveBeenCalledOnce();
+  });
+
   it("uses a compact library table with plain analysis wording", () => {
-    render(<App libraryClient={{}} />);
+    render(<App libraryClient={{}} audioClient={{}} />);
 
     expect(screen.getByRole("columnheader", { name: "曲名" })).toBeInTheDocument();
     expect(screen.getByRole("columnheader", { name: "アーティスト" })).toBeInTheDocument();
@@ -14,14 +29,14 @@ describe("song library", () => {
   });
 
   it("filters songs by Japanese title", () => {
-    render(<App libraryClient={{}} />);
+    render(<App libraryClient={{}} audioClient={{}} />);
     fireEvent.change(screen.getByLabelText("曲名またはアーティストを検索"), { target: { value: "透明" } });
     expect(screen.getByText("透明な街")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /夜明けの航路/ })).not.toBeInTheDocument();
   });
 
   it("keeps the total score hidden during singing", () => {
-    render(<App libraryClient={{}} />);
+    render(<App libraryClient={{}} audioClient={{}} />);
     expect(screen.getByText(/歌唱中は総合点を表示しません/)).toBeInTheDocument();
     expect(screen.queryByText(/総合点: \d/)).not.toBeInTheDocument();
   });
@@ -40,7 +55,7 @@ describe("song library", () => {
       ],
     });
 
-    render(<App libraryClient={{ selectLibraryFolder, indexSelectedLibrary }} />);
+    render(<App libraryClient={{ selectLibraryFolder, indexSelectedLibrary }} audioClient={{}} />);
     fireEvent.click(screen.getByRole("button", { name: "音源フォルダーを追加" }));
 
     expect((await screen.findAllByText("ローカル曲")).length).toBeGreaterThan(0);
@@ -57,7 +72,7 @@ describe("song library", () => {
     const selectLibraryFolder = vi.fn().mockResolvedValue({ selected: false });
     const indexSelectedLibrary = vi.fn();
 
-    render(<App libraryClient={{ selectLibraryFolder, indexSelectedLibrary }} />);
+    render(<App libraryClient={{ selectLibraryFolder, indexSelectedLibrary }} audioClient={{}} />);
     fireEvent.click(screen.getByRole("button", { name: "音源フォルダーを追加" }));
 
     await waitFor(() => expect(selectLibraryFolder).toHaveBeenCalledOnce());
@@ -78,7 +93,7 @@ describe("song library", () => {
       ],
     });
 
-    render(<App libraryClient={{ loadLibraryCatalog }} />);
+    render(<App libraryClient={{ loadLibraryCatalog }} audioClient={{}} />);
 
     expect((await screen.findAllByText("保存済みの曲")).length).toBeGreaterThan(0);
     expect(screen.queryByText("夜明けの航路")).not.toBeInTheDocument();
