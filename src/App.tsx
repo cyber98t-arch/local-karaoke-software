@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Disc3, FolderOpen, Mic2, Search, Settings2, SlidersHorizontal, Sparkles } from "lucide-react";
 import { songs } from "./data/songs";
 import { tauriLibraryClient, type IndexedSong, type LibraryClient } from "./tauri/libraryClient";
@@ -32,7 +32,7 @@ function mapIndexedSongs(indexedSongs: IndexedSong[]): Song[] {
 }
 
 type AppProps = {
-  libraryClient?: LibraryClient;
+  libraryClient?: Partial<LibraryClient>;
 };
 
 function App({ libraryClient = tauriLibraryClient }: AppProps) {
@@ -41,24 +41,59 @@ function App({ libraryClient = tauriLibraryClient }: AppProps) {
   const [librarySongs, setLibrarySongs] = useState<Song[]>(songs);
   const [importStatus, setImportStatus] = useState<"idle" | "selecting" | "indexing">("idle");
   const [importError, setImportError] = useState<string | null>(null);
+  const loadLibraryCatalog = libraryClient
+    ? libraryClient.loadLibraryCatalog
+    : tauriLibraryClient.loadLibraryCatalog;
+  const [catalogLoading, setCatalogLoading] = useState(Boolean(loadLibraryCatalog));
   const visibleSongs = useMemo(
     () => librarySongs.filter((song) => `${song.title} ${song.artist}`.toLowerCase().includes(query.toLowerCase())),
     [librarySongs, query],
   );
   const selected = librarySongs.find((song) => song.id === selectedId) ?? librarySongs[0];
-  const importing = importStatus !== "idle";
+  const importing = catalogLoading || importStatus !== "idle";
+
+  useEffect(() => {
+    if (!loadLibraryCatalog) {
+      return;
+    }
+
+    let active = true;
+    loadLibraryCatalog()
+      .then((catalog) => {
+        if (!active || catalog.songs.length === 0) {
+          return;
+        }
+        const restoredSongs = mapIndexedSongs(catalog.songs);
+        setLibrarySongs(restoredSongs);
+        setSelectedId(restoredSongs[0].id);
+      })
+      .catch(() => {
+        if (active) {
+          setImportError("保存済みライブラリを読み込めませんでした。音源フォルダーを選び直してください。");
+        }
+      })
+      .finally(() => {
+        if (active) {
+          setCatalogLoading(false);
+        }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [loadLibraryCatalog]);
 
   async function importLibrary() {
     setImportError(null);
     setImportStatus("selecting");
     try {
-      const selection = await libraryClient.selectLibraryFolder();
+      const selection = await (libraryClient?.selectLibraryFolder ?? tauriLibraryClient.selectLibraryFolder)();
       if (!selection.selected) {
         return;
       }
 
       setImportStatus("indexing");
-      const indexed = await libraryClient.indexSelectedLibrary();
+      const indexed = await (libraryClient?.indexSelectedLibrary ?? tauriLibraryClient.indexSelectedLibrary)();
       const importedSongs = mapIndexedSongs(indexed.songs);
       setLibrarySongs(importedSongs);
       setSelectedId(importedSongs[0]?.id ?? "");
@@ -93,7 +128,7 @@ function App({ libraryClient = tauriLibraryClient }: AppProps) {
           <div><span className="eyebrow">LOCAL KARAOKE LIBRARY</span><h1>今日は、何を歌いますか。</h1></div>
           <button className="import-button" disabled={importing} onClick={importLibrary}>
             <FolderOpen size={18} />
-            {importStatus === "selecting" ? "フォルダーを選択中" : importStatus === "indexing" ? "ライブラリを索引中" : "音源フォルダーを追加"}
+            {catalogLoading ? "ライブラリを読込中" : importStatus === "selecting" ? "フォルダーを選択中" : importStatus === "indexing" ? "ライブラリを索引中" : "音源フォルダーを追加"}
           </button>
         </header>
 

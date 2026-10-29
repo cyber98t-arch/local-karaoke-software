@@ -17,11 +17,13 @@ export type LibraryIndexResult = {
 };
 
 export type LibraryClient = {
+  loadLibraryCatalog: () => Promise<LibraryIndexResult>;
   selectLibraryFolder: () => Promise<LibrarySelectionResult>;
   indexSelectedLibrary: () => Promise<LibraryIndexResult>;
 };
 
 export const tauriLibraryClient: LibraryClient = {
+  loadLibraryCatalog: () => invoke("load_library_catalog"),
   selectLibraryFolder: () => invoke("select_library_folder"),
   indexSelectedLibrary: () => invoke("index_selected_library"),
 };

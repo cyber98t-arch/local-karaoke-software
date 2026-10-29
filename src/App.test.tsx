@@ -4,14 +4,14 @@ import App from "./App";
 
 describe("song library", () => {
   it("filters songs by Japanese title", () => {
-    render(<App />);
+    render(<App libraryClient={{}} />);
     fireEvent.change(screen.getByLabelText("曲名またはアーティストを検索"), { target: { value: "透明" } });
     expect(screen.getByText("透明な街")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /夜明けの航路/ })).not.toBeInTheDocument();
   });
 
   it("keeps the total score hidden during singing", () => {
-    render(<App />);
+    render(<App libraryClient={{}} />);
     expect(screen.getByText(/歌唱中は総合点を表示しません/)).toBeInTheDocument();
     expect(screen.queryByText(/総合点: \d/)).not.toBeInTheDocument();
   });
@@ -53,6 +53,26 @@ describe("song library", () => {
     await waitFor(() => expect(selectLibraryFolder).toHaveBeenCalledOnce());
     expect(indexSelectedLibrary).not.toHaveBeenCalled();
     expect(screen.getAllByText("夜明けの航路").length).toBeGreaterThan(0);
+  });
+
+  it("restores path-free song metadata from the existing catalog on startup", async () => {
+    const loadLibraryCatalog = vi.fn().mockResolvedValue({
+      songCount: 1,
+      songs: [
+        {
+          id: "b".repeat(64),
+          title: "保存済みの曲",
+          artist: "ローカル歌手",
+          durationMs: 181_000,
+        },
+      ],
+    });
+
+    render(<App libraryClient={{ loadLibraryCatalog }} />);
+
+    expect((await screen.findAllByText("保存済みの曲")).length).toBeGreaterThan(0);
+    expect(screen.queryByText("夜明けの航路")).not.toBeInTheDocument();
+    expect(loadLibraryCatalog).toHaveBeenCalledOnce();
   });
 });
 

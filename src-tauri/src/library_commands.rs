@@ -48,20 +48,44 @@ impl LibraryState {
             .map_err(|_| "The local library catalog could not be opened.".to_owned())?;
         let indexed = index_library(&root, &mut catalog)
             .map_err(|_| "The selected library could not be indexed.".to_owned())?;
-        let songs = indexed
-            .into_iter()
-            .map(|source| IndexedSong {
-                id: source.content_sha256,
-                title: source.title,
-                artist: source.artist,
-                duration_ms: source.duration_ms,
-            })
-            .collect::<Vec<_>>();
+        Ok(sources_to_result(indexed))
+    }
 
-        Ok(LibraryIndexResult {
-            song_count: songs.len(),
-            songs,
+    pub fn load_catalog(&self) -> Result<LibraryIndexResult, String> {
+        if !self
+            .catalog_path
+            .try_exists()
+            .map_err(|_| "The local library catalog could not be checked.".to_owned())?
+        {
+            return Ok(LibraryIndexResult {
+                song_count: 0,
+                songs: Vec::new(),
+            });
+        }
+
+        let catalog = Catalog::open(&self.catalog_path)
+            .map_err(|_| "The local library catalog could not be opened.".to_owned())?;
+        let sources = catalog
+            .sources()
+            .map_err(|_| "The local library catalog could not be read.".to_owned())?;
+        Ok(sources_to_result(sources))
+    }
+}
+
+fn sources_to_result(sources: Vec<crate::catalog::CatalogSource>) -> LibraryIndexResult {
+    let songs = sources
+        .into_iter()
+        .map(|source| IndexedSong {
+            id: source.content_sha256,
+            title: source.title,
+            artist: source.artist,
+            duration_ms: source.duration_ms,
         })
+        .collect::<Vec<_>>();
+
+    LibraryIndexResult {
+        song_count: songs.len(),
+        songs,
     }
 }
 
@@ -124,6 +148,13 @@ pub fn index_selected_library(
     state: tauri::State<'_, LibraryState>,
 ) -> Result<LibraryIndexResult, String> {
     state.index_selected_library()
+}
+
+#[tauri::command]
+pub fn load_library_catalog(
+    state: tauri::State<'_, LibraryState>,
+) -> Result<LibraryIndexResult, String> {
+    state.load_catalog()
 }
 
 #[cfg(test)]
@@ -266,5 +297,52 @@ mod tests {
                 .song_count,
             1
         );
+    }
+
+    #[test]
+    fn loading_a_missing_catalog_returns_empty_without_creating_a_database() {
+        let directory = TestDirectory::new();
+        let catalog_path = directory.path.join("catalog.sqlite3");
+        let state = LibraryState::new(catalog_path.clone());
+
+        let result = state
+            .load_catalog()
+            .expect("a missing catalog should be treated as empty");
+
+        assert_eq!(
+            result,
+            super::LibraryIndexResult {
+                song_count: 0,
+                songs: vec![]
+            }
+        );
+        assert!(!catalog_path.exists());
+    }
+
+    #[test]
+    fn loading_an_existing_catalog_returns_only_path_free_song_metadata() {
+        let directory = TestDirectory::new();
+        let library = directory.path.join("music");
+        fs::create_dir(&library).expect("library should be created");
+        fs::copy(fixture("metadata.flac"), library.join("private-song.flac"))
+            .expect("fixture should be copied");
+        let state = LibraryState::new(directory.path.join("catalog.sqlite3"));
+        state
+            .select_library(&library)
+            .expect("library should be selected");
+        state
+            .index_selected_library()
+            .expect("library should be indexed");
+
+        let result = state.load_catalog().expect("catalog should load");
+
+        assert_eq!(result.song_count, 1);
+        assert_eq!(
+            result.songs[0].title.as_deref(),
+            Some("Hibiki FLAC Fixture")
+        );
+        assert!(!serde_json::to_string(&result)
+            .expect("catalog result should serialize")
+            .contains("private-song.flac"));
     }
 }

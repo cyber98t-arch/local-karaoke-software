@@ -34,7 +34,8 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             runtime_status,
             library_commands::select_library_folder,
-            library_commands::index_selected_library
+            library_commands::index_selected_library,
+            library_commands::load_library_catalog
         ])
         .run(tauri::generate_context!())
         .expect("failed to run Hibiki");
