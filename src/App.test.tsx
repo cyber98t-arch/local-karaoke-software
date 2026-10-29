@@ -51,6 +51,22 @@ describe("song library", () => {
     expect(probeInputLevel).toHaveBeenCalledOnce();
   });
 
+  it("does not claim that microphone audio was detected when callbacks contain silence", async () => {
+    const listAudioDevices = vi.fn().mockResolvedValue([
+      { id: "mic-1", name: "Muted Microphone", direction: "input", isDefault: true },
+    ]);
+    const probeInputLevel = vi.fn().mockResolvedValue({
+      deviceName: "Muted Microphone", sampleRate: 48_000, channels: 1, durationMs: 1_500,
+      callbackCount: 147, averageCallbackIntervalMs: 10.2, peakLevel: 0,
+    });
+
+    render(<App libraryClient={{}} audioClient={{ listAudioDevices, probeInputLevel }} />);
+    fireEvent.click(await screen.findByRole("button", { name: "マイクを確認" }));
+
+    expect(await screen.findByRole("status")).toHaveTextContent("音声レベルは検出されませんでした（ピーク 0% · 147回 · 平均10.2ms）");
+    expect(screen.queryByText(/マイク入力を検出しました/)).not.toBeInTheDocument();
+  });
+
   it("uses a compact library table with plain analysis wording", () => {
     render(<App libraryClient={{}} audioClient={{}} />);
 

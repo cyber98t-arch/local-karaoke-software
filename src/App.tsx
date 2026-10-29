@@ -185,7 +185,7 @@ function App({ libraryClient = tauriLibraryClient, audioClient }: AppProps) {
             {inputDevices.map((device) => <option key={device.id} value={device.id}>{device.name}{device.isDefault ? "（既定）" : ""}</option>)}
           </select></label>
           <button className="probe-button" disabled={!selectedInputId || inputProbeStatus === "running"} onClick={runInputProbe}>{inputProbeStatus === "running" ? "マイク確認中…" : "マイクを確認"}</button>
-          {inputProbeStatus === "complete" && inputProbeResult && <small className="probe-success" role="status">マイク入力を検出しました（ピーク {Math.round(inputProbeResult.peakLevel * 100)}% · {inputProbeResult.callbackCount}回 · 平均{inputProbeResult.averageCallbackIntervalMs.toFixed(1)}ms）</small>}
+          {inputProbeStatus === "complete" && inputProbeResult && <small className={inputProbeResult.peakLevel > 0 ? "probe-success" : "probe-warning"} role="status">{inputProbeResult.peakLevel > 0 ? "マイク入力を検出しました" : "音声レベルは検出されませんでした"}（ピーク {Math.round(inputProbeResult.peakLevel * 100)}% · {inputProbeResult.callbackCount}回 · 平均{inputProbeResult.averageCallbackIntervalMs.toFixed(1)}ms）</small>}
           <label><span>出力デバイス</span><select aria-label="出力デバイス" value={selectedOutputId} onChange={(event) => setSelectedOutputId(event.target.value)} disabled={outputDevices.length === 0}>
             {outputDevices.length === 0 && <option value="">利用可能な出力なし</option>}
             {outputDevices.map((device) => <option key={device.id} value={device.id}>{device.name}{device.isDefault ? "（既定）" : ""}</option>)}
