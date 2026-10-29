@@ -18,6 +18,10 @@ nav { display: grid; gap: 4px; }
 .device-card select { width: 100%; min-width: 0; border: 1px solid #5f6368; border-radius: 4px; background: #202124; color: #e8eaed; padding: 7px 8px; font-size: 11px; }
 .device-card select:disabled { color: #80868b; }
 .device-card .device-error { color: #f6aea8; }
+.probe-button { border: 1px solid #5f6368; border-radius: 4px; background: transparent; color: #8ab4f8; padding: 7px 8px; font-size: 11px; cursor: pointer; }
+.probe-button:hover { background: #35363a; }
+.probe-button:disabled { color: #80868b; cursor: wait; }
+.device-card .probe-success { color: #81c995; }
 .privacy-note { margin: 12px 16px 0; }
 .content { padding: 32px 36px 44px; min-width: 0; }
 header { display: flex; justify-content: space-between; align-items: center; min-height: 56px; }

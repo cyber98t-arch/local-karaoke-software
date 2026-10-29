@@ -1,4 +1,5 @@
 pub mod audio_devices;
+pub mod audio_probe;
 pub mod cache;
 pub mod catalog;
 pub mod library;
@@ -35,6 +36,7 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             runtime_status,
             audio_devices::list_audio_devices,
+            audio_probe::play_output_probe,
             library_commands::select_library_folder,
             library_commands::index_selected_library,
             library_commands::load_library_catalog

@@ -47,6 +47,7 @@ function App({ libraryClient = tauriLibraryClient, audioClient }: AppProps) {
   const [selectedInputId, setSelectedInputId] = useState("");
   const [selectedOutputId, setSelectedOutputId] = useState("");
   const [audioError, setAudioError] = useState<string | null>(null);
+  const [playbackProbeStatus, setPlaybackProbeStatus] = useState<"idle" | "running" | "complete">("idle");
   const loadLibraryCatalog = libraryClient
     ? libraryClient.loadLibraryCatalog
     : tauriLibraryClient.loadLibraryCatalog;
@@ -140,6 +141,19 @@ function App({ libraryClient = tauriLibraryClient, audioClient }: AppProps) {
     }
   }
 
+  async function runPlaybackProbe() {
+    if (!selectedOutputId) return;
+    setAudioError(null);
+    setPlaybackProbeStatus("running");
+    try {
+      await (audioClient?.playOutputProbe ?? tauriAudioClient.playOutputProbe)(selectedOutputId);
+      setPlaybackProbeStatus("complete");
+    } catch {
+      setPlaybackProbeStatus("idle");
+      setAudioError("テスト音を再生できませんでした。出力デバイスと音量を確認してください。");
+    }
+  }
+
   return (
     <main className="app-shell">
       <aside className="sidebar">
@@ -157,7 +171,9 @@ function App({ libraryClient = tauriLibraryClient, audioClient }: AppProps) {
             {outputDevices.length === 0 && <option value="">利用可能な出力なし</option>}
             {outputDevices.map((device) => <option key={device.id} value={device.id}>{device.name}{device.isDefault ? "（既定）" : ""}</option>)}
           </select></label>
+          <button className="probe-button" disabled={!selectedOutputId || playbackProbeStatus === "running"} onClick={runPlaybackProbe}>{playbackProbeStatus === "running" ? "再生中…" : "テスト音を再生"}</button>
           {audioError ? <small className="device-error" role="alert">{audioError}</small> : <small>デバイス確認のみ · ストリーム停止中</small>}
+          {playbackProbeStatus === "complete" && <small className="probe-success" role="status">テスト音の再生が完了しました</small>}
         </div>
         <p className="privacy-note">音源と歌声は、このPCの外へ送信されません。</p>
       </aside>

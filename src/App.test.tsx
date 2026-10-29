@@ -18,6 +18,22 @@ describe("song library", () => {
     expect(listAudioDevices).toHaveBeenCalledOnce();
   });
 
+  it("runs a bounded output probe only for the selected output device", async () => {
+    const listAudioDevices = vi.fn().mockResolvedValue([
+      { id: "out-1", name: "Laptop Speakers", direction: "output", isDefault: true },
+    ]);
+    const playOutputProbe = vi.fn().mockResolvedValue({
+      deviceName: "Laptop Speakers", sampleRate: 48_000, channels: 2, durationMs: 500,
+    });
+
+    render(<App libraryClient={{}} audioClient={{ listAudioDevices, playOutputProbe }} />);
+    fireEvent.click(await screen.findByRole("button", { name: "テスト音を再生" }));
+
+    expect(await screen.findByRole("status")).toHaveTextContent("テスト音の再生が完了しました");
+    expect(playOutputProbe).toHaveBeenCalledWith("out-1");
+    expect(playOutputProbe).toHaveBeenCalledOnce();
+  });
+
   it("uses a compact library table with plain analysis wording", () => {
     render(<App libraryClient={{}} audioClient={{}} />);
 
