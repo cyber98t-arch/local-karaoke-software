@@ -5,7 +5,7 @@
 | 0. Repository foundation | Complete | Git, Dev Container, Codex continuity, requirements and verification baseline | Approved: Tauri 2 + React + Rust + Python |
 | 1. Song-selection UI skeleton | Complete | Searchable/selectable mock library with analysis states | No new gate |
 | 2. Read-only library and cache catalog | Complete | Scan MP3/FLAC/WAV without changing sources; content-addressed catalog | Approved: D-003 SQLite catalog + JSON artifact manifests |
-| 3. Playback and microphone probe | In progress | Windows audio device selection, playback, loopback-free mic monitoring | Approved: D-005 CPAL + default Windows WASAPI |
+| 3. Playback and microphone probe | Complete | Windows audio device selection, playback, loopback-free mic monitoring | Approved: D-005 CPAL + default Windows WASAPI |
 | 4. Analysis pipeline prototype | Not started | Local separation, melody extraction, Japanese lyric alignment, progress reporting | Decision required: model families and licenses |
 | 5. GPU provider matrix | Not started | DirectML/CUDA/other supported providers with measured CPU fallback | Decision required after hardware probes |
 | 6. Singing and scoring UI | Not started | Low-latency live pitch/timing feedback; no live total score | Scoring weights require approval |
@@ -61,6 +61,8 @@ Phase 2 completed 2026-10-29: automated tests cover read-only discovery, metadat
 2. Completed 2026-10-29: added failing tests for a typed audio-device service using an injected fake backend, then implemented the smallest application-owned boundary covering defaults, input/output separation, duplicate display names with distinct IDs, and stage-specific backend errors.
 3. Completed 2026-10-29: added CPAL 0.18.2 with no optional features, implemented the smallest read-only adapter, and exposed a typed Tauri device-enumeration command without opening streams.
 4. Completed 2026-10-29: connected input/output device selection in React with default selection, empty states, and safe errors; selection alone does not start playback or capture.
-5. Implementation completed 2026-10-29; Windows validation pending: added a 500 ms, low-amplitude generated sine-tone probe for the selected output device with negotiated configuration and actionable errors.
-6. Implementation completed 2026-10-29; Windows validation pending: added a 1.5 second microphone-level probe that accepts only enumerated input devices, stores no samples, creates no output stream, and reports peak plus callback cadence.
+5. Completed 2026-10-29: added a 500 ms, low-amplitude generated sine-tone probe for the selected output device with negotiated configuration and actionable errors; Windows validation confirmed device selection and audible output.
+6. Completed 2026-10-30: added a 1.5 second microphone-level probe that accepts only enumerated input devices, stores no samples, creates no output stream, and reports peak plus callback cadence; Windows validation confirmed a nonzero speech response without audible monitoring.
+
+Phase 3 completed 2026-10-30: automated coverage passes for the typed/injected audio boundary, output generation, microphone peak calculation, and UI states. Native Windows evidence covers enumeration, defaults, device selection, audible output, microphone callback cadence, nonzero input activity, and absence of audible monitoring.
 

@@ -294,3 +294,10 @@
 - Corrected the UI so a zero peak reports `音声レベルは検出されませんでした` instead of claiming microphone input was detected. Added a regression test; frontend tests now pass 10 tests, with lint and production build passing.
 - The screenshot remains untracked and was not modified or committed.
 
+## 2026-10-30 — Phase 3 Windows completion evidence
+
+- The user reran the selected-input probe while speaking and confirmed it worked, completing the requested check for a nonzero microphone response without audible monitoring.
+- Native Windows evidence now covers device enumeration and defaults, input/output selection, audible generated output, microphone callback cadence, nonzero level activity, and loopback-free/no-monitoring behavior.
+- Phase 3 is complete. The phase-close baseline passed: frontend lint, 10 frontend tests, production build, 26 Rust tests, Rust check, and `git diff --check`.
+- Opened D-006 as `Waiting`. Phase 4 implementation and model downloads remain blocked until the local model families and license/provenance constraints are explicitly approved.
+

@@ -43,3 +43,13 @@
 - Initial scope if approved: Shared-mode device enumeration and a playback/microphone probe only. Do not enable ASIO, loopback capture, monitoring, scoring, or production playback in this decision.
 - Sources reviewed: RustAudio CPAL and Rodio official repositories and current crate documentation on 2026-10-29.
 - Reason approval is required: Phase 3 changes the audio engine/library and is explicitly marked `Decision required` in the roadmap.
+
+### D-006 — Phase 4 local analysis model families and licenses
+
+- Status: Waiting
+- Question: Which local model families and license/provenance constraints should Phase 4 adopt for vocal separation, vocal melody extraction, and Japanese lyric transcription/alignment?
+- Candidate stack: HTDemucs for vocal separation, a monophonic CREPE-family pitch tracker for vocal melody, and multilingual Whisper through `whisper.cpp` for Japanese transcription. Begin with a small CPU-capable Whisper model and keep every model download explicit and separate from song caches.
+- License review: Whisper and `whisper.cpp` publish MIT licenses. The archived Demucs repository publishes an MIT code license, but that alone does not clearly establish a separately redistributable license for every pretrained weight and training-data derivative. No Demucs weight may be bundled or downloaded until its exact artifact provenance and license are documented and approved.
+- Alternatives: Evaluate a separation model with explicitly permissive weight terms; use a non-neural pitch tracker if CREPE latency or packaging is unsuitable; or require user-imported lyrics while postponing transcription.
+- Initial scope if approved: Offline prototype jobs only, completed before playback and cached by content hash plus pipeline version. No external AI API, source-file write, live inference, automatic model download, or model redistribution.
+- Reason approval is required: Phase 4 changes model families and model licenses and is marked `Decision required` in the roadmap. A model download over 500 MB or restrictive license requires a further explicit approval.
