@@ -41,3 +41,5 @@ Additional Phase 2 progress: an official Rust-side Tauri dialog command now sele
 
 Additional Phase 2 progress: the React import action now invokes native selection followed by indexing, preserves the current library on cancellation/failure, and renders only path-free display metadata returned by Rust. Native Windows end-to-end verification remains pending.
 
+Additional Phase 2 progress: React now restores an existing application-local catalog through a path-free Rust command on startup; a missing catalog remains non-creating. Native Windows end-to-end verification remains pending before Phase 2 closure.
+

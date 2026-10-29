@@ -173,3 +173,16 @@
 - `git diff --check`: passed.
 - Actual Tauri command invocation and native Windows folder selection remain unverified.
 
+## 2026-10-29 — Persisted catalog restoration
+
+- Added a path-free Rust command that reads an existing SQLite catalog into the same display DTO used after indexing.
+- A missing catalog returns an empty result without creating a database file. Existing catalog records retain source paths only inside SQLite and return content IDs, title, artist, and duration to React.
+- React now requests the saved catalog at startup, briefly disables folder import to avoid a load/import race, and replaces mock rows only when persisted songs exist. A safe folder-reselection recovery action is shown if restoration fails.
+- RED evidence: both new focused Rust tests failed at the intentional catalog-load `todo!`; the new React restoration test failed because no startup request existed.
+- GREEN evidence: full frontend tests passed without React warnings, 5 tests. Full `cargo test --manifest-path src-tauri/Cargo.toml` passed, 22 tests total.
+- `npm run lint`: passed.
+- `npm run build`: passed.
+- `cargo check --manifest-path src-tauri/Cargo.toml`: passed.
+- Targeted Rust formatting and `git diff --check`: passed.
+- Actual Tauri startup restoration, native Windows path handling, and dialog/index/restart round trip remain unverified.
+
