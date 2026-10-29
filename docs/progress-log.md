@@ -227,5 +227,7 @@
 - Derived a six-size Windows ICO (256, 128, 64, 48, 32, and 16 px) from the existing application icon without changing its design.
 - `cargo check --manifest-path src-tauri/Cargo.toml` and `git diff --check` passed after adding the ICO.
 - `npm run build` in the Linux Dev Container could not run because the Windows-host `npm ci` replaced the shared `node_modules` with platform-specific dependencies and left the Linux Rollup optional package absent. Added a dedicated Dev Container `node_modules` volume to prevent future Windows/Linux dependency collisions; a container rebuild is required to verify it.
-- Windows Tauri launch after the ICO addition remains pending user observation.
+- After the ICO addition, the user successfully launched the native application on Windows, selected a folder, and saw its songs in the library.
+- A simultaneously open Dev Container forwarded port 1420 and repeatedly opened VS Code preview tabs during diagnosis. Changed the port behavior from `openPreview` to `notify`; Windows-native testing should not run concurrently with a container dev server on the same host port.
+- Windows restart restoration, source-directory immutability, and a path containing Japanese characters and spaces remain unverified.
 
