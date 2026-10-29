@@ -287,3 +287,10 @@
 - Automated tests cover bounded peak calculation and selected-input invocation. Full Rust tests passed, 26 tests; frontend tests passed, 9 tests. `cargo check`, lint, production build, targeted formatting, and `git diff --check` passed.
 - Windows microphone permission, visible peak response to speech, absence of audible monitoring, and callback cadence remain pending user observation.
 
+## 2026-10-30 — Windows microphone callback observation
+
+- Inspected the user's latest Windows screenshot read-only. The selected Logitech C270 microphone completed 147 callbacks over 1.5 seconds with a reported 10.2 ms average interval and no visible error.
+- The screenshot reported a 0% rounded peak. Callback delivery is verified, but audible-input response is not yet proven by this evidence.
+- Corrected the UI so a zero peak reports `音声レベルは検出されませんでした` instead of claiming microphone input was detected. Added a regression test; frontend tests now pass 10 tests, with lint and production build passing.
+- The screenshot remains untracked and was not modified or committed.
+
