@@ -6,7 +6,8 @@
   "portsAttributes": { "1420": { "label": "Hibiki UI", "onAutoForward": "openPreview" } },
   "mounts": [
     "source=hibiki-codex-home,target=/home/vscode/.codex,type=volume",
-    "source=hibiki-cargo-cache,target=/usr/local/cargo/registry,type=volume"
+    "source=hibiki-cargo-cache,target=/usr/local/cargo/registry,type=volume",
+    "source=hibiki-node-modules,target=/workspaces/local-ai-karaoke/node_modules,type=volume"
   ],
   "containerEnv": { "CODEX_HOME": "/home/vscode/.codex", "PYTHONUNBUFFERED": "1" },
   "postCreateCommand": "bash .devcontainer/post-create.sh",
