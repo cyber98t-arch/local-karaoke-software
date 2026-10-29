@@ -230,5 +230,6 @@
 - After the ICO addition, the user successfully launched the native application on Windows, selected a folder, and saw its songs in the library.
 - The user then closed and relaunched the Windows application and confirmed that the previously indexed song list restored without selecting the folder again.
 - A simultaneously open Dev Container forwarded port 1420 and repeatedly opened VS Code preview tabs during diagnosis. Changed the port behavior from `openPreview` to `notify`; Windows-native testing should not run concurrently with a container dev server on the same host port.
-- Windows source-directory immutability and a path containing Japanese characters and spaces remain unverified.
+- The user selected a Windows folder named `夜　遊び` containing the same song and confirmed the library continued to display the song normally, providing native evidence for Japanese characters and whitespace in the selected path.
+- Windows source-directory immutability remains unverified.
 
