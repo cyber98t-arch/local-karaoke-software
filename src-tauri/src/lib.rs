@@ -34,6 +34,7 @@ pub fn run() {
         })
         .invoke_handler(tauri::generate_handler![
             runtime_status,
+            audio_devices::list_audio_devices,
             library_commands::select_library_folder,
             library_commands::index_selected_library,
             library_commands::load_library_catalog

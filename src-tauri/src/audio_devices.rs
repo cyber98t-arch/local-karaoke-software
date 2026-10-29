@@ -1,5 +1,7 @@
 use serde::Serialize;
 
+use cpal::traits::{DeviceTrait, HostTrait};
+
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub enum AudioDirection {
@@ -18,6 +20,60 @@ pub trait AudioDeviceBackend {
     fn output_devices(&self) -> Result<Vec<BackendDevice>, String>;
     fn default_input_id(&self) -> Result<Option<String>, String>;
     fn default_output_id(&self) -> Result<Option<String>, String>;
+}
+
+pub struct CpalAudioBackend {
+    host: cpal::Host,
+}
+
+impl Default for CpalAudioBackend {
+    fn default() -> Self {
+        Self {
+            host: cpal::default_host(),
+        }
+    }
+}
+
+fn cpal_device(device: cpal::Device) -> Result<BackendDevice, String> {
+    let id = device.id().map_err(|error| error.to_string())?.to_string();
+    Ok(BackendDevice {
+        id,
+        name: device.to_string(),
+    })
+}
+
+impl AudioDeviceBackend for CpalAudioBackend {
+    fn input_devices(&self) -> Result<Vec<BackendDevice>, String> {
+        self.host
+            .input_devices()
+            .map_err(|error| error.to_string())?
+            .map(cpal_device)
+            .collect()
+    }
+
+    fn output_devices(&self) -> Result<Vec<BackendDevice>, String> {
+        self.host
+            .output_devices()
+            .map_err(|error| error.to_string())?
+            .map(cpal_device)
+            .collect()
+    }
+
+    fn default_input_id(&self) -> Result<Option<String>, String> {
+        self.host
+            .default_input_device()
+            .map(|device| device.id().map(|id| id.to_string()))
+            .transpose()
+            .map_err(|error| error.to_string())
+    }
+
+    fn default_output_id(&self) -> Result<Option<String>, String> {
+        self.host
+            .default_output_device()
+            .map(|device| device.id().map(|id| id.to_string()))
+            .transpose()
+            .map_err(|error| error.to_string())
+    }
 }
 
 #[derive(Debug, Eq, PartialEq, Serialize)]
@@ -72,6 +128,11 @@ where
         }));
         Ok(devices)
     }
+}
+
+#[tauri::command]
+pub fn list_audio_devices() -> Result<Vec<AudioDevice>, String> {
+    AudioDeviceService::new(CpalAudioBackend::default()).devices()
 }
 
 #[cfg(test)]
