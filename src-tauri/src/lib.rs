@@ -1,8 +1,14 @@
 pub mod cache;
 pub mod catalog;
 pub mod library;
+pub mod library_commands;
 pub mod library_service;
 pub mod metadata;
+
+#[cfg(not(test))]
+use library_commands::LibraryState;
+#[cfg(not(test))]
+use tauri::Manager;
 
 #[cfg(not(test))]
 #[tauri::command]
@@ -18,7 +24,16 @@ fn runtime_status() -> serde_json::Value {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![runtime_status])
+        .setup(|app| {
+            let application_data = app.path().app_data_dir()?;
+            std::fs::create_dir_all(&application_data)?;
+            app.manage(LibraryState::new(application_data.join("catalog.sqlite3")));
+            Ok(())
+        })
+        .invoke_handler(tauri::generate_handler![
+            runtime_status,
+            library_commands::index_selected_library
+        ])
         .run(tauri::generate_context!())
         .expect("failed to run Hibiki");
 }
