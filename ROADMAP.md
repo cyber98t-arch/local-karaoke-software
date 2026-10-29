@@ -35,3 +35,5 @@ Additional Phase 2 progress: read-only `lofty` metadata extraction now covers ge
 
 Additional Phase 2 progress: a service layer now combines discovery, metadata extraction, content hashing, and transactional catalog replacement. Catalog schema version 2 adds metadata fields and migrates version 1 records without loss.
 
+Additional Phase 2 progress: a Rust-owned Tauri state validates and retains the selected library root, and a purpose-specific indexing command returns content IDs and display metadata without exposing source paths to React. Native folder-picker integration remains pending.
+

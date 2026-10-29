@@ -129,3 +129,17 @@
 - Created `e36e99a` (`feat: add read-only library catalog foundation`).
 - No push, tag, release, history rewrite, or destructive operation was performed.
 
+## 2026-10-29 — Rust-owned library command boundary
+
+- Added a Rust-owned library state that validates and retains the selected directory; React cannot supply an arbitrary source path to the indexing command.
+- Added a purpose-specific Tauri indexing command whose serialized result exposes content identity and display metadata but no source path.
+- Initialized the state with an application-data SQLite catalog path during Tauri setup. Folder-picker integration remains intentionally separate.
+- RED evidence: `cargo test --manifest-path src-tauri/Cargo.toml --lib library_commands::tests` ran 3 tests; all failed at the intentional `todo!` implementations.
+- GREEN evidence: the focused command-boundary tests passed, 3 tests. Full `cargo test --manifest-path src-tauri/Cargo.toml` passed, 18 tests total.
+- `cargo check --manifest-path src-tauri/Cargo.toml`: passed.
+- `npm run lint`: passed.
+- `npm test -- --run`: passed, 2 tests.
+- `npm run build`: passed.
+- Targeted Rust formatting and `git diff --check`: passed.
+- Tauri launch, native folder selection, and Windows path behavior remain unverified.
+
