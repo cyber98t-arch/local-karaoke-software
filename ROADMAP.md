@@ -39,3 +39,5 @@ Additional Phase 2 progress: a Rust-owned Tauri state validates and retains the 
 
 Additional Phase 2 progress: an official Rust-side Tauri dialog command now selects a single local folder and retains it only in Rust state; cancellation and path-free responses are covered by tests. React invocation and native Windows verification remain pending.
 
+Additional Phase 2 progress: the React import action now invokes native selection followed by indexing, preserves the current library on cancellation/failure, and renders only path-free display metadata returned by Rust. Native Windows end-to-end verification remains pending.
+

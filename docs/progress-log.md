@@ -158,3 +158,18 @@
 - Targeted Rust formatting and `git diff --check`: passed.
 - Actual native dialog rendering, cancellation, Windows path conversion, and Tauri launch remain unverified outside the container.
 
+## 2026-10-29 — React library import connection
+
+- Added a typed React-side command client for native folder selection and selected-library indexing. Its types contain no source path.
+- Connected the existing import button to select first and index only after successful selection. Cancellation retains the current library; failures retain it and name a safe folder-reselection recovery action.
+- Successful indexing replaces mock rows with returned title, artist, duration, and content identity. Imported songs remain in the analysis-waiting state and cannot be sung before future analysis work.
+- Empty indexed libraries render a safe empty state. UI row identity adds only an in-memory ordinal to the content hash so duplicate source content cannot collide; no path is introduced.
+- RED evidence: `npm test -- --run src/App.test.tsx` ran 4 tests; the 2 existing tests passed and the 2 new native-import flow tests failed because the button was not connected.
+- GREEN evidence: focused frontend tests passed, 4 tests. The first post-implementation run reached the correct UI state but required multiple-element assertions because the selected song appears in both the list and detail card.
+- `npm run lint`: passed.
+- `npm run build`: passed.
+- `cargo test --manifest-path src-tauri/Cargo.toml`: passed, 20 tests.
+- `cargo check --manifest-path src-tauri/Cargo.toml`: passed.
+- `git diff --check`: passed.
+- Actual Tauri command invocation and native Windows folder selection remain unverified.
+
