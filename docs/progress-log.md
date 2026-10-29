@@ -186,3 +186,10 @@
 - Targeted Rust formatting and `git diff --check`: passed.
 - Actual Tauri startup restoration, native Windows path handling, and dialog/index/restart round trip remain unverified.
 
+## 2026-10-29 — Linux Dev Container Japanese rendering repair
+
+- Reproduced the environment evidence behind garbled Japanese text: `fc-list :lang=ja` returned no fonts, and `dbus-launch` was absent while the Linux Tauri application emitted a dconf warning.
+- Added Debian `fonts-noto-cjk` for Japanese glyph coverage and `dbus-x11` for `dbus-launch` to the Dev Container image dependencies.
+- Source files and HTML already used UTF-8, so no application text or encoding conversion was needed.
+- Dockerfile inspection and `git diff --check`: passed. Dev Container rebuild, post-rebuild Japanese rendering, and dconf warning removal remain unverified.
+
