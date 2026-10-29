@@ -1,3 +1,4 @@
+pub mod audio_devices;
 pub mod cache;
 pub mod catalog;
 pub mod library;
