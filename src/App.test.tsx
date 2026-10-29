@@ -46,7 +46,7 @@ describe("song library", () => {
     render(<App libraryClient={{}} audioClient={{ listAudioDevices, probeInputLevel }} />);
     fireEvent.click(await screen.findByRole("button", { name: "マイクを確認" }));
 
-    expect(await screen.findByRole("status")).toHaveTextContent("マイク入力を検出しました（ピーク 42%）");
+    expect(await screen.findByRole("status")).toHaveTextContent("マイク入力を検出しました（ピーク 42% · 75回 · 平均20.0ms）");
     expect(probeInputLevel).toHaveBeenCalledWith("mic-1");
     expect(probeInputLevel).toHaveBeenCalledOnce();
   });
