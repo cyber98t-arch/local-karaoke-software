@@ -211,3 +211,12 @@
 - The user also reported that adding files through the application appeared to work.
 - This is user-observed Linux Dev Container smoke evidence. Exact imported formats, catalog restoration after restart, source immutability, dconf warning removal, and all Windows-specific behavior were not independently verified in this observation.
 
+## 2026-10-29 — Song-selection visual simplification
+
+- Removed the decorative `HIBIKI` lockup at the user's request.
+- Reworked the selection screen toward a restrained Material Design 2-inspired visual system without adding a UI dependency or changing React/Tauri: flat neutral surfaces, modest 4 px radii, restrained status colors, no glow/gradient effects, and compact navigation and controls.
+- Replaced the repeated song cards with a semantic compact table containing title, artist, format, duration, and analysis-state columns. Replaced `AI解析中` with the plain status `解析中`.
+- RED evidence: the new table/wording test failed because the prior card list had no column headers and still rendered `AI解析中`.
+- GREEN evidence: `npm test -- --run` passed, 6 tests. `npm run lint` and `npm run build` passed.
+- Native visual review at the target Windows size remains unverified.
+
