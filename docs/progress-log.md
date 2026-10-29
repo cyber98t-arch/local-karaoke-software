@@ -247,3 +247,10 @@
 - Approval is limited to shared-mode device enumeration plus playback and microphone probes. ASIO, loopback capture, audible microphone monitoring, scoring, and production playback remain outside this decision.
 - Added explicit Phase 3 acceptance criteria and a test-first sequence. No audio dependency or implementation was added at this stop point.
 
+## 2026-10-29 — Phase 3 CPAL dependency review
+
+- Selected CPAL 0.18.2 with default features only. Its published crate metadata and included license declare Apache-2.0, and its Rust 1.85 minimum is below the current Rust 1.99.0 toolchain.
+- Confirmed that Windows uses the WASAPI implementation through `windows`/`windows-core` 0.62 and that the Dev Container already includes the Linux ALSA development package required for local compilation.
+- Explicitly excluded ASIO and every optional CPAL feature. No dependency was added and no audio stream was opened during this review.
+- Detailed evidence and integration constraints are in `docs/phase-3-dependency-review.md`.
+
