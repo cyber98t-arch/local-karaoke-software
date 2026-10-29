@@ -1,3 +1,10 @@
+pub mod cache;
+pub mod catalog;
+pub mod library;
+pub mod library_service;
+pub mod metadata;
+
+#[cfg(not(test))]
 #[tauri::command]
 fn runtime_status() -> serde_json::Value {
     serde_json::json!({
@@ -7,6 +14,7 @@ fn runtime_status() -> serde_json::Value {
     })
 }
 
+#[cfg(not(test))]
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
