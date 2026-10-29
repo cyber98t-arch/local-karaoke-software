@@ -6,7 +6,7 @@
 | 1. Song-selection UI skeleton | Complete | Searchable/selectable mock library with analysis states | No new gate |
 | 2. Read-only library and cache catalog | Complete | Scan MP3/FLAC/WAV without changing sources; content-addressed catalog | Approved: D-003 SQLite catalog + JSON artifact manifests |
 | 3. Playback and microphone probe | Complete | Windows audio device selection, playback, loopback-free mic monitoring | Approved: D-005 CPAL + default Windows WASAPI |
-| 4. Analysis pipeline prototype | Not started | Local separation, melody extraction, Japanese lyric alignment, progress reporting | Decision required: model families and licenses |
+| 4. Analysis pipeline prototype | In progress | Local separation, melody extraction, Japanese lyric alignment, progress reporting | Approved: D-006 Spleeter + CREPE + Whisper base evaluation |
 | 5. GPU provider matrix | Not started | DirectML/CUDA/other supported providers with measured CPU fallback | Decision required after hardware probes |
 | 6. Singing and scoring UI | Not started | Low-latency live pitch/timing feedback; no live total score | Scoring weights require approval |
 | 7. Result and lyric correction | Not started | Post-song total/breakdown and editable synced Japanese lyrics | UX acceptance review |
@@ -65,4 +65,22 @@ Phase 2 completed 2026-10-29: automated tests cover read-only discovery, metadat
 6. Completed 2026-10-30: added a 1.5 second microphone-level probe that accepts only enumerated input devices, stores no samples, creates no output stream, and reports peak plus callback cadence; Windows validation confirmed a nonzero speech response without audible monitoring.
 
 Phase 3 completed 2026-10-30: automated coverage passes for the typed/injected audio boundary, output generation, microphone peak calculation, and UI states. Native Windows evidence covers enumeration, defaults, device selection, audible output, microphone callback cadence, nonzero input activity, and absence of audible monitoring.
+
+## Phase 4 acceptance criteria
+
+- Separation, melody extraction, transcription, and alignment run locally and complete before playback; no external AI API receives source or derived data.
+- The analysis boundary opens original music read-only and writes every derived artifact only beneath the application cache.
+- Jobs report typed stage progress, actionable failure information, cancellation, and resumable cache state without exposing source paths to React.
+- Cache identity includes source content hash, pipeline version, model identity, and relevant analysis parameters; incomplete output never replaces a valid artifact.
+- A CPU path works on an ordinary Windows laptop. Optional acceleration remains outside Phase 4 and must not be required for correctness.
+- Model files are separate from per-song caches and have pinned source, revision, checksum, byte size, and license metadata.
+- Automated tests use generated or permissively licensed fixtures. User music, microphone data, model binaries, and large generated artifacts are never committed.
+
+## Phase 4 initial test-first steps
+
+1. Approved 2026-10-30: evaluate Spleeter 2-stem, CREPE, and multilingual Whisper `base`; exclude HTDemucs weights. No model was downloaded during approval.
+2. Define and test a typed model manifest plus cache-owned analysis-job boundary before adding model runtimes.
+3. Pin exact upstream revisions, artifact URLs, checksums, byte sizes, and license evidence before each model download.
+4. Add one bounded separation feasibility probe using only a generated or public-domain fixture, then measure Windows CPU duration, memory, installed size, and output usefulness.
+5. Repeat bounded probes for monophonic melody and Japanese transcription before connecting the stages into a resumable pipeline.
 

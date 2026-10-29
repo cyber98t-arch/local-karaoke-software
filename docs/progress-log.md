@@ -309,3 +309,9 @@
 - CREPE is the current MIT-licensed monophonic-pitch recommendation. Multilingual Whisper `base` through `whisper.cpp` is the current MIT-licensed Japanese transcription recommendation at approximately 142 MiB.
 - D-006 remains `Waiting` for explicit adoption of the evaluation families. Exact revisions, artifacts, hashes, installed sizes, Windows CPU performance, and output quality remain unverified.
 
+## 2026-10-30 — Phase 4 model-family approval
+
+- The user approved D-006: evaluate Spleeter 2-stem, CREPE, and multilingual Whisper `base` through `whisper.cpp`; HTDemucs weights remain excluded.
+- Added Phase 4 acceptance criteria and a test-first sequence centered on read-only sources, cache-only atomic artifacts, model provenance, resumable jobs, and a required Windows CPU path.
+- No model, runtime, or dependency was downloaded or added during this approval step.
+
