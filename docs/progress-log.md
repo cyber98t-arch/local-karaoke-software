@@ -143,3 +143,18 @@
 - Targeted Rust formatting and `git diff --check`: passed.
 - Tauri launch, native folder selection, and Windows path behavior remain unverified.
 
+## 2026-10-29 — Native library folder selection boundary
+
+- Added the official Rust-side `tauri-plugin-dialog` 2.8.4 and registered it with the Tauri builder; no JavaScript dialog API or filesystem permission was exposed.
+- License inspection found `tauri-plugin-dialog` under Apache-2.0 OR MIT and its native picker dependency `rfd` 0.17.2 under MIT.
+- Added a dedicated asynchronous Tauri command that opens a single-folder picker and stores a validated local path only in `LibraryState`. Its response contains only a selection boolean.
+- RED evidence: the focused command tests ran 5 tests; 3 existing tests passed and the 2 new cancel/select tests failed at the intentional `todo!`.
+- GREEN evidence: focused command tests passed, 5 tests. Full `cargo test --manifest-path src-tauri/Cargo.toml` passed, 20 tests total.
+- The first dependency-fetch attempt failed because the sandbox could not resolve crates.io; the approved network retry downloaded the official plugin successfully.
+- `cargo check --manifest-path src-tauri/Cargo.toml`: passed.
+- `npm run lint`: passed.
+- `npm test -- --run`: passed, 2 tests.
+- `npm run build`: passed.
+- Targeted Rust formatting and `git diff --check`: passed.
+- Actual native dialog rendering, cancellation, Windows path conversion, and Tauri launch remain unverified outside the container.
+

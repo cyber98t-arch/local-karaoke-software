@@ -37,3 +37,5 @@ Additional Phase 2 progress: a service layer now combines discovery, metadata ex
 
 Additional Phase 2 progress: a Rust-owned Tauri state validates and retains the selected library root, and a purpose-specific indexing command returns content IDs and display metadata without exposing source paths to React. Native folder-picker integration remains pending.
 
+Additional Phase 2 progress: an official Rust-side Tauri dialog command now selects a single local folder and retains it only in Rust state; cancellation and path-free responses are covered by tests. React invocation and native Windows verification remain pending.
+
