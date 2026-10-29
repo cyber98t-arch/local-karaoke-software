@@ -34,6 +34,23 @@ describe("song library", () => {
     expect(playOutputProbe).toHaveBeenCalledOnce();
   });
 
+  it("measures microphone level without starting audible monitoring", async () => {
+    const listAudioDevices = vi.fn().mockResolvedValue([
+      { id: "mic-1", name: "Built-in Microphone", direction: "input", isDefault: true },
+    ]);
+    const probeInputLevel = vi.fn().mockResolvedValue({
+      deviceName: "Built-in Microphone", sampleRate: 48_000, channels: 1, durationMs: 1_500,
+      callbackCount: 75, averageCallbackIntervalMs: 20, peakLevel: 0.42,
+    });
+
+    render(<App libraryClient={{}} audioClient={{ listAudioDevices, probeInputLevel }} />);
+    fireEvent.click(await screen.findByRole("button", { name: "マイクを確認" }));
+
+    expect(await screen.findByRole("status")).toHaveTextContent("マイク入力を検出しました（ピーク 42%）");
+    expect(probeInputLevel).toHaveBeenCalledWith("mic-1");
+    expect(probeInputLevel).toHaveBeenCalledOnce();
+  });
+
   it("uses a compact library table with plain analysis wording", () => {
     render(<App libraryClient={{}} audioClient={{}} />);
 

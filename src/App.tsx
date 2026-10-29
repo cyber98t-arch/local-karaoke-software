@@ -48,6 +48,8 @@ function App({ libraryClient = tauriLibraryClient, audioClient }: AppProps) {
   const [selectedOutputId, setSelectedOutputId] = useState("");
   const [audioError, setAudioError] = useState<string | null>(null);
   const [playbackProbeStatus, setPlaybackProbeStatus] = useState<"idle" | "running" | "complete">("idle");
+  const [inputProbeStatus, setInputProbeStatus] = useState<"idle" | "running" | "complete">("idle");
+  const [inputPeak, setInputPeak] = useState<number | null>(null);
   const loadLibraryCatalog = libraryClient
     ? libraryClient.loadLibraryCatalog
     : tauriLibraryClient.loadLibraryCatalog;
@@ -154,6 +156,21 @@ function App({ libraryClient = tauriLibraryClient, audioClient }: AppProps) {
     }
   }
 
+  async function runInputProbe() {
+    if (!selectedInputId) return;
+    setAudioError(null);
+    setInputPeak(null);
+    setInputProbeStatus("running");
+    try {
+      const result = await (audioClient?.probeInputLevel ?? tauriAudioClient.probeInputLevel)(selectedInputId);
+      setInputPeak(result.peakLevel);
+      setInputProbeStatus("complete");
+    } catch {
+      setInputProbeStatus("idle");
+      setAudioError("マイクを確認できませんでした。接続とWindowsのマイク権限を確認してください。");
+    }
+  }
+
   return (
     <main className="app-shell">
       <aside className="sidebar">
@@ -167,6 +184,8 @@ function App({ libraryClient = tauriLibraryClient, audioClient }: AppProps) {
             {inputDevices.length === 0 && <option value="">利用可能なマイクなし</option>}
             {inputDevices.map((device) => <option key={device.id} value={device.id}>{device.name}{device.isDefault ? "（既定）" : ""}</option>)}
           </select></label>
+          <button className="probe-button" disabled={!selectedInputId || inputProbeStatus === "running"} onClick={runInputProbe}>{inputProbeStatus === "running" ? "マイク確認中…" : "マイクを確認"}</button>
+          {inputProbeStatus === "complete" && inputPeak !== null && <small className="probe-success" role="status">マイク入力を検出しました（ピーク {Math.round(inputPeak * 100)}%）</small>}
           <label><span>出力デバイス</span><select aria-label="出力デバイス" value={selectedOutputId} onChange={(event) => setSelectedOutputId(event.target.value)} disabled={outputDevices.length === 0}>
             {outputDevices.length === 0 && <option value="">利用可能な出力なし</option>}
             {outputDevices.map((device) => <option key={device.id} value={device.id}>{device.name}{device.isDefault ? "（既定）" : ""}</option>)}

@@ -37,6 +37,7 @@ pub fn run() {
             runtime_status,
             audio_devices::list_audio_devices,
             audio_probe::play_output_probe,
+            audio_probe::probe_input_level,
             library_commands::select_library_folder,
             library_commands::index_selected_library,
             library_commands::load_library_catalog
