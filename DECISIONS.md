@@ -31,3 +31,14 @@
 - Source: User direction on 2026-10-27.
 - Scope: Preserve the approved React/Tauri framework and the existing privacy, read-only source, analysis, playback, and scoring boundaries.
 - Detail: See `docs/ui-direction.md`.
+
+### D-005 — Phase 3 Windows audio engine
+
+- Status: Waiting
+- Question: Approve direct use of CPAL with its default Windows WASAPI backend as the Phase 3 audio I/O foundation for device enumeration, playback, and microphone capture?
+- Recommended option: Use CPAL directly for both input and output. It exposes devices and stream configurations, uses WASAPI by default on Windows, and keeps the real-time path under application control without introducing separate playback and capture abstractions.
+- Alternative: Use Rodio for playback and CPAL for microphone capture. Playback is simpler, but Rodio currently documents an ongoing core-engine rewrite and would add another abstraction over CPAL.
+- Alternative: Bind WASAPI directly through `windows-rs` or a WASAPI-specific crate. This offers maximum Windows control but increases unsafe/platform-specific code and works against the current portable CPU-fallback architecture.
+- Initial scope if approved: Shared-mode device enumeration and a playback/microphone probe only. Do not enable ASIO, loopback capture, monitoring, scoring, or production playback in this decision.
+- Sources reviewed: RustAudio CPAL and Rodio official repositories and current crate documentation on 2026-10-29.
+- Reason approval is required: Phase 3 changes the audio engine/library and is explicitly marked `Decision required` in the roadmap.

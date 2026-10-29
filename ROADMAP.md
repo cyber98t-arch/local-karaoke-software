@@ -4,7 +4,7 @@
 |---|---|---|---|
 | 0. Repository foundation | Complete | Git, Dev Container, Codex continuity, requirements and verification baseline | Approved: Tauri 2 + React + Rust + Python |
 | 1. Song-selection UI skeleton | Complete | Searchable/selectable mock library with analysis states | No new gate |
-| 2. Read-only library and cache catalog | In progress | Scan MP3/FLAC/WAV without changing sources; content-addressed catalog | Approved: D-003 SQLite catalog + JSON artifact manifests |
+| 2. Read-only library and cache catalog | Complete | Scan MP3/FLAC/WAV without changing sources; content-addressed catalog | Approved: D-003 SQLite catalog + JSON artifact manifests |
 | 3. Playback and microphone probe | Not started | Windows audio device selection, playback, loopback-free mic monitoring | Decision required: Windows audio engine/library |
 | 4. Analysis pipeline prototype | Not started | Local separation, melody extraction, Japanese lyric alignment, progress reporting | Decision required: model families and licenses |
 | 5. GPU provider matrix | Not started | DirectML/CUDA/other supported providers with measured CPU fallback | Decision required after hardware probes |
@@ -41,5 +41,7 @@ Additional Phase 2 progress: an official Rust-side Tauri dialog command now sele
 
 Additional Phase 2 progress: the React import action now invokes native selection followed by indexing, preserves the current library on cancellation/failure, and renders only path-free display metadata returned by Rust. Native Windows end-to-end verification remains pending.
 
-Additional Phase 2 progress: React now restores an existing application-local catalog through a path-free Rust command on startup; a missing catalog remains non-creating. Native Windows end-to-end verification remains pending before Phase 2 closure.
+Additional Phase 2 progress: React now restores an existing application-local catalog through a path-free Rust command on startup; a missing catalog remains non-creating. Native Windows end-to-end verification was completed at Phase 2 closure below.
+
+Phase 2 completed 2026-10-29: automated tests cover read-only discovery, metadata, hashing, transactional catalog updates, path-free command responses, and restoration. Windows native testing confirmed application launch, folder selection, song display, restart restoration, Japanese/whitespace path handling, and no observed source-folder changes.
 

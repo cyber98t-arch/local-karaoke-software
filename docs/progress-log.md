@@ -233,3 +233,11 @@
 - The user selected a Windows folder named `夜　遊び` containing the same song and confirmed the library continued to display the song normally, providing native evidence for Japanese characters and whitespace in the selected path.
 - Windows source-directory immutability remains unverified.
 
+## 2026-10-29 — Phase 2 Windows completion evidence
+
+- The user confirmed that selecting the Windows source folder did not create, modify, rename, move, or delete anything in it.
+- Combined with the automated byte-preservation and transactional tests, Windows launch, folder selection, song display, restart restoration, and Japanese/whitespace path evidence, all Phase 2 acceptance criteria are now covered.
+- Marked Phase 2 complete. Phase 3 implementation did not begin.
+- Reviewed current official audio-library information for the Phase 3 gate. CPAL directly over its default Windows WASAPI backend is the recommended option; Rodio plus CPAL and direct WASAPI bindings remain documented alternatives in D-005.
+- Phase-close `cargo test --manifest-path src-tauri/Cargo.toml` passed, 22 tests; `cargo check --manifest-path src-tauri/Cargo.toml` and `git diff --check` passed. The frontend baseline awaits the documented Dev Container rebuild because host Windows `npm ci` replaced the shared Linux-native optional dependency.
+
