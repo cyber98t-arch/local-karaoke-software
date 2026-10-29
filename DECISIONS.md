@@ -47,8 +47,9 @@
 ### D-006 — Phase 4 local analysis model families and licenses
 
 - Status: Waiting
+- Research direction approved: On 2026-10-30 the user approved a conservative review limited to candidates with clear model-artifact licenses. HTDemucs weights remain excluded from adoption and download. This approval does not yet select the Phase 4 families.
 - Question: Which local model families and license/provenance constraints should Phase 4 adopt for vocal separation, vocal melody extraction, and Japanese lyric transcription/alignment?
-- Candidate stack: HTDemucs for vocal separation, a monophonic CREPE-family pitch tracker for vocal melody, and multilingual Whisper through `whisper.cpp` for Japanese transcription. Begin with a small CPU-capable Whisper model and keep every model download explicit and separate from song caches.
+- Current recommendation after preflight: Evaluate Spleeter 2-stem for vocal separation, CREPE for monophonic vocal melody, and multilingual Whisper `base` through `whisper.cpp` for Japanese transcription. Keep every model download explicit and separate from song caches; see `docs/phase-4-model-review.md`.
 - License review: Whisper and `whisper.cpp` publish MIT licenses. The archived Demucs repository publishes an MIT code license, but that alone does not clearly establish a separately redistributable license for every pretrained weight and training-data derivative. No Demucs weight may be bundled or downloaded until its exact artifact provenance and license are documented and approved.
 - Alternatives: Evaluate a separation model with explicitly permissive weight terms; use a non-neural pitch tracker if CREPE latency or packaging is unsuitable; or require user-imported lyrics while postponing transcription.
 - Initial scope if approved: Offline prototype jobs only, completed before playback and cached by content hash plus pipeline version. No external AI API, source-file write, live inference, automatic model download, or model redistribution.

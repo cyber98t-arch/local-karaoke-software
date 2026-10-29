@@ -301,3 +301,11 @@
 - Phase 3 is complete. The phase-close baseline passed: frontend lint, 10 frontend tests, production build, 26 Rust tests, Rust check, and `git diff --check`.
 - Opened D-006 as `Waiting`. Phase 4 implementation and model downloads remain blocked until the local model families and license/provenance constraints are explicitly approved.
 
+## 2026-10-30 — Phase 4 permissive-model preflight
+
+- The user approved continuing a conservative model review while excluding HTDemucs weights whose artifact terms are not sufficiently clear. This was research approval, not model-family adoption.
+- Reviewed official upstream sources for Spleeter, Open-Unmix, CREPE, Basic Pitch, Whisper, and `whisper.cpp`; no dependency or model was downloaded.
+- Spleeter 2-stem is the current separation evaluation recommendation because its official paper explicitly describes the pretrained models and code as MIT-distributed. Its TensorFlow packaging cost and 11 kHz model bandwidth remain material risks.
+- CREPE is the current MIT-licensed monophonic-pitch recommendation. Multilingual Whisper `base` through `whisper.cpp` is the current MIT-licensed Japanese transcription recommendation at approximately 142 MiB.
+- D-006 remains `Waiting` for explicit adoption of the evaluation families. Exact revisions, artifacts, hashes, installed sizes, Windows CPU performance, and output quality remain unverified.
+
