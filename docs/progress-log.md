@@ -273,3 +273,8 @@
 - Frontend tests passed, 8 tests without React warnings. `npm run lint`, `npm run build`, `cargo check --manifest-path src-tauri/Cargo.toml`, targeted Rust formatting, and `git diff --check` passed.
 - Windows WASAPI device enumeration and audible test-tone confirmation remain pending user observation. Microphone capture has not been implemented.
 
+## 2026-10-29 — Windows WASAPI enumeration and playback observation
+
+- The user confirmed on Windows that input/output selectors populated, defaults were identified, output selection worked, the 500 ms test tone was audible, and no error or application stop occurred.
+- This completes native validation of Phase 3 device enumeration and the bounded shared-mode output probe. Microphone capture and callback-cadence evidence remain pending.
+
