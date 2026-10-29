@@ -254,3 +254,11 @@
 - Explicitly excluded ASIO and every optional CPAL feature. No dependency was added and no audio stream was opened during this review.
 - Detailed evidence and integration constraints are in `docs/phase-3-dependency-review.md`.
 
+## 2026-10-29 — Phase 3 typed audio-device service
+
+- Added application-owned audio direction, backend-device, and serialized device value types behind an injected `AudioDeviceBackend` trait. No CPAL type crosses the service boundary.
+- RED evidence: both focused tests failed at the intentional device-enumeration `todo!`.
+- Implemented the smallest service that combines input and output devices, marks defaults by stable ID rather than display name, preserves duplicate display names with distinct IDs, and returns stage-specific safe-retry errors.
+- GREEN evidence: focused audio-device tests passed, 2 tests. Full `cargo test --manifest-path src-tauri/Cargo.toml` passed, 24 tests total; `cargo check --manifest-path src-tauri/Cargo.toml`, targeted Rust formatting, and `git diff --check` passed.
+- CPAL has not yet been added, no Tauri command exposes this service, and no audio device or stream was opened.
+

@@ -58,7 +58,7 @@ Phase 2 completed 2026-10-29: automated tests cover read-only discovery, metadat
 ## Phase 3 initial test-first steps
 
 1. Completed 2026-10-29: reviewed CPAL 0.18.2, Apache-2.0 licensing, empty default features, Windows WASAPI dependencies, Rust 1.85 minimum, and existing Linux ALSA prerequisites; see `docs/phase-3-dependency-review.md`.
-2. Add failing tests for a typed audio-device service using an injected fake backend; cover defaults, input/output separation, duplicate display names, and backend errors.
+2. Completed 2026-10-29: added failing tests for a typed audio-device service using an injected fake backend, then implemented the smallest application-owned boundary covering defaults, input/output separation, duplicate display names with distinct IDs, and stage-specific backend errors.
 3. Implement the smallest read-only CPAL adapter and path-free Tauri command needed to enumerate devices and supported/default configurations; do not open streams yet.
 4. Connect device selection in React and verify safe empty/error states without starting playback or capture.
 5. Add a generated-tone playback probe behind the injected boundary, then validate it on Windows shared-mode WASAPI.
