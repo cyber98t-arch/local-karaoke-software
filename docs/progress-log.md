@@ -221,3 +221,11 @@
 - The user subsequently reported that the revised UI was substantially improved and that registering the untracked `sample music/` folder containing audio files worked in the Linux Dev Container Tauri application.
 - Native visual review at the target Windows size remains unverified. The contents of `sample music/` were not inspected or added to Git.
 
+## 2026-10-29 — Windows Tauri launch prerequisite repair
+
+- The first Windows launch reached Rust after installing/finding the MSVC Rust toolchain, then failed because the repository contained only `icon.png` while `tauri-build` requires `src-tauri/icons/icon.ico` for a Windows resource.
+- Derived a six-size Windows ICO (256, 128, 64, 48, 32, and 16 px) from the existing application icon without changing its design.
+- `cargo check --manifest-path src-tauri/Cargo.toml` and `git diff --check` passed after adding the ICO.
+- `npm run build` in the Linux Dev Container could not run because the Windows-host `npm ci` replaced the shared `node_modules` with platform-specific dependencies and left the Linux Rollup optional package absent. Added a dedicated Dev Container `node_modules` volume to prevent future Windows/Linux dependency collisions; a container rebuild is required to verify it.
+- Windows Tauri launch after the ICO addition remains pending user observation.
+
