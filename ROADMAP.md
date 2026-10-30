@@ -6,7 +6,7 @@
 | 1. Song-selection UI skeleton | Complete | Searchable/selectable mock library with analysis states | No new gate |
 | 2. Read-only library and cache catalog | Complete | Scan MP3/FLAC/WAV without changing sources; content-addressed catalog | Approved: D-003 SQLite catalog + JSON artifact manifests |
 | 3. Playback and microphone probe | Complete | Windows audio device selection, playback, loopback-free mic monitoring | Approved: D-005 CPAL + default Windows WASAPI |
-| 4. Analysis pipeline prototype | In progress | Local separation, melody extraction, Japanese lyric alignment, progress reporting | D-006 models approved; D-007 ONNX feasibility research only |
+| 4. Analysis pipeline prototype | In progress | Local separation, melody extraction, Japanese lyric alignment, progress reporting | D-006 models and D-007 CPU ONNX separation approved |
 | 5. GPU provider matrix | Not started | DirectML/CUDA/other supported providers with measured CPU fallback | Decision required after hardware probes |
 | 6. Singing and scoring UI | Not started | Low-latency live pitch/timing feedback; no live total score | Scoring weights require approval |
 | 7. Result and lyric correction | Not started | Post-song total/breakdown and editable synced Japanese lyrics | UX acceptance review |
@@ -94,4 +94,9 @@ Phase 3 completed 2026-10-30: automated coverage passes for the typed/injected a
 - Ask before large downloads/installations, stating expected transfer/installed size and purpose.
 - If conversion fails or quality degrades materially, present permissively licensed lightweight local alternatives rather than silently changing model family.
 - Do not adopt, bundle, publish, or distribute ONNX as the official engine before a new explicit user decision after the evidence report.
+
+D-007 completed 2026-10-30: CPU ONNX Runtime was selected after successful
+separation, numerical comparison, representative listening review, preliminary
+time/memory measurement, license inventory, and artifact hashing. GPU providers,
+publishing, and release were not selected by this decision.
 

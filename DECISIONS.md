@@ -59,12 +59,14 @@
 
 ### D-007 — Spleeter inference runtime after TensorFlow feasibility failure
 
-- Status: Research approved; adoption not approved
-- Decision: Investigate conversion of the pinned Spleeter 2-stem weights to a versioned ONNX artifact and evaluate it with CPU ONNX Runtime. This approval covers feasibility research only and does not approve ONNX as the production analysis engine, model/runtime bundling, or distribution.
-- Source: User approval with explicit conditions on 2026-10-30.
+- Status: Approved
+- Decision: Adopt the pinned Spleeter 2-stem neural spectrogram subgraph with CPU ONNX Runtime as the production separation foundation. Keep STFT, ratio-mask construction, and inverse STFT in application-owned CPU-capable code. TensorFlow remains a research reference only and is not a production dependency.
+- Source: The user approved the lighter option on 2026-10-30 after reporting no audible difference between the TensorFlow and ONNX outputs.
+- Scope: This selects the CPU inference runtime. It does not select a GPU provider, approve a release, or waive the requirements for cache-only derived output, read-only source access, artifact hashes, notices, Windows validation, and explicit model download behavior.
 - Required evidence: successful CPU separation; TensorFlow-versus-ONNX numerical output difference, listening-quality review, processing time, and peak memory; future Intel Arc/AMD Radeon/NVIDIA provider feasibility; licenses for ONNX Runtime, converted weights, conversion script, and every dependency; SHA-256 records for models and dependencies; and lightweight alternative candidates if conversion is infeasible or materially degrades quality.
 - Download gate: Before any large dependency/model download or installation, report the expected size and purpose and obtain explicit user approval. The earlier incomplete TensorFlow resolver probe does not authorize another large download.
-- Adoption gate: After reporting all verification evidence, ask for a new explicit production-adoption decision. Until then, do not connect the converted model to the application as its official engine and do not bundle, publish, or distribute it.
+- Adoption evidence: On a representative 30-second excerpt, the encoded outputs differed by at most one 16-bit PCM LSB and the user could not hear a difference. The ONNX prototype used less peak memory, although its application-owned Python/NumPy signal processing made that particular run slower overall. The user's priority was the lighter option.
+- Remaining gates: GPU strategy is deferred to Phase 5. Packaging, Windows wheel/binary hashes, notices, model acquisition UX, installer contents, publishing, and release still require their normal reviews and approvals.
 - Alternative: Continue with the official Python 3.11, Spleeter 2.4.2, and TensorFlow 2.12.1 worker. The Linux TensorFlow wheel alone is 585.9 MB, and an unpinned dependency resolution began repeatedly backtracking through gRPC releases before it was stopped. This conflicts with the ordinary-laptop and lightweight-packaging mission.
 - Alternative: Reopen D-006 and select a different separation model with official permissive ONNX weights. This changes the approved model family and needs a separate candidate/license review.
 - Evidence: The 2026-10-30 download probe used an isolated `/tmp` destination, did not install anything, and was cancelled during dependency backtracking. The incomplete resolver removed its temporary wheel files; nothing was added to the repository or application cache.

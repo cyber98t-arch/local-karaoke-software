@@ -411,3 +411,10 @@
 - This run measured TensorFlow at 0.751 s and 1,288,380 KiB peak RSS. ONNX plus NumPy transforms measured 1.063 s and 925,896 KiB peak RSS; model execution alone was 0.507 s. The prototype reduced peak memory but was slower overall on this run.
 - Numerical comparison is complete for this excerpt. Listening quality remains pending the user's judgment; no audible-equivalence conclusion has been recorded yet.
 
+## 2026-10-30 — CPU ONNX separation adopted
+
+- The user reported no audible difference between the TensorFlow and ONNX stem pairs and chose the lighter option.
+- D-007 now adopts the pinned Spleeter neural spectrogram subgraph on CPU ONNX Runtime. Application-owned CPU signal processing remains part of the approved path; TensorFlow is retained only as a research reference and will not be a production dependency.
+- The choice prioritizes lower peak memory and a smaller production dependency surface. The representative 30-second prototype was slower overall because the current Python/NumPy transforms are not optimized; no speed advantage is claimed.
+- GPU provider selection, Windows packaging hashes/notices, automatic model-download behavior, publishing, and release remain separate gates.
+

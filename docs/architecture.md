@@ -6,7 +6,7 @@
 - **Desktop shell:** Tauri 2.
 - **Native orchestration:** Rust.
 - **Model experimentation:** Python workers during early development; stable pipelines should move behind a versioned local process protocol or ONNX Runtime.
-- **Inference portability:** ONNX Runtime is the intended common layer. Provider selection is a gated future decision after hardware probes.
+- **Inference portability:** CPU ONNX Runtime is the approved Spleeter separation layer. The neural spectrogram subgraph runs in ONNX while application-owned CPU code performs STFT, ratio masks, and inverse STFT. GPU provider selection remains a gated future decision after hardware probes.
 
 ## Component boundaries
 

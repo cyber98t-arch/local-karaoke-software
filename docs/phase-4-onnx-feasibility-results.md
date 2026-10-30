@@ -1,6 +1,6 @@
 # D-007 ONNX feasibility results
 
-Status: **research evidence only; adoption and distribution are not approved**.
+Status: **CPU ONNX Runtime adopted on 2026-10-30; GPU strategy, publishing, and release remain unapproved**.
 
 ## Scope and environment
 
@@ -88,8 +88,13 @@ After both outputs were encoded as 16-bit PCM, the maximum TensorFlow-versus-
 ONNX difference was exactly one PCM least-significant bit (`3.0517578125e-5`)
 for both stems. PCM RMSE was `4.6389e-6` for vocals and `6.1870e-6` for
 accompaniment. This is strong numerical evidence that the two engines should
-be audibly equivalent, but the user's controlled listening judgment is still
-pending and must not be inferred from the numbers.
+be audibly equivalent. The subsequent user judgment independently reported no
+audible difference.
+
+The user subsequently reported that no difference was audible and selected the
+lighter option. D-007 therefore adopts the CPU ONNX path as the production
+separation foundation. This is a runtime decision, not permission to publish a
+release or silently download model/runtime artifacts.
 
 The same 30-second run measured TensorFlow at 0.751 s and 1,288,380 KiB peak
 RSS, versus the ONNX/NumPy path at 1.063 s and 925,896 KiB peak RSS. ONNX model
@@ -141,5 +146,4 @@ are verified before download.
 3. Windows-compatible wheel hashes and complete third-party notices.
 4. A deliberate decision on whether non-byte-deterministic conversion is
    acceptable or needs normalization.
-5. New explicit user approval before adoption, bundling, distribution, or GPU
-   provider selection.
+5. Separate approval before GPU-provider selection, publishing, or release.
