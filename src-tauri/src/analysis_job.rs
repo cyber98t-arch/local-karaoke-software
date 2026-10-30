@@ -81,6 +81,56 @@ pub enum AnalysisJobState {
     Cancelled,
 }
 
+impl AnalysisJobState {
+    pub fn start_stage(&mut self, stage: AnalysisStage) -> Result<(), String> {
+        let can_start = matches!(self, Self::Queued | Self::Running { .. })
+            || matches!(
+                self,
+                Self::Failed {
+                    retryable: true,
+                    ..
+                }
+            );
+        if !can_start {
+            return Err("analysis job is terminal or not retryable".to_owned());
+        }
+        *self = Self::Running { stage };
+        Ok(())
+    }
+
+    pub fn fail(&mut self, message: String, retryable: bool) -> Result<(), String> {
+        let stage = match self {
+            Self::Running { stage } => *stage,
+            _ => return Err("only a running analysis stage can fail".to_owned()),
+        };
+        if message.trim().is_empty() {
+            return Err("analysis failure requires an actionable message".to_owned());
+        }
+        *self = Self::Failed {
+            stage,
+            message,
+            retryable,
+        };
+        Ok(())
+    }
+
+    pub fn cancel(&mut self) -> Result<(), String> {
+        if !matches!(self, Self::Queued | Self::Running { .. }) {
+            return Err("only an active analysis job can be cancelled".to_owned());
+        }
+        *self = Self::Cancelled;
+        Ok(())
+    }
+
+    pub fn complete(&mut self) -> Result<(), String> {
+        if !matches!(self, Self::Running { .. }) {
+            return Err("only a running analysis job can complete".to_owned());
+        }
+        *self = Self::Completed;
+        Ok(())
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::{AnalysisIdentity, AnalysisJobState, AnalysisStage};
@@ -161,5 +211,48 @@ mod tests {
         assert_eq!(value["stage"], "transcription");
         assert_eq!(value["retryable"], true);
         assert!(value.get("sourcePath").is_none());
+    }
+
+    #[test]
+    fn allows_cancellation_but_keeps_terminal_states_terminal() {
+        let mut state = AnalysisJobState::Queued;
+        state
+            .start_stage(AnalysisStage::Separation)
+            .expect("a queued job should start");
+        assert_eq!(
+            state,
+            AnalysisJobState::Running {
+                stage: AnalysisStage::Separation
+            }
+        );
+
+        state.cancel().expect("a running job should cancel");
+        assert_eq!(state, AnalysisJobState::Cancelled);
+        assert!(state.start_stage(AnalysisStage::Melody).is_err());
+        assert!(state.complete().is_err());
+    }
+
+    #[test]
+    fn records_actionable_stage_failure_and_allows_retry() {
+        let mut state = AnalysisJobState::Running {
+            stage: AnalysisStage::Melody,
+        };
+        state
+            .fail("Pitch process stopped".to_owned(), true)
+            .expect("a running stage should fail");
+
+        assert_eq!(
+            state,
+            AnalysisJobState::Failed {
+                stage: AnalysisStage::Melody,
+                message: "Pitch process stopped".to_owned(),
+                retryable: true,
+            }
+        );
+        state
+            .start_stage(AnalysisStage::Melody)
+            .expect("a retryable failure should restart");
+        state.complete().expect("a running job should complete");
+        assert_eq!(state, AnalysisJobState::Completed);
     }
 }
