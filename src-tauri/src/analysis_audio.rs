@@ -73,7 +73,7 @@ pub fn decode_for_analysis(source_path: &Path) -> io::Result<DecodedAudio> {
             FormatOptions::default(),
             MetadataOptions::default(),
         )
-        .map_err(invalid_audio)?;
+        .map_err(|error| invalid_data(format!("audio format probe failed: {error}")))?;
     let track = format
         .default_track(TrackType::Audio)
         .ok_or_else(|| invalid_data("source has no audio track"))?;
@@ -89,12 +89,38 @@ pub fn decode_for_analysis(source_path: &Path) -> io::Result<DecodedAudio> {
 
     let mut sample_rate = None;
     let mut stereo_frames = Vec::new();
-    while let Some(packet) = format.next_packet().map_err(invalid_audio)? {
+    loop {
+        let packet = match format.next_packet() {
+            Ok(Some(packet)) => packet,
+            Ok(None) => break,
+            Err(SymphoniaError::IoError(error))
+                if error.kind() == io::ErrorKind::UnexpectedEof && !stereo_frames.is_empty() =>
+            {
+                break;
+            }
+            Err(error) => {
+                return Err(invalid_data(format!(
+                    "audio packet reading failed: {error}"
+                )))
+            }
+        };
         if packet.track_id != track_id {
             continue;
         }
 
-        let decoded = decoder.decode(&packet).map_err(invalid_audio)?;
+        let decoded = match decoder.decode(&packet) {
+            Ok(decoded) => decoded,
+            Err(SymphoniaError::IoError(error))
+                if error.kind() == io::ErrorKind::UnexpectedEof && !stereo_frames.is_empty() =>
+            {
+                break;
+            }
+            Err(error) => {
+                return Err(invalid_data(format!(
+                    "audio packet decoding failed: {error}"
+                )))
+            }
+        };
         let spec = decoded.spec();
         let channels = spec.channels().count();
         if !(1..=2).contains(&channels) {

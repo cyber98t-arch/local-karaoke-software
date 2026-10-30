@@ -123,7 +123,7 @@
 
 ### D-012 — Derived two-stem cache encoding
 
-- Status: Waiting
+- Status: Approved
 - Question: Which on-disk encoding should store cache-owned vocals and accompaniment stems after separation?
 - Recommended option: Stereo 44.1 kHz, signed 16-bit FLAC using pure-Rust `flacenc` 0.5.1 with default features disabled. It is lossless relative to the selected 16-bit cache precision, is already decodable by the approved Symphonia feature set, reduces ordinary-laptop cache usage compared with WAV, and is Apache-2.0 licensed.
 - Alternative: Signed 16-bit PCM WAV using Hound 3.5.1 (Apache-2.0). This is simpler and fast, but two one-hour stereo stems consume about 1.27 GB before filesystem overhead.
@@ -131,3 +131,5 @@
 - Precision note: The representative TensorFlow/ONNX equivalence test already used 16-bit PCM encoding and differed by at most one least-significant bit. Quantization must clamp safely and be deterministic; analysis that needs full precision should consume in-memory floats before cache encoding.
 - Scope if approved: Write only request-specific temporary files beneath the application cache, finalize and validate both stems, record sizes/hashes/format parameters in the manifest, then atomically commit without replacing a valid cache. Never write beside the source.
 - Reason approval is required: This selects the persistent derived-audio cache format, precision, encoder dependency, storage footprint, and compatibility boundary.
+- Decision: Store both derived stems as stereo 44.1 kHz signed 16-bit FLAC using pure-Rust `flacenc` 0.5.1 with default features disabled. Commit only after both temporary artifacts validate.
+- Source: User approval on 2026-10-30.

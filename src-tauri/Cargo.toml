@@ -18,6 +18,7 @@ tauri-build = { version = "2", features = [] }
 
 [dependencies]
 cpal = "0.18.2"
+flacenc = { version = "=0.5.1", default-features = false }
 lofty = { version = "0.25.4", default-features = false, features = ["id3v2_compression_support"] }
 ndarray = "=0.17.2"
 ort = { version = "=2.0.0-rc.15", optional = true, default-features = false, features = ["api-31", "copy-dylibs", "download-binaries", "ndarray", "std", "tls-rustls"] }

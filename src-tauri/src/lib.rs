@@ -12,6 +12,7 @@ pub mod metadata;
 pub mod model_manifest;
 pub mod spleeter_inference;
 pub mod spleeter_signal;
+pub mod stem_cache;
 
 #[cfg(not(test))]
 use library_commands::LibraryState;
