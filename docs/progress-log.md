@@ -385,3 +385,11 @@
 - Any large dependency/model download or installation requires another advance approval with its expected capacity and purpose. No new download or installation occurred in this step.
 - If conversion is infeasible or materially worse, the research must present permissively licensed lightweight alternatives and return to the user rather than changing model family silently.
 
+## 2026-10-30 — Download-free ONNX feasibility preflight
+
+- Reviewed official tf2onnx conversion support, ONNX Runtime CPU/provider documentation, current package metadata, and licenses without downloading or installing anything.
+- Confirmed that checkpoint conversion requires explicit tensor names and that Spleeter publishes no official ONNX artifact/recipe. Current tf2onnx primarily tests TensorFlow 2.13–2.15 while Spleeter pins 2.12.1, so conversion compatibility is an experiment rather than an assumption.
+- Defined reproducible numerical, listening, timing, memory, and reconstruction comparisons plus separate Intel Arc/OpenVINO, cross-vendor WinML/DirectML, and NVIDIA/CUDA future paths. No GPU strategy was selected.
+- Recorded MIT/Apache-2.0 license preflight and the need for exact transitive notices and converted-artifact provenance before distribution.
+- Estimated a conservative research envelope of up to 1.0 GB download and 3.0 GB temporary disk. Per the user's condition, execution is stopped pending explicit capacity/purpose approval.
+
