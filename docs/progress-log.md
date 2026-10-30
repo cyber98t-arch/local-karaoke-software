@@ -486,3 +486,11 @@
 - The connection currently accepts 44.1 kHz only. Other native rates fail with an explicit resampling-not-configured error rather than being silently processed incorrectly.
 - Opened D-011 as `Waiting` after reviewing Rubato's current official repository/docs. No resampling dependency was added and no sample-rate strategy was selected.
 
+## 2026-10-30 — Offline analysis resampling approved and implemented
+
+- The user approved D-011. Pinned Rubato 5.0.1 with only its FFT-resampler feature; no playback, microphone, or real-time path was changed.
+- RED evidence: the 96 kHz test failed to compile before the application-owned resampling function existed. GREEN evidence: it converted a generated one-second stereo signal to 44.1 kHz and exactly 44,100 finite frames while preserving distinct left/right content.
+- `separate_source` now decodes read-only, applies the fixed-ratio conversion when needed, and then enters the existing injected spectrogram-inference boundary. Native-rate 44.1 kHz input takes an identity path.
+- Three focused decoder/resampler tests and three focused separation tests passed. `cargo check --features native-onnx` and `git diff --check` passed. Native Windows and representative-source performance remain unverified.
+- The phase handoff baseline also passed: frontend lint, 10 frontend tests, production build, all 51 Rust library tests, default `cargo check`, and `git diff --check`.
+
