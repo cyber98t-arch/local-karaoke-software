@@ -403,3 +403,11 @@
 - Added reproducible inspection, conversion, CPU runtime, signal-transform test, and installed-environment inventory scripts. The 71-distribution inventory records versions, declared license metadata, and per-distribution installed-file hashes. No model, converted ONNX binary, generated audio, or temporary environment is committed.
 - Remaining evidence is representative-music A/B listening, repeated and Windows CPU measurements, Windows wheel hashes/notices, and an explicit post-report adoption decision. ONNX adoption, bundling, distribution, and GPU-provider selection remain unapproved.
 
+## 2026-10-30 — Representative-music ONNX comparison prepared
+
+- The user placed a 44.1 kHz, 16-bit stereo PCM WAV in the sample directory for the approved comparison. Read a 30-second excerpt from 60–90 seconds and wrote the excerpt plus four stem outputs only below a new `/tmp` directory.
+- The source WAV remained byte-for-byte and metadata-identical: its 44,331,086-byte size, modification timestamp, mode, and SHA-256 were unchanged after the probe.
+- After 16-bit PCM encoding, TensorFlow and ONNX outputs differed by at most one PCM least-significant bit for both stems. RMSE was `4.6389e-6` for vocals and `6.1870e-6` for accompaniment.
+- This run measured TensorFlow at 0.751 s and 1,288,380 KiB peak RSS. ONNX plus NumPy transforms measured 1.063 s and 925,896 KiB peak RSS; model execution alone was 0.507 s. The prototype reduced peak memory but was slower overall on this run.
+- Numerical comparison is complete for this excerpt. Listening quality remains pending the user's judgment; no audible-equivalence conclusion has been recorded yet.
+

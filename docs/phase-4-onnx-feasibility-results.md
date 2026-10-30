@@ -79,11 +79,23 @@ dependency closure, and Windows CPU measurements remain required.
 
 ## Listening quality
 
-Not yet verified. Generated tones are useful for numerical regression but not
-for judging vocal leakage or musical artifacts. A controlled A/B listening
-test using a user-supplied local 44.1 kHz stereo PCM WAV can be performed by
-the research script without modifying the source. The output must stay in a
-temporary or application-cache directory and must not be committed.
+A user-supplied 44.1 kHz, 16-bit stereo PCM WAV was sampled from 60–90 seconds
+without modifying the source. Its byte size, modification timestamp, mode, and
+SHA-256 were identical before and after the probe. All derived files were
+written beneath `/tmp` and were not committed.
+
+After both outputs were encoded as 16-bit PCM, the maximum TensorFlow-versus-
+ONNX difference was exactly one PCM least-significant bit (`3.0517578125e-5`)
+for both stems. PCM RMSE was `4.6389e-6` for vocals and `6.1870e-6` for
+accompaniment. This is strong numerical evidence that the two engines should
+be audibly equivalent, but the user's controlled listening judgment is still
+pending and must not be inferred from the numbers.
+
+The same 30-second run measured TensorFlow at 0.751 s and 1,288,380 KiB peak
+RSS, versus the ONNX/NumPy path at 1.063 s and 925,896 KiB peak RSS. ONNX model
+execution used 0.507 s; the remaining signal-processing and allocation cost
+made this prototype slower overall. Optimization and repeated Windows
+measurement are required before any performance claim.
 
 ## Licenses and dependency inventory
 
@@ -124,7 +136,7 @@ are verified before download.
 
 ## Remaining gates
 
-1. Representative-music A/B listening review.
+1. User judgment from the prepared representative-music A/B listening files.
 2. Repeated TensorFlow/ONNX benchmarks and Windows CPU/peak-memory evidence.
 3. Windows-compatible wheel hashes and complete third-party notices.
 4. A deliberate decision on whether non-byte-deterministic conversion is
