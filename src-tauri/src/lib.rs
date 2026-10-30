@@ -1,3 +1,4 @@
+pub mod analysis_job;
 pub mod audio_devices;
 pub mod audio_probe;
 pub mod cache;
