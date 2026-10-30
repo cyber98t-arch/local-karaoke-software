@@ -393,3 +393,13 @@
 - Recorded MIT/Apache-2.0 license preflight and the need for exact transitive notices and converted-artifact provenance before distribution.
 - Estimated a conservative research envelope of up to 1.0 GB download and 3.0 GB temporary disk. Per the user's condition, execution is stopped pending explicit capacity/purpose approval.
 
+## 2026-10-30 — Spleeter ONNX CPU feasibility evidence
+
+- After user approval, created a disposable Python environment and downloaded the pinned Spleeter artifact. Actual transfer stayed below 1.0 GB. Temporary disk briefly reached approximately 3.2 GB while the wheelhouse and installed environment coexisted; this exceeded the 3.0 GB estimate by about 0.2 GB, was reported immediately, and the research-owned 789 MB wheelhouse was removed before continuing.
+- Full waveform-to-waveform conversion failed because tf2onnx 1.16.1 could not convert Spleeter's RFFT layout or IRFFT nodes. Conversion of the neural spectrogram subgraph succeeded at opset 13; NumPy performs the STFT, ratio masks, and inverse STFT.
+- CPU ONNX Runtime successfully separated a generated stereo signal. Against TensorFlow, final vocals waveform RMSE was `3.4119e-8` and accompaniment waveform RMSE was `6.0138e-7`; maximum absolute differences were `1.7862e-7` and `2.2948e-6` respectively.
+- One generated 10-second cold-process observation measured TensorFlow at 0.368 s and 919,064 KiB peak RSS, versus the ONNX path at 0.257 s and 439,984 KiB peak RSS. These are preliminary Linux-container observations, not Windows acceptance evidence.
+- Two conversions were semantically valid but produced different hashes because tf2onnx generated different internal temporary node identifiers. The second artifact was 78,652,254 bytes with SHA-256 `8d58651b5979075c954bcbe96c6776b2dc41e7852fb6f2d054b83a696a8db26f`; byte-deterministic conversion remains unresolved.
+- Added reproducible inspection, conversion, CPU runtime, signal-transform test, and installed-environment inventory scripts. The 71-distribution inventory records versions, declared license metadata, and per-distribution installed-file hashes. No model, converted ONNX binary, generated audio, or temporary environment is committed.
+- Remaining evidence is representative-music A/B listening, repeated and Windows CPU measurements, Windows wheel hashes/notices, and an explicit post-report adoption decision. ONNX adoption, bundling, distribution, and GPU-provider selection remain unapproved.
+
