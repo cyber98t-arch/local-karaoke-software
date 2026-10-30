@@ -459,3 +459,9 @@
 - An actual Linux test link exposed ABI incompatibility in the rc.15 prebuilt static runtime (`__isoc23_strtol` and newer libstdc++ symbols). Normal Linux tests now exclude the optional native link; `cargo check --features native-onnx` and default `cargo check` both pass. Windows linking remains unverified and no version was silently changed.
 - Added application-owned squared ratio masks with Spleeter's epsilon behavior and zero high-frequency extension. Four focused Spleeter tests pass, covering tensor contract, STFT round trip, segment padding, and processed-band reconstruction.
 
+## 2026-10-30 — Injected native separation pipeline
+
+- Added one typed `separate_waveform` path from generated stereo PCM through Rust STFT, ONNX-shaped magnitude input, injected inference, ratio masks, and Rust inverse STFT.
+- A dependency-free fake inference implementation routes the generated mixture to vocals and silence to accompaniment. The focused end-to-end test passed and verified output length plus expected stem-energy separation.
+- Five focused Spleeter tests pass. Actual ONNX execution remains feature-gated and awaits native Windows linking; no user audio or model was opened by this step.
+

@@ -6,6 +6,8 @@ use ort::{environment::Environment, session::Session, value::TensorRef};
 #[cfg(feature = "native-onnx")]
 use std::path::Path;
 
+use crate::spleeter_signal::{inverse_stft, masked_spectra, model_input, stft};
+
 #[cfg(feature = "native-onnx")]
 const INPUT_NAME: &str = "Abs:0";
 #[cfg(feature = "native-onnx")]
@@ -21,6 +23,30 @@ pub struct StemEstimates {
 
 pub trait SpectrogramInference {
     fn infer(&mut self, input: &Array4<f32>) -> Result<StemEstimates, String>;
+}
+
+#[derive(Debug)]
+pub struct SeparatedWaveforms {
+    pub vocals: Vec<[f32; 2]>,
+    pub accompaniment: Vec<[f32; 2]>,
+}
+
+pub fn separate_waveform<I>(
+    inference: &mut I,
+    waveform: &[[f32; 2]],
+) -> Result<SeparatedWaveforms, String>
+where
+    I: SpectrogramInference,
+{
+    let spectrum = stft(waveform)?;
+    let input = model_input(&spectrum)?;
+    let estimates = inference.infer(&input)?;
+    validate_outputs(&input, &estimates.vocals, &estimates.accompaniment)?;
+    let (vocal_spectrum, accompaniment_spectrum) = masked_spectra(&spectrum, &estimates)?;
+    Ok(SeparatedWaveforms {
+        vocals: inverse_stft(&vocal_spectrum, waveform.len())?,
+        accompaniment: inverse_stft(&accompaniment_spectrum, waveform.len())?,
+    })
 }
 
 #[cfg(feature = "native-onnx")]
@@ -88,7 +114,6 @@ fn validate_input(input: &Array4<f32>) -> Result<(), String> {
     Ok(())
 }
 
-#[cfg(any(test, feature = "native-onnx"))]
 fn validate_outputs(
     input: &Array4<f32>,
     vocals: &Array4<f32>,
@@ -102,8 +127,21 @@ fn validate_outputs(
 
 #[cfg(test)]
 mod tests {
-    use super::{validate_input, validate_outputs};
+    use super::{
+        separate_waveform, validate_input, validate_outputs, SpectrogramInference, StemEstimates,
+    };
     use ndarray::Array4;
+
+    struct VocalOnlyInference;
+
+    impl SpectrogramInference for VocalOnlyInference {
+        fn infer(&mut self, input: &Array4<f32>) -> Result<StemEstimates, String> {
+            Ok(StemEstimates {
+                vocals: input.clone(),
+                accompaniment: Array4::zeros(input.raw_dim()),
+            })
+        }
+    }
 
     #[test]
     fn accepts_only_the_pinned_spleeter_tensor_contract() {
@@ -115,5 +153,37 @@ mod tests {
         assert!(validate_input(&wrong_input).is_err());
         let wrong_output = Array4::zeros((1, 512, 512, 2));
         assert!(validate_outputs(&valid, &wrong_output, &valid).is_err());
+    }
+
+    #[test]
+    fn separates_generated_waveform_through_the_injected_runtime() {
+        let sample_rate = 44_100.0_f32;
+        let waveform = (0..44_100)
+            .map(|index| {
+                let time = index as f32 / sample_rate;
+                let sample = 0.1 * (2.0 * std::f32::consts::PI * 220.0 * time).sin();
+                [sample, sample]
+            })
+            .collect::<Vec<_>>();
+
+        let separated = separate_waveform(&mut VocalOnlyInference, &waveform)
+            .expect("injected separation should succeed");
+
+        assert_eq!(separated.vocals.len(), waveform.len());
+        assert_eq!(separated.accompaniment.len(), waveform.len());
+        let vocal_energy = separated
+            .vocals
+            .iter()
+            .flatten()
+            .map(|sample| sample * sample)
+            .sum::<f32>();
+        let accompaniment_energy = separated
+            .accompaniment
+            .iter()
+            .flatten()
+            .map(|sample| sample * sample)
+            .sum::<f32>();
+        assert!(vocal_energy > 100.0);
+        assert!(accompaniment_energy < vocal_energy * 1.0e-6);
     }
 }
