@@ -1,3 +1,4 @@
+use crate::spleeter_inference::StemEstimates;
 use ndarray::Array4;
 use realfft::{num_complex::Complex32, RealFftPlanner};
 
@@ -7,6 +8,7 @@ pub const FREQUENCY_BINS: usize = FRAME_LENGTH / 2 + 1;
 pub const MODEL_FREQUENCIES: usize = 1024;
 pub const SEGMENT_FRAMES: usize = 512;
 const WINDOW_COMPENSATION_FACTOR: f32 = 2.0 / 3.0;
+const MASK_EPSILON: f32 = 1.0e-10;
 
 #[derive(Clone, Debug)]
 pub struct StereoSpectrum {
@@ -99,6 +101,49 @@ pub fn model_input(spectrum: &StereoSpectrum) -> Result<Array4<f32>, String> {
     Ok(input)
 }
 
+pub fn masked_spectra(
+    mixture: &StereoSpectrum,
+    estimates: &StemEstimates,
+) -> Result<(StereoSpectrum, StereoSpectrum), String> {
+    let expected_segments = mixture.frames.div_ceil(SEGMENT_FRAMES);
+    let expected_shape = [expected_segments, SEGMENT_FRAMES, MODEL_FREQUENCIES, 2];
+    if estimates.vocals.shape() != expected_shape
+        || estimates.accompaniment.shape() != expected_shape
+    {
+        return Err("Spleeter estimates do not match the mixture shape".to_owned());
+    }
+    let mut vocals = vec![Complex32::new(0.0, 0.0); mixture.bins.len()];
+    let mut accompaniment = vec![Complex32::new(0.0, 0.0); mixture.bins.len()];
+    for frame in 0..mixture.frames {
+        let segment = frame / SEGMENT_FRAMES;
+        let segment_frame = frame % SEGMENT_FRAMES;
+        for frequency in 0..MODEL_FREQUENCIES {
+            for channel in 0..2 {
+                let vocal_power =
+                    estimates.vocals[[segment, segment_frame, frequency, channel]].powi(2);
+                let accompaniment_power =
+                    estimates.accompaniment[[segment, segment_frame, frequency, channel]].powi(2);
+                let denominator = vocal_power + accompaniment_power + MASK_EPSILON;
+                let vocal_mask = (vocal_power + MASK_EPSILON / 2.0) / denominator;
+                let accompaniment_mask = (accompaniment_power + MASK_EPSILON / 2.0) / denominator;
+                let index = spectrum_index(frame, frequency, channel);
+                vocals[index] = mixture.bins[index] * vocal_mask;
+                accompaniment[index] = mixture.bins[index] * accompaniment_mask;
+            }
+        }
+    }
+    Ok((
+        StereoSpectrum {
+            frames: mixture.frames,
+            bins: vocals,
+        },
+        StereoSpectrum {
+            frames: mixture.frames,
+            bins: accompaniment,
+        },
+    ))
+}
+
 fn spectrum_index(frame: usize, frequency: usize, channel: usize) -> usize {
     (frame * FREQUENCY_BINS + frequency) * 2 + channel
 }
@@ -113,7 +158,12 @@ fn periodic_hann() -> Vec<f32> {
 
 #[cfg(test)]
 mod tests {
-    use super::{inverse_stft, model_input, stft, FRAME_LENGTH, SEGMENT_FRAMES};
+    use super::{
+        inverse_stft, masked_spectra, model_input, spectrum_index, stft, FRAME_LENGTH,
+        SEGMENT_FRAMES,
+    };
+    use crate::spleeter_inference::StemEstimates;
+    use ndarray::Array4;
 
     #[test]
     fn generated_stereo_round_trips_in_the_fully_overlapped_region() {
@@ -152,5 +202,33 @@ mod tests {
 
         assert_eq!(input.shape(), &[1, SEGMENT_FRAMES, 1024, 2]);
         assert!(input.iter().all(|value| *value == 0.0));
+    }
+
+    #[test]
+    fn ratio_masks_reconstruct_the_processed_mixture_band() {
+        let waveform = vec![[0.25_f32, -0.25_f32]; 4096];
+        let spectrum = stft(&waveform).expect("STFT should succeed");
+        let shape = (1, 512, 1024, 2);
+        let estimates = StemEstimates {
+            vocals: Array4::from_elem(shape, 3.0),
+            accompaniment: Array4::from_elem(shape, 4.0),
+        };
+
+        let (vocals, accompaniment) =
+            masked_spectra(&spectrum, &estimates).expect("masks should be constructed");
+
+        for frame in 0..spectrum.frames {
+            for frequency in 0..1024 {
+                for channel in 0..2 {
+                    let index = spectrum_index(frame, frequency, channel);
+                    let tolerance = 1.0e-5_f32.max(spectrum.bins[index].norm() * 1.0e-6);
+                    assert!(
+                        (vocals.bins[index] + accompaniment.bins[index] - spectrum.bins[index])
+                            .norm()
+                            < tolerance
+                    );
+                }
+            }
+        }
     }
 }

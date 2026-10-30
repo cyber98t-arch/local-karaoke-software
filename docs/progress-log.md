@@ -453,3 +453,9 @@
 - Added magnitude partitioning into ONNX input shape `[segments, 512, 1024, 2]` with zero padding after the final real frame. Both focused signal tests passed.
 - No source audio, model artifact, GPU provider, decoder, UI command, or cache output was accessed by these tests.
 
+## 2026-10-30 — Native tensor and mask boundary
+
+- Added a typed spectrogram-inference trait, pinned Spleeter input/output tensor names and shapes, and an `ort` session implementation behind the explicit `native-onnx` Cargo feature.
+- An actual Linux test link exposed ABI incompatibility in the rc.15 prebuilt static runtime (`__isoc23_strtol` and newer libstdc++ symbols). Normal Linux tests now exclude the optional native link; `cargo check --features native-onnx` and default `cargo check` both pass. Windows linking remains unverified and no version was silently changed.
+- Added application-owned squared ratio masks with Spleeter's epsilon behavior and zero high-frequency extension. Four focused Spleeter tests pass, covering tensor contract, STFT round trip, segment padding, and processed-band reconstruction.
+

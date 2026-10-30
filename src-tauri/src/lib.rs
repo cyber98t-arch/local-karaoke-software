@@ -10,6 +10,7 @@ pub mod library_service;
 pub mod metadata;
 pub mod model_manifest;
 pub mod spleeter_signal;
+pub mod spleeter_inference;
 
 #[cfg(not(test))]
 use library_commands::LibraryState;

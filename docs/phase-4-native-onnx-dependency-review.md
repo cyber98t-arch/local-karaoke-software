@@ -79,6 +79,14 @@ The Linux static-library hash is development evidence only. Windows x86-64
 runtime bytes, size, SHA-256, attestation, and bundling behavior remain
 unverified.
 
+An actual Linux test link subsequently failed because the rc.15 prebuilt static
+library references newer glibc/libstdc++ symbols than this Dev Container
+provides (`__isoc23_strtol` and newer `std::basic_string` symbols). `cargo
+check --features native-onnx` succeeds because it does not perform the final
+link. The native dependency is therefore feature-gated: normal Linux tests do
+not link it, while Windows-native linking remains an explicit validation item.
+No older runtime or binding version was selected silently.
+
 ## Primary references reviewed
 
 - `ort` repository and its MIT/Apache-2.0 license files:
