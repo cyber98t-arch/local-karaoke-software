@@ -6,7 +6,7 @@
 | 1. Song-selection UI skeleton | Complete | Searchable/selectable mock library with analysis states | No new gate |
 | 2. Read-only library and cache catalog | Complete | Scan MP3/FLAC/WAV without changing sources; content-addressed catalog | Approved: D-003 SQLite catalog + JSON artifact manifests |
 | 3. Playback and microphone probe | Complete | Windows audio device selection, playback, loopback-free mic monitoring | Approved: D-005 CPAL + default Windows WASAPI |
-| 4. Analysis pipeline prototype | In progress (blocked) | Local separation, melody extraction, Japanese lyric alignment, progress reporting | D-006 approved models; D-007 runtime decision waiting |
+| 4. Analysis pipeline prototype | In progress | Local separation, melody extraction, Japanese lyric alignment, progress reporting | D-006 models approved; D-007 ONNX feasibility research only |
 | 5. GPU provider matrix | Not started | DirectML/CUDA/other supported providers with measured CPU fallback | Decision required after hardware probes |
 | 6. Singing and scoring UI | Not started | Low-latency live pitch/timing feedback; no live total score | Scoring weights require approval |
 | 7. Result and lyric correction | Not started | Post-song total/breakdown and editable synced Japanese lyrics | UX acceptance review |
@@ -83,4 +83,15 @@ Phase 3 completed 2026-10-30: automated coverage passes for the typed/injected a
 3. Completed 2026-10-30: pinned upstream revisions, immutable artifact URLs, SHA-256 values, byte sizes, and license evidence for Spleeter 2-stem, CREPE tiny, and multilingual Whisper `base`. Only the 1.3 MB CREPE artifact was temporarily fetched to calculate its unpublished SHA-256; no model was added to the repository or application cache.
 4. Add one bounded separation feasibility probe using only a generated or public-domain fixture, then measure Windows CPU duration, memory, installed size, and output usefulness.
 5. Repeat bounded probes for monophonic melody and Japanese transcription before connecting the stages into a resumable pipeline.
+
+## D-007 ONNX feasibility research criteria
+
+- Convert only the pinned Spleeter 2-stem artifact with a versioned, reviewable script; hash every input, output, and downloaded distribution.
+- Demonstrate CPU ONNX Runtime separation before considering any provider-specific acceleration.
+- Compare TensorFlow and ONNX outputs using numerical metrics, controlled listening review, elapsed time, and peak memory on the same fixture and hardware.
+- Document future Intel Arc, AMD Radeon, and NVIDIA provider paths without selecting a GPU strategy during Phase 4.
+- Record licenses and notices for ONNX Runtime, conversion tooling, converted artifacts, and transitive dependencies.
+- Ask before large downloads/installations, stating expected transfer/installed size and purpose.
+- If conversion fails or quality degrades materially, present permissively licensed lightweight local alternatives rather than silently changing model family.
+- Do not adopt, bundle, publish, or distribute ONNX as the official engine before a new explicit user decision after the evidence report.
 

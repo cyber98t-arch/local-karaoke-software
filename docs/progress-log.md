@@ -378,3 +378,10 @@
 - Cancelled the resolver rather than consume more network/storage or pretend the environment was reproducible. Pip removed the incomplete temporary artifacts; the probe directory contained no retained wheelhouse afterward.
 - This is negative feasibility evidence for shipping the official TensorFlow worker on ordinary laptops. Opened D-007 as `Waiting`, recommending a controlled Spleeter-to-ONNX/CPU Runtime investigation while preserving model provenance and numerical comparison requirements.
 
+## 2026-10-30 — D-007 ONNX feasibility research approval
+
+- The user approved investigation of Spleeter-to-ONNX conversion and CPU ONNX Runtime only. Formal engine adoption, bundling, publishing, and distribution remain explicitly unapproved.
+- Required evidence includes TensorFlow/ONNX numerical and listening comparison, elapsed time, peak memory, future Intel/AMD/NVIDIA feasibility, complete license review, and SHA-256 provenance.
+- Any large dependency/model download or installation requires another advance approval with its expected capacity and purpose. No new download or installation occurred in this step.
+- If conversion is infeasible or materially worse, the research must present permissively licensed lightweight alternatives and return to the user rather than changing model family silently.
+
