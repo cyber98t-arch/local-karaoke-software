@@ -71,3 +71,13 @@
 - Alternative: Reopen D-006 and select a different separation model with official permissive ONNX weights. This changes the approved model family and needs a separate candidate/license review.
 - Evidence: The 2026-10-30 download probe used an isolated `/tmp` destination, did not install anything, and was cancelled during dependency backtracking. The incomplete resolver removed its temporary wheel files; nothing was added to the repository or application cache.
 - Reason approval is required: Choosing ONNX Runtime changes the inference runtime/model artifact strategy; continuing TensorFlow would commit the application to a materially heavy dependency closure.
+
+### D-008 — Production ONNX Runtime packaging boundary
+
+- Status: Waiting
+- Question: Should the approved CPU ONNX separation path run through a native Rust ONNX Runtime binding with Rust signal processing, or through a bundled Python/NumPy/ONNX Runtime worker?
+- Recommended option: Native Rust. It best matches the user's lightweight priority, avoids shipping a Python interpreter and NumPy, and keeps the stable pipeline behind the existing Rust orchestration boundary. It requires more implementation and Windows binary/provider packaging work.
+- Alternative: Bundled Python worker. It can reuse the numerically verified prototype with less immediate engineering, but retains a Python interpreter, NumPy, and wheel/native-library packaging overhead.
+- Not recommended: Require a user-managed Python installation. This reduces installer contents but harms offline reliability and ordinary-user setup.
+- Scope held until decision: The dependency-free request validation and cache commit boundary may remain, but do not add a production ONNX binding/runtime package or choose its binary acquisition strategy.
+- Reason approval is required: This selects the production inference packaging boundary and materially affects installed size, dependency licensing/notices, Windows deployment, and maintenance.

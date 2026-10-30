@@ -425,3 +425,10 @@
 - RED evidence: the focused test failed to compile before the separation types, response field, and service method existed. GREEN evidence: the new focused test passed and confirmed the input fixture remained unchanged.
 - All 42 Rust tests and `cargo check` passed; `git diff --check` passed. No model runtime, dependency, download, decoder, UI command, or actual inference launch was added.
 
+## 2026-10-30 — Worker-side separation commit boundary
+
+- Added a dependency-free Python boundary that validates the versioned request, existing input/model files, exact SHA-256 values, safe request ID, and fresh cache output directory before invoking an injected inference function.
+- The worker writes only request-specific cache temporary files, requires two nonempty outputs and valid stereo metrics, renames them to fixed artifact names, and returns their byte sizes and SHA-256 values. Hash mismatch, stale temporary output, and existing valid artifacts fail without overwrite.
+- RED evidence: both Python tests initially failed because the worker module did not exist. GREEN evidence: 2 Python tests and 5 focused Rust worker tests passed; Python bytecode compilation and `git diff --check` passed.
+- Actual inference remains intentionally disconnected. Opened D-008 as `Waiting` because native Rust ONNX versus bundled Python materially changes installed size and Windows packaging.
+

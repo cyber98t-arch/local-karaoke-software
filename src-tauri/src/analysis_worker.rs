@@ -11,7 +11,7 @@ use std::{
 pub const ANALYSIS_WORKER_PROTOCOL_VERSION: u32 = 1;
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-#[serde(rename_all = "camelCase")]
+#[serde(rename_all = "camelCase", rename_all_fields = "camelCase")]
 pub enum WorkerOperation {
     SyntheticSeparationProbe,
     SeparateTwoStems {
@@ -281,7 +281,10 @@ where
         if !is_sha256(expected_model_sha256) {
             return Err("separation model identity must be a lowercase SHA-256".to_owned());
         }
-        let output_directory = identity.cache_directory(cache_root)?.join("separation");
+        let output_directory = identity
+            .cache_directory(cache_root)?
+            .join("separation")
+            .join(request_id);
         let request = WorkerRequest {
             protocol_version: ANALYSIS_WORKER_PROTOCOL_VERSION,
             request_id: request_id.to_owned(),
@@ -500,6 +503,19 @@ mod tests {
             .output_directory
             .starts_with(directory.join("cache")));
         assert!(!request.output_directory.starts_with(&input));
+        let encoded = serde_json::to_value(&request).expect("request should serialize");
+        assert_eq!(
+            encoded
+                .pointer("/operation/separateTwoStems/inputAudioPath")
+                .and_then(serde_json::Value::as_str),
+            input.to_str()
+        );
+        assert_eq!(
+            encoded
+                .pointer("/operation/separateTwoStems/expectedModelSha256")
+                .and_then(serde_json::Value::as_str),
+            Some("eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee")
+        );
         fs::remove_dir_all(directory).expect("test directory should be removable");
     }
 
