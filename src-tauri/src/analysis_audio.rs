@@ -1,3 +1,4 @@
+use rubato::{audioadapter_buffers::direct::InterleavedSlice, Fft, FixedSync, Resampler};
 use std::{fs::File, io, path::Path};
 use symphonia::{
     core::{
@@ -14,6 +15,47 @@ use symphonia::{
 pub struct DecodedAudio {
     pub sample_rate: u32,
     pub stereo_frames: Vec<[f32; 2]>,
+}
+
+pub const SPLEETER_SAMPLE_RATE: u32 = 44_100;
+
+pub fn resample_for_spleeter(audio: DecodedAudio) -> Result<DecodedAudio, String> {
+    if audio.sample_rate == SPLEETER_SAMPLE_RATE {
+        return Ok(audio);
+    }
+    if audio.sample_rate == 0 || audio.stereo_frames.is_empty() {
+        return Err("resampling requires nonempty audio with a sample rate".to_owned());
+    }
+
+    let input_frames = audio.stereo_frames.len();
+    let interleaved = audio
+        .stereo_frames
+        .into_iter()
+        .flatten()
+        .collect::<Vec<_>>();
+    let input = InterleavedSlice::new(&interleaved, 2, input_frames)
+        .map_err(|error| format!("invalid stereo input for resampling: {error}"))?;
+    let mut resampler = Fft::<f32>::new(
+        audio.sample_rate as usize,
+        SPLEETER_SAMPLE_RATE as usize,
+        1024,
+        2,
+        FixedSync::Both,
+    )
+    .map_err(|error| format!("failed to configure analysis resampling: {error}"))?;
+    let output = resampler
+        .process_all(&input, input_frames, None)
+        .map_err(|error| format!("analysis resampling failed: {error}"))?
+        .take_data();
+    let stereo_frames = output
+        .chunks_exact(2)
+        .map(|frame| [frame[0], frame[1]])
+        .collect();
+
+    Ok(DecodedAudio {
+        sample_rate: SPLEETER_SAMPLE_RATE,
+        stereo_frames,
+    })
 }
 
 pub fn decode_for_analysis(source_path: &Path) -> io::Result<DecodedAudio> {
@@ -101,7 +143,7 @@ fn invalid_data(error: impl Into<Box<dyn std::error::Error + Send + Sync>>) -> i
 
 #[cfg(test)]
 mod tests {
-    use super::decode_for_analysis;
+    use super::{decode_for_analysis, resample_for_spleeter, DecodedAudio};
     use std::{fs, path::PathBuf};
 
     fn fixture(name: &str) -> PathBuf {
@@ -164,5 +206,33 @@ mod tests {
             );
             assert_eq!(after_entries, before_entries);
         }
+    }
+
+    #[test]
+    fn resamples_96khz_stereo_to_spleeter_rate() {
+        let frames = (0..96_000)
+            .map(|index| {
+                let phase = 2.0 * std::f32::consts::PI * 440.0 * index as f32 / 96_000.0;
+                [0.2 * phase.sin(), 0.1 * phase.cos()]
+            })
+            .collect();
+
+        let converted = resample_for_spleeter(DecodedAudio {
+            sample_rate: 96_000,
+            stereo_frames: frames,
+        })
+        .expect("96 kHz audio should resample");
+
+        assert_eq!(converted.sample_rate, 44_100);
+        assert_eq!(converted.stereo_frames.len(), 44_100);
+        assert!(converted
+            .stereo_frames
+            .iter()
+            .flatten()
+            .all(|v| v.is_finite()));
+        assert!(converted
+            .stereo_frames
+            .iter()
+            .any(|frame| (frame[0] - frame[1]).abs() > 0.01));
     }
 }

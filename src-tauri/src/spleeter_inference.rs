@@ -6,7 +6,7 @@ use ort::{environment::Environment, session::Session, value::TensorRef};
 use std::path::Path;
 
 use crate::{
-    analysis_audio::decode_for_analysis,
+    analysis_audio::{decode_for_analysis, resample_for_spleeter},
     spleeter_signal::{inverse_stft, masked_spectra, model_input, stft},
 };
 
@@ -60,12 +60,7 @@ where
 {
     let decoded = decode_for_analysis(source_path)
         .map_err(|error| format!("audio decoding failed: {error}"))?;
-    if decoded.sample_rate != 44_100 {
-        return Err(format!(
-            "Spleeter requires 44100 Hz analysis audio; source is {} Hz and resampling is not configured",
-            decoded.sample_rate
-        ));
-    }
+    let decoded = resample_for_spleeter(decoded)?;
     separate_waveform(inference, &decoded.stereo_frames)
 }
 
