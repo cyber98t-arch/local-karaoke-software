@@ -418,3 +418,10 @@
 - The choice prioritizes lower peak memory and a smaller production dependency surface. The representative 30-second prototype was slower overall because the current Python/NumPy transforms are not optimized; no speed advantage is claimed.
 - GPU provider selection, Windows packaging hashes/notices, automatic model-download behavior, publishing, and release remain separate gates.
 
+## 2026-10-30 — Production two-stem worker contract
+
+- Extended the versioned local-worker boundary with a typed two-stem separation request. Rust supplies existing native-owned input/model paths and expected source/model SHA-256 values; React receives none of these paths.
+- The output directory is derived from the validated analysis identity beneath the injected application-cache root. Successful responses must identify fixed `vocals.wav` and `accompaniment.wav` artifacts with nonzero byte sizes and lowercase SHA-256 values.
+- RED evidence: the focused test failed to compile before the separation types, response field, and service method existed. GREEN evidence: the new focused test passed and confirmed the input fixture remained unchanged.
+- All 42 Rust tests and `cargo check` passed; `git diff --check` passed. No model runtime, dependency, download, decoder, UI command, or actual inference launch was added.
+

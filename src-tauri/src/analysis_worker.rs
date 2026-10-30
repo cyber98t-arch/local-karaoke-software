@@ -14,6 +14,12 @@ pub const ANALYSIS_WORKER_PROTOCOL_VERSION: u32 = 1;
 #[serde(rename_all = "camelCase")]
 pub enum WorkerOperation {
     SyntheticSeparationProbe,
+    SeparateTwoStems {
+        input_audio_path: PathBuf,
+        model_path: PathBuf,
+        expected_source_sha256: String,
+        expected_model_sha256: String,
+    },
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -35,11 +41,30 @@ pub struct WorkerProbeMetrics {
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(rename_all = "camelCase")]
+pub struct SeparationArtifact {
+    pub file_name: String,
+    pub bytes: u64,
+    pub sha256: String,
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SeparationResult {
+    pub sample_rate: u32,
+    pub channels: u16,
+    pub frames: u64,
+    pub vocals: SeparationArtifact,
+    pub accompaniment: SeparationArtifact,
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct WorkerResponse {
     pub protocol_version: u32,
     pub request_id: String,
     pub success: bool,
     pub metrics: Option<WorkerProbeMetrics>,
+    pub separation: Option<SeparationResult>,
     pub error: Option<String>,
 }
 
@@ -234,6 +259,87 @@ where
         }
         Ok(metrics)
     }
+
+    pub fn run_two_stem_separation(
+        &self,
+        cache_root: &Path,
+        identity: &crate::analysis_job::AnalysisIdentity,
+        request_id: &str,
+        input_audio_path: &Path,
+        model_path: &Path,
+        expected_model_sha256: &str,
+    ) -> Result<SeparationResult, String> {
+        if !is_safe_token(request_id) {
+            return Err("worker request id must be a nonempty safe token".to_owned());
+        }
+        if !input_audio_path.is_file() {
+            return Err("separation input must be an existing file".to_owned());
+        }
+        if !model_path.is_file() {
+            return Err("separation model must be an existing file".to_owned());
+        }
+        if !is_sha256(expected_model_sha256) {
+            return Err("separation model identity must be a lowercase SHA-256".to_owned());
+        }
+        let output_directory = identity.cache_directory(cache_root)?.join("separation");
+        let request = WorkerRequest {
+            protocol_version: ANALYSIS_WORKER_PROTOCOL_VERSION,
+            request_id: request_id.to_owned(),
+            operation: WorkerOperation::SeparateTwoStems {
+                input_audio_path: input_audio_path.to_owned(),
+                model_path: model_path.to_owned(),
+                expected_source_sha256: identity.source_sha256.clone(),
+                expected_model_sha256: expected_model_sha256.to_owned(),
+            },
+            output_directory,
+        };
+        let response = self.backend.execute(&request)?;
+        validate_response_identity(&request, &response)?;
+        if !response.success {
+            return Err(response
+                .error
+                .filter(|message| !message.trim().is_empty())
+                .unwrap_or_else(|| "analysis worker failed without an error message".to_owned()));
+        }
+        let result = response
+            .separation
+            .ok_or_else(|| "analysis worker succeeded without separation metadata".to_owned())?;
+        if result.sample_rate == 0 || result.channels != 2 || result.frames == 0 {
+            return Err("analysis worker returned invalid separation metrics".to_owned());
+        }
+        validate_artifact(&result.vocals, "vocals.wav")?;
+        validate_artifact(&result.accompaniment, "accompaniment.wav")?;
+        Ok(result)
+    }
+}
+
+fn validate_response_identity(
+    request: &WorkerRequest,
+    response: &WorkerResponse,
+) -> Result<(), String> {
+    if response.protocol_version != ANALYSIS_WORKER_PROTOCOL_VERSION {
+        return Err("analysis worker protocol version mismatch".to_owned());
+    }
+    if response.request_id != request.request_id {
+        return Err("analysis worker response id mismatch".to_owned());
+    }
+    Ok(())
+}
+
+fn validate_artifact(artifact: &SeparationArtifact, expected_name: &str) -> Result<(), String> {
+    if artifact.file_name != expected_name || artifact.bytes == 0 || !is_sha256(&artifact.sha256) {
+        return Err(format!(
+            "analysis worker returned invalid {expected_name} metadata"
+        ));
+    }
+    Ok(())
+}
+
+fn is_sha256(value: &str) -> bool {
+    value.len() == 64
+        && value
+            .bytes()
+            .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
 }
 
 fn is_safe_token(value: &str) -> bool {
@@ -247,9 +353,11 @@ fn is_safe_token(value: &str) -> bool {
 #[cfg(test)]
 mod tests {
     use super::{
-        AnalysisWorkerBackend, AnalysisWorkerService, LocalProcessWorker, WorkerProbeMetrics,
-        WorkerRequest, WorkerResponse, ANALYSIS_WORKER_PROTOCOL_VERSION,
+        AnalysisWorkerBackend, AnalysisWorkerService, LocalProcessWorker, SeparationArtifact,
+        SeparationResult, WorkerProbeMetrics, WorkerRequest, WorkerResponse,
+        ANALYSIS_WORKER_PROTOCOL_VERSION,
     };
+    use crate::analysis_job::AnalysisIdentity;
     use std::{
         cell::RefCell,
         fs,
@@ -261,6 +369,7 @@ mod tests {
         observed: RefCell<Option<WorkerRequest>>,
         response_version: u32,
         response_request_id: String,
+        separation: Option<SeparationResult>,
     }
 
     impl AnalysisWorkerBackend for FakeWorker {
@@ -275,6 +384,7 @@ mod tests {
                     channels: 2,
                     frames: 16_000,
                 }),
+                separation: self.separation.clone(),
                 error: None,
             })
         }
@@ -286,6 +396,7 @@ mod tests {
             observed: RefCell::new(None),
             response_version: ANALYSIS_WORKER_PROTOCOL_VERSION,
             response_request_id: "probe-1".to_owned(),
+            separation: None,
         };
         let service = AnalysisWorkerService::new(worker);
 
@@ -316,6 +427,7 @@ mod tests {
             observed: RefCell::new(None),
             response_version: ANALYSIS_WORKER_PROTOCOL_VERSION + 1,
             response_request_id: "different".to_owned(),
+            separation: None,
         });
 
         assert!(service
@@ -324,6 +436,71 @@ mod tests {
         assert!(service
             .run_synthetic_probe(PathBuf::from("cache").as_path(), "probe-1")
             .is_err());
+    }
+
+    #[test]
+    fn constructs_a_cache_owned_two_stem_separation_request() {
+        let directory = test_directory("separation-contract");
+        let input = directory.join("input.wav");
+        let model = directory.join("model.onnx");
+        fs::write(&input, b"read-only input fixture").expect("input fixture should be written");
+        fs::write(&model, b"model fixture").expect("model fixture should be written");
+        let identity = AnalysisIdentity {
+            source_sha256: "a".repeat(64),
+            pipeline_version: "phase4-v1".to_owned(),
+            model_ids: vec!["spleeter-2stems-onnx".to_owned()],
+            parameters_sha256: "b".repeat(64),
+        };
+        let worker = FakeWorker {
+            observed: RefCell::new(None),
+            response_version: ANALYSIS_WORKER_PROTOCOL_VERSION,
+            response_request_id: "separate-1".to_owned(),
+            separation: Some(SeparationResult {
+                sample_rate: 44_100,
+                channels: 2,
+                frames: 44_100,
+                vocals: SeparationArtifact {
+                    file_name: "vocals.wav".to_owned(),
+                    bytes: 176_444,
+                    sha256: "c".repeat(64),
+                },
+                accompaniment: SeparationArtifact {
+                    file_name: "accompaniment.wav".to_owned(),
+                    bytes: 176_444,
+                    sha256: "d".repeat(64),
+                },
+            }),
+        };
+        let service = AnalysisWorkerService::new(worker);
+        let input_before = fs::read(&input).expect("input should be readable");
+
+        let result = service
+            .run_two_stem_separation(
+                &directory.join("cache"),
+                &identity,
+                "separate-1",
+                &input,
+                &model,
+                &"e".repeat(64),
+            )
+            .expect("valid separation response should succeed");
+
+        assert_eq!(result.vocals.file_name, "vocals.wav");
+        assert_eq!(
+            fs::read(&input).expect("input should remain readable"),
+            input_before
+        );
+        let request = service
+            .backend
+            .observed
+            .borrow()
+            .clone()
+            .expect("worker should observe the separation request");
+        assert!(request
+            .output_directory
+            .starts_with(directory.join("cache")));
+        assert!(!request.output_directory.starts_with(&input));
+        fs::remove_dir_all(directory).expect("test directory should be removable");
     }
 
     #[cfg(unix)]
@@ -376,7 +553,6 @@ mod tests {
         fs::remove_dir_all(directory).expect("test directory should be removable");
     }
 
-    #[cfg(unix)]
     fn test_directory(label: &str) -> PathBuf {
         let unique = SystemTime::now()
             .duration_since(UNIX_EPOCH)
