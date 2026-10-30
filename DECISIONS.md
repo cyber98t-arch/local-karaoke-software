@@ -56,3 +56,13 @@
 - Alternatives: Evaluate a separation model with explicitly permissive weight terms; use a non-neural pitch tracker if CREPE latency or packaging is unsuitable; or require user-imported lyrics while postponing transcription.
 - Initial scope if approved: Offline prototype jobs only, completed before playback and cached by content hash plus pipeline version. No external AI API, source-file write, live inference, automatic model download, or model redistribution.
 - Reason approval is required: Phase 4 changes model families and model licenses and is marked `Decision required` in the roadmap. A model download over 500 MB or restrictive license requires a further explicit approval.
+
+### D-007 — Spleeter inference runtime after TensorFlow feasibility failure
+
+- Status: Waiting
+- Question: Should the Spleeter 2-stem evaluation keep its model family but investigate a CPU ONNX Runtime conversion, or continue with the official Python/TensorFlow runtime despite its size?
+- Recommended option: Investigate conversion of the pinned Spleeter 2-stem weights to a versioned ONNX artifact and evaluate it with CPU ONNX Runtime. Keep the original weights, conversion revision, conversion script, output hash, numerical comparison, and MIT license provenance in the model record. Do not adopt or distribute a converted artifact until equivalence and license review pass.
+- Alternative: Continue with the official Python 3.11, Spleeter 2.4.2, and TensorFlow 2.12.1 worker. The Linux TensorFlow wheel alone is 585.9 MB, and an unpinned dependency resolution began repeatedly backtracking through gRPC releases before it was stopped. This conflicts with the ordinary-laptop and lightweight-packaging mission.
+- Alternative: Reopen D-006 and select a different separation model with official permissive ONNX weights. This changes the approved model family and needs a separate candidate/license review.
+- Evidence: The 2026-10-30 download probe used an isolated `/tmp` destination, did not install anything, and was cancelled during dependency backtracking. The incomplete resolver removed its temporary wheel files; nothing was added to the repository or application cache.
+- Reason approval is required: Choosing ONNX Runtime changes the inference runtime/model artifact strategy; continuing TensorFlow would commit the application to a materially heavy dependency closure.

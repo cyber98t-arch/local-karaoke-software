@@ -371,3 +371,10 @@
 - Unix subprocess behavior is verified in the container. Native Windows process launch/termination remains unverified and is intentionally separate from model inference evidence.
 - Full baseline passed: frontend lint, 10 frontend tests, production build, 41 Rust tests, Rust check, targeted Rust formatting, Python bytecode compilation, and `git diff --check`.
 
+## 2026-10-30 — TensorFlow runtime feasibility stop
+
+- Started a read-only dependency download probe for Spleeter 2.4.2 into an isolated `/tmp` directory; no package was installed and no project/application cache path was used.
+- Resolution selected the official TensorFlow 2.12.1 Linux CPython 3.11 wheel at 585.9 MB before transitive dependencies. The unconstrained closure then downloaded multiple alternative gRPC wheels while backtracking.
+- Cancelled the resolver rather than consume more network/storage or pretend the environment was reproducible. Pip removed the incomplete temporary artifacts; the probe directory contained no retained wheelhouse afterward.
+- This is negative feasibility evidence for shipping the official TensorFlow worker on ordinary laptops. Opened D-007 as `Waiting`, recommending a controlled Spleeter-to-ONNX/CPU Runtime investigation while preserving model provenance and numerical comparison requirements.
+

@@ -6,7 +6,7 @@
 | 1. Song-selection UI skeleton | Complete | Searchable/selectable mock library with analysis states | No new gate |
 | 2. Read-only library and cache catalog | Complete | Scan MP3/FLAC/WAV without changing sources; content-addressed catalog | Approved: D-003 SQLite catalog + JSON artifact manifests |
 | 3. Playback and microphone probe | Complete | Windows audio device selection, playback, loopback-free mic monitoring | Approved: D-005 CPAL + default Windows WASAPI |
-| 4. Analysis pipeline prototype | In progress | Local separation, melody extraction, Japanese lyric alignment, progress reporting | Approved: D-006 Spleeter + CREPE + Whisper base evaluation |
+| 4. Analysis pipeline prototype | In progress (blocked) | Local separation, melody extraction, Japanese lyric alignment, progress reporting | D-006 approved models; D-007 runtime decision waiting |
 | 5. GPU provider matrix | Not started | DirectML/CUDA/other supported providers with measured CPU fallback | Decision required after hardware probes |
 | 6. Singing and scoring UI | Not started | Low-latency live pitch/timing feedback; no live total score | Scoring weights require approval |
 | 7. Result and lyric correction | Not started | Post-song total/breakdown and editable synced Japanese lyrics | UX acceptance review |
