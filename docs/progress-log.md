@@ -471,3 +471,11 @@
 - The user approved D-010: the converted ONNX model will use an explicit one-time app-managed download into a separate model cache, with exact size/hash/provenance/license validation and atomic commit. Development remains local-injected until a release asset is separately approved for publication.
 - No dependency, model, or release asset was downloaded or published in this approval step.
 
+## 2026-10-30 — Read-only native analysis decoding
+
+- Pinned Symphonia 0.6.1 with default features disabled and only FLAC, MP3, PCM, and WAV support enabled. The decoder opens sources through a Rust-owned read-only file handle and produces native-rate stereo `f32` frames in memory.
+- Mono input is duplicated to stereo, stereo input is retained, and inputs with more than two channels fail rather than being silently remixed. No resampler, cache write, UI command, model download, or playback connection was added.
+- RED evidence: the first focused test failed at the intentional decoder `todo!`. GREEN evidence: both focused decoder tests passed for MP3, FLAC, and WAV fixtures; all 49 Rust library tests passed.
+- The tests observed 44.1 kHz preservation, finite/nonempty output, exact mono-to-stereo duplication, byte-for-byte source preservation, and an unchanged source-directory entry list. `cargo check` and `git diff --check` also passed.
+- Symphonia is MPL-2.0 and unmodified. Final installer notices/source-availability materials and native Windows validation remain packaging work; see `docs/phase-4-analysis-decoder-review.md`.
+
