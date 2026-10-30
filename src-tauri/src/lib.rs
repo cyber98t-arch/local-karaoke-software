@@ -1,3 +1,4 @@
+pub mod analysis_audio;
 pub mod analysis_job;
 pub mod analysis_worker;
 pub mod audio_devices;
@@ -9,8 +10,8 @@ pub mod library_commands;
 pub mod library_service;
 pub mod metadata;
 pub mod model_manifest;
-pub mod spleeter_signal;
 pub mod spleeter_inference;
+pub mod spleeter_signal;
 
 #[cfg(not(test))]
 use library_commands::LibraryState;
@@ -50,4 +51,3 @@ pub fn run() {
         .run(tauri::generate_context!())
         .expect("failed to run Hibiki");
 }
-
