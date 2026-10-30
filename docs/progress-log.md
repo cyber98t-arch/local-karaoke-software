@@ -363,3 +363,11 @@
 - RED evidence: 2 focused Rust tests failed at the intentional service `todo!`. GREEN evidence: both focused tests passed, and a manual fake-worker invocation returned the expected 16 kHz stereo/16,000-frame metrics.
 - Full baseline passed: frontend lint, 10 frontend tests, production build, 39 Rust tests, Rust check, targeted Rust formatting, Python bytecode compilation, and `git diff --check`.
 
+## 2026-10-30 — Bounded local worker subprocess
+
+- Added a concrete worker backend that launches only an injected executable and script via the operating-system process API; it never invokes a command shell or accepts arbitrary worker arguments.
+- The adapter writes one JSON request to stdin, closes it, drains stdout/stderr concurrently, retains only a configured maximum, polls a fixed deadline, and kills/waits for a worker that times out.
+- RED evidence: focused tests failed to compile before `LocalProcessWorker` existed. GREEN evidence: 4 worker tests passed, including a real fake-worker subprocess and termination of a deliberately hanging Python fixture.
+- Unix subprocess behavior is verified in the container. Native Windows process launch/termination remains unverified and is intentionally separate from model inference evidence.
+- Full baseline passed: frontend lint, 10 frontend tests, production build, 41 Rust tests, Rust check, targeted Rust formatting, Python bytecode compilation, and `git diff --check`.
+
