@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "id": "crepe-tiny",
+  "family": "crepe",
+  "version": "bb29b8d99a89924476d112d27ed470e4ac5617c0",
+  "sourceUrl": "https://raw.githubusercontent.com/marl/crepe/bb29b8d99a89924476d112d27ed470e4ac5617c0/model-tiny.h5.bz2",
+  "sha256": "9c1d76d405674d2327f5636347d07f551dfd11c6acc0475b7fd85082cdab0add",
+  "byteSize": 1307310,
+  "licenseSpdx": "MIT",
+  "licenseUrl": "https://github.com/marl/crepe/blob/c9b71ce61491454125a0693f584f7244f29d9884/LICENSE"
+}

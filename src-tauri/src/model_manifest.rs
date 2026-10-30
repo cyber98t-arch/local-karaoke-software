@@ -128,4 +128,36 @@ mod tests {
         assert_eq!(value["byteSize"], 148_000_000_u64);
         assert!(value.get("source_url").is_none());
     }
+
+    #[test]
+    fn bundled_evaluation_manifests_are_complete_and_valid() {
+        let encoded = [
+            include_str!("../model-manifests/spleeter-2stems-v1.4.0.json"),
+            include_str!("../model-manifests/crepe-tiny-bb29b8d.json"),
+            include_str!("../model-manifests/whisper-base-5359861.json"),
+        ];
+
+        let manifests: Vec<ModelArtifactManifest> = encoded
+            .into_iter()
+            .map(|value| serde_json::from_str(value).expect("bundled manifest should decode"))
+            .collect();
+
+        for manifest in &manifests {
+            manifest
+                .validate()
+                .expect("bundled manifest should pass provenance validation");
+            assert!(manifest.byte_size < 500_000_000);
+        }
+        assert_eq!(
+            manifests
+                .iter()
+                .map(|manifest| &manifest.family)
+                .collect::<Vec<_>>(),
+            vec![
+                &ModelFamily::Spleeter,
+                &ModelFamily::Crepe,
+                &ModelFamily::Whisper,
+            ]
+        );
+    }
 }
