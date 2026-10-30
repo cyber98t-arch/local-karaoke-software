@@ -323,3 +323,12 @@
 - Phase-step baseline passed: frontend lint, 10 frontend tests, production build, 29 Rust tests, Rust check, targeted Rust formatting, and `git diff --check`.
 - No network access, model download, runtime dependency, source-audio access, or cache write was added by this implementation.
 
+## 2026-10-30 — Content-addressed analysis job boundary
+
+- Added an analysis identity derived only from source SHA-256, pipeline version, ordered model IDs, and analysis-parameter SHA-256. Model IDs are length-delimited and hashed into one path component to avoid ambiguous joins and path disclosure.
+- Added typed queued, running-stage, completed, failed, and cancelled states. Completed/cancelled jobs are terminal; actionable failures retain their stage and only explicitly retryable failures may restart.
+- RED evidence: cache identity tests failed at the intentional `todo!`; state tests then failed to compile before transition methods existed.
+- GREEN evidence: 5 focused analysis-job tests passed, covering cache containment, unsafe/colliding identity rejection, path-free progress serialization, cancellation, retry, completion, and terminal-state protection.
+- Full baseline passed: frontend lint, 10 frontend tests, production build, 34 Rust tests, Rust check, targeted Rust formatting, and `git diff --check`.
+- No model/runtime dependency, download, process launch, original-audio write, or cache write was added.
+
