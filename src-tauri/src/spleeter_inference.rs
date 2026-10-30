@@ -3,10 +3,12 @@ use ndarray::Array4;
 use ndarray::Ix4;
 #[cfg(feature = "native-onnx")]
 use ort::{environment::Environment, session::Session, value::TensorRef};
-#[cfg(feature = "native-onnx")]
 use std::path::Path;
 
-use crate::spleeter_signal::{inverse_stft, masked_spectra, model_input, stft};
+use crate::{
+    analysis_audio::decode_for_analysis,
+    spleeter_signal::{inverse_stft, masked_spectra, model_input, stft},
+};
 
 #[cfg(feature = "native-onnx")]
 const INPUT_NAME: &str = "Abs:0";
@@ -47,6 +49,24 @@ where
         vocals: inverse_stft(&vocal_spectrum, waveform.len())?,
         accompaniment: inverse_stft(&accompaniment_spectrum, waveform.len())?,
     })
+}
+
+pub fn separate_source<I>(
+    inference: &mut I,
+    source_path: &Path,
+) -> Result<SeparatedWaveforms, String>
+where
+    I: SpectrogramInference,
+{
+    let decoded = decode_for_analysis(source_path)
+        .map_err(|error| format!("audio decoding failed: {error}"))?;
+    if decoded.sample_rate != 44_100 {
+        return Err(format!(
+            "Spleeter requires 44100 Hz analysis audio; source is {} Hz and resampling is not configured",
+            decoded.sample_rate
+        ));
+    }
+    separate_waveform(inference, &decoded.stereo_frames)
 }
 
 #[cfg(feature = "native-onnx")]
@@ -128,9 +148,11 @@ fn validate_outputs(
 #[cfg(test)]
 mod tests {
     use super::{
-        separate_waveform, validate_input, validate_outputs, SpectrogramInference, StemEstimates,
+        separate_source, separate_waveform, validate_input, validate_outputs, SpectrogramInference,
+        StemEstimates,
     };
     use ndarray::Array4;
+    use std::{fs, path::PathBuf};
 
     struct VocalOnlyInference;
 
@@ -185,5 +207,21 @@ mod tests {
             .sum::<f32>();
         assert!(vocal_energy > 100.0);
         assert!(accompaniment_energy < vocal_energy * 1.0e-6);
+    }
+
+    #[test]
+    fn separates_a_read_only_source_through_the_injected_runtime() {
+        let source = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/metadata.wav");
+        let before = fs::read(&source).expect("fixture should be readable");
+
+        let separated = separate_source(&mut VocalOnlyInference, &source)
+            .expect("44.1 kHz fixture should separate");
+
+        assert!(!separated.vocals.is_empty());
+        assert_eq!(separated.vocals.len(), separated.accompaniment.len());
+        assert_eq!(
+            fs::read(source).expect("fixture should remain readable"),
+            before
+        );
     }
 }
