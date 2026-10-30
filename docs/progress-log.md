@@ -348,3 +348,10 @@
 - Full baseline passed: frontend lint, 10 frontend tests, production build, 37 Rust tests, Rust check, targeted Rust formatting, and `git diff --check`.
 - No process was launched and no model/runtime dependency or original source file was opened.
 
+## 2026-10-30 — Spleeter runtime dependency preflight
+
+- Reviewed the official Spleeter 2.4.2 dependency declaration and Windows guidance without installing packages. The supported range is Python 3.8–3.11 with TensorFlow 2.12.1 and NumPy below 2.0.
+- TensorFlow dominates the expected dependency/installed size. Windows CPU functionality is claimed upstream but remains unmeasured on the target machine class.
+- Defined a bounded first probe that uses an isolated Python 3.11 CPU worker and a generated PCM array through the Spleeter API, avoiding user music and an external FFmpeg executable.
+- Deferred real source decoding, FFmpeg build/license selection, production Python bundling, and ONNX conversion. None was silently chosen or installed.
+
