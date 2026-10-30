@@ -332,3 +332,11 @@
 - Full baseline passed: frontend lint, 10 frontend tests, production build, 34 Rust tests, Rust check, targeted Rust formatting, and `git diff --check`.
 - No model/runtime dependency, download, process launch, original-audio write, or cache write was added.
 
+## 2026-10-30 — Pinned evaluation artifact metadata
+
+- Added validated JSON metadata for Spleeter 2-stem v1.4.0 (73,109,797 bytes), CREPE tiny at models commit `bb29b8d` (1,307,310 bytes compressed), and multilingual Whisper `base` at converted-model commit `5359861` (147,951,465 bytes).
+- Recorded immutable HTTPS artifact URLs, SHA-256 values, exact byte sizes, SPDX MIT identifiers, and upstream license evidence. Tests load all three bundled manifests and validate the typed boundary.
+- Spleeter's SHA-256 came from its official `checksum.json`; Whisper's size and SHA-256 came from the official converted-model repository. CREPE publishes a Git blob hash but not SHA-256, so its 1.3 MB `tiny` artifact was fetched to a temporary file and measured as `9c1d76d405674d2327f5636347d07f551dfd11c6acc0475b7fd85082cdab0add`.
+- No model binary was copied into the repository or application cache. Spleeter and Whisper model binaries were not downloaded.
+- Full baseline passed: frontend lint, 10 frontend tests, production build, 35 Rust tests, Rust check, targeted Rust formatting, and `git diff --check`.
+

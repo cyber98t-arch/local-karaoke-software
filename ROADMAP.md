@@ -80,7 +80,7 @@ Phase 3 completed 2026-10-30: automated coverage passes for the typed/injected a
 
 1. Approved 2026-10-30: evaluate Spleeter 2-stem, CREPE, and multilingual Whisper `base`; exclude HTDemucs weights. No model was downloaded during approval.
 2. Completed 2026-10-30: defined and tested a typed model artifact manifest plus a cache-owned, content-addressed analysis identity and typed job states before adding model runtimes.
-3. Pin exact upstream revisions, artifact URLs, checksums, byte sizes, and license evidence before each model download.
+3. Completed 2026-10-30: pinned upstream revisions, immutable artifact URLs, SHA-256 values, byte sizes, and license evidence for Spleeter 2-stem, CREPE tiny, and multilingual Whisper `base`. Only the 1.3 MB CREPE artifact was temporarily fetched to calculate its unpublished SHA-256; no model was added to the repository or application cache.
 4. Add one bounded separation feasibility probe using only a generated or public-domain fixture, then measure Windows CPU duration, memory, installed size, and output usefulness.
 5. Repeat bounded probes for monophonic melody and Japanese transcription before connecting the stages into a resumable pipeline.
 
