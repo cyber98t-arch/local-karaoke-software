@@ -1,6 +1,10 @@
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
-use std::path::{Path, PathBuf};
+use std::{
+    fs::{self, File, OpenOptions},
+    io::Write,
+    path::{Path, PathBuf},
+};
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -131,10 +135,142 @@ impl AnalysisJobState {
     }
 }
 
+pub fn append_job_state(
+    cache_root: &Path,
+    identity: &AnalysisIdentity,
+    next_state: &AnalysisJobState,
+) -> Result<PathBuf, String> {
+    let directory = identity.cache_directory(cache_root)?;
+    fs::create_dir_all(&directory).map_err(|error| error.to_string())?;
+
+    let latest = latest_state_snapshot(&directory)?;
+    match &latest {
+        None if !matches!(next_state, AnalysisJobState::Queued) => {
+            return Err("the first analysis job state must be queued".to_owned());
+        }
+        Some((_, previous)) if !transition_allowed(previous, next_state) => {
+            return Err("invalid analysis job state transition".to_owned());
+        }
+        _ => {}
+    }
+
+    let sequence = latest.map_or(1, |(sequence, _)| sequence + 1);
+    let final_path = directory.join(format!("state-{sequence:06}.json"));
+    let temporary_path = directory.join(format!("state-{sequence:06}.json.tmp"));
+    match fs::remove_file(&temporary_path) {
+        Ok(()) => {}
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
+        Err(error) => return Err(error.to_string()),
+    }
+
+    let encoded = serde_json::to_vec_pretty(next_state).map_err(|error| error.to_string())?;
+    let mut temporary = OpenOptions::new()
+        .create_new(true)
+        .write(true)
+        .open(&temporary_path)
+        .map_err(|error| error.to_string())?;
+    temporary
+        .write_all(&encoded)
+        .and_then(|()| temporary.write_all(b"\n"))
+        .and_then(|()| temporary.sync_all())
+        .map_err(|error| error.to_string())?;
+    drop(temporary);
+    fs::rename(&temporary_path, &final_path).map_err(|error| error.to_string())?;
+    Ok(final_path)
+}
+
+fn latest_state_snapshot(directory: &Path) -> Result<Option<(u64, AnalysisJobState)>, String> {
+    let mut latest: Option<(u64, PathBuf)> = None;
+    for entry in fs::read_dir(directory).map_err(|error| error.to_string())? {
+        let path = entry.map_err(|error| error.to_string())?.path();
+        let Some(sequence) = path
+            .file_name()
+            .and_then(|name| name.to_str())
+            .and_then(snapshot_sequence)
+        else {
+            continue;
+        };
+        if latest
+            .as_ref()
+            .is_none_or(|(latest_sequence, _)| sequence > *latest_sequence)
+        {
+            latest = Some((sequence, path));
+        }
+    }
+
+    latest
+        .map(|(sequence, path)| {
+            serde_json::from_reader(File::open(path).map_err(|error| error.to_string())?)
+                .map(|state| (sequence, state))
+                .map_err(|error| error.to_string())
+        })
+        .transpose()
+}
+
+fn snapshot_sequence(name: &str) -> Option<u64> {
+    let digits = name.strip_prefix("state-")?.strip_suffix(".json")?;
+    (digits.len() == 6 && digits.bytes().all(|byte| byte.is_ascii_digit()))
+        .then(|| digits.parse().ok())
+        .flatten()
+}
+
+fn transition_allowed(previous: &AnalysisJobState, next: &AnalysisJobState) -> bool {
+    match previous {
+        AnalysisJobState::Queued => matches!(
+            next,
+            AnalysisJobState::Running { .. } | AnalysisJobState::Cancelled
+        ),
+        AnalysisJobState::Running { .. } => matches!(
+            next,
+            AnalysisJobState::Running { .. }
+                | AnalysisJobState::Completed
+                | AnalysisJobState::Failed { .. }
+                | AnalysisJobState::Cancelled
+        ),
+        AnalysisJobState::Failed {
+            retryable: true, ..
+        } => matches!(next, AnalysisJobState::Running { .. }),
+        AnalysisJobState::Completed
+        | AnalysisJobState::Cancelled
+        | AnalysisJobState::Failed {
+            retryable: false, ..
+        } => false,
+    }
+}
+
 #[cfg(test)]
 mod tests {
-    use super::{AnalysisIdentity, AnalysisJobState, AnalysisStage};
-    use std::path::PathBuf;
+    use super::{append_job_state, AnalysisIdentity, AnalysisJobState, AnalysisStage};
+    use std::{
+        fs,
+        path::PathBuf,
+        time::{SystemTime, UNIX_EPOCH},
+    };
+
+    struct TestDirectory {
+        path: PathBuf,
+    }
+
+    impl TestDirectory {
+        fn new() -> Self {
+            let unique = SystemTime::now()
+                .duration_since(UNIX_EPOCH)
+                .expect("system clock should be after Unix epoch")
+                .as_nanos();
+            let path = std::env::temp_dir().join(format!(
+                "hibiki-analysis-job-{}-{unique}",
+                std::process::id()
+            ));
+            fs::create_dir(&path).expect("test directory should be created");
+            Self { path }
+        }
+    }
+
+    impl Drop for TestDirectory {
+        fn drop(&mut self) {
+            fs::remove_dir_all(&self.path).expect("test directory should be removable");
+        }
+    }
 
     fn identity() -> AnalysisIdentity {
         AnalysisIdentity {
@@ -254,5 +390,76 @@ mod tests {
             .expect("a retryable failure should restart");
         state.complete().expect("a running job should complete");
         assert_eq!(state, AnalysisJobState::Completed);
+    }
+
+    #[test]
+    fn appends_atomic_state_snapshots_and_removes_stale_temporary_files() {
+        let directory = TestDirectory::new();
+        let identity = identity();
+        let job_directory = identity
+            .cache_directory(&directory.path)
+            .expect("identity should be valid");
+        fs::create_dir_all(&job_directory).expect("job directory should be created");
+        fs::write(job_directory.join("state-000001.json.tmp"), b"interrupted")
+            .expect("stale temporary state should be created");
+
+        let queued_path = append_job_state(&directory.path, &identity, &AnalysisJobState::Queued)
+            .expect("initial queued state should commit");
+        let running_path = append_job_state(
+            &directory.path,
+            &identity,
+            &AnalysisJobState::Running {
+                stage: AnalysisStage::Separation,
+            },
+        )
+        .expect("running state should commit");
+
+        assert!(queued_path.ends_with("state-000001.json"));
+        assert!(running_path.ends_with("state-000002.json"));
+        assert!(!job_directory.join("state-000001.json.tmp").exists());
+    }
+
+    #[test]
+    fn preserves_completed_state_against_later_writes() {
+        let directory = TestDirectory::new();
+        let identity = identity();
+        append_job_state(&directory.path, &identity, &AnalysisJobState::Queued)
+            .expect("queued state should commit");
+        append_job_state(
+            &directory.path,
+            &identity,
+            &AnalysisJobState::Running {
+                stage: AnalysisStage::Alignment,
+            },
+        )
+        .expect("running state should commit");
+        append_job_state(&directory.path, &identity, &AnalysisJobState::Completed)
+            .expect("completed state should commit");
+
+        let error = append_job_state(
+            &directory.path,
+            &identity,
+            &AnalysisJobState::Running {
+                stage: AnalysisStage::Separation,
+            },
+        )
+        .expect_err("completed state must be terminal");
+
+        assert!(error.contains("transition"));
+        assert_eq!(
+            fs::read_dir(
+                identity
+                    .cache_directory(&directory.path)
+                    .expect("identity should remain valid")
+            )
+            .expect("job directory should remain readable")
+            .filter_map(Result::ok)
+            .filter(|entry| entry
+                .path()
+                .extension()
+                .is_some_and(|value| value == "json"))
+            .count(),
+            3
+        );
     }
 }
