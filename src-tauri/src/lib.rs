@@ -10,6 +10,7 @@ pub mod library_commands;
 pub mod library_service;
 pub mod metadata;
 pub mod model_manifest;
+pub mod separation_pipeline;
 pub mod spleeter_inference;
 pub mod spleeter_signal;
 pub mod stem_cache;
