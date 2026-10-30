@@ -465,3 +465,9 @@
 - A dependency-free fake inference implementation routes the generated mixture to vocals and silence to accompaniment. The focused end-to-end test passed and verified output length plus expected stem-energy separation.
 - Five focused Spleeter tests pass. Actual ONNX execution remains feature-gated and awaits native Windows linking; no user audio or model was opened by this step.
 
+## 2026-10-30 — Decoder and model acquisition approved
+
+- The user approved D-009: pin Symphonia 0.6.1 with only MP3, FLAC, PCM, and WAV/RIFF support for Rust-owned read-only analysis decoding. MPL-2.0 notices and obligations must be retained.
+- The user approved D-010: the converted ONNX model will use an explicit one-time app-managed download into a separate model cache, with exact size/hash/provenance/license validation and atomic commit. Development remains local-injected until a release asset is separately approved for publication.
+- No dependency, model, or release asset was downloaded or published in this approval step.
+

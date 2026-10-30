@@ -87,20 +87,24 @@
 
 ### D-009 — Read-only analysis audio decoder
 
-- Status: Waiting
+- Status: Approved
 - Question: Which native decoder should convert indexed MP3, FLAC, and WAV sources to stereo PCM for pre-playback analysis?
 - Recommended option: Pin pure-Rust Symphonia 0.6.1 with only MP3, FLAC, PCM, and WAV/RIFF features. Upstream rates these codecs/formats as Excellent, supports gapless decoding, uses safe Rust with minimal dependencies, and avoids shipping FFmpeg.
 - License: MPL-2.0 for Symphonia. The application must retain notices and comply with source-availability obligations for any modified MPL-covered files; application-owned files remain under their own terms.
 - Alternative: Bundle an audio-only FFmpeg build. It covers more formats but adds a larger native binary, build-configuration provenance, and LGPL/GPL feature-selection risk.
 - Scope: Decode through a Rust-owned read-only file handle into memory/cache-owned PCM. Never write beside, tag, rename, or otherwise modify the source.
 - Reason approval is required: This selects the production decoding library and its license boundary within the audio pipeline.
+- Decision: Use Symphonia 0.6.1 with only MP3, FLAC, PCM, and WAV/RIFF support for analysis decoding. Preserve the read-only source invariant and include MPL-2.0 notices/compliance materials.
+- Source: User approval on 2026-10-30.
 
 ### D-010 — Converted ONNX model acquisition
 
-- Status: Waiting
+- Status: Approved
 - Question: How should the 78.7 MB converted Spleeter ONNX artifact reach the application model cache?
 - Recommended option: An explicit, one-time app-managed download from a future approved release asset, pinned by exact byte size, SHA-256, source-checkpoint provenance, conversion-tool versions, and MIT license evidence. Development uses an injected local artifact until publishing is separately approved.
 - Alternative: Bundle the model in every installer. This improves first-run offline behavior but makes every installer roughly 79 MB larger and couples model updates to app releases.
 - Alternative: Convert locally from the TensorFlow checkpoint. This avoids distributing the converted file but requires the very large TensorFlow conversion environment rejected by the lightweight objective.
 - Scope: Store models separately from song caches; never download silently; verify before atomic commit; keep the previous valid model on failure.
 - Reason approval is required: This changes model acquisition, application storage, download UX, provenance handling, and eventual release contents.
+- Decision: Use an explicit one-time, app-managed download into the separate model cache, with exact size/SHA-256/provenance/license verification and atomic commit. Development may inject a local artifact; publishing the future release asset remains separately gated.
+- Source: User approval on 2026-10-30.
