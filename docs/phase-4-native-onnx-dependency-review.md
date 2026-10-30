@@ -54,6 +54,31 @@ test. No model will be added to Git and no GPU package will be fetched.
 
 Stop and request explicit capacity approval before executing that probe.
 
+## Probe result
+
+The user approved the envelope and the dependency probe completed on
+2026-10-30.
+
+- Resolved `ort`/`ort-sys` exactly at 2.0.0-rc.15 and `realfft` exactly at
+  3.5.0. Cargo.lock records registry checksums for the full closure.
+- CPU-only Linux static runtime:
+  - size: 111,701,892 bytes
+  - SHA-256: `184360cecb39400bc59f98269ed179f4925bf75dd11be084604f4070edbf1493`
+- Cargo registry cache grew by approximately 35.4 MB.
+- `cargo check` passed with the dedicated target and pinned lockfile.
+
+The dedicated target unexpectedly rebuilt the complete Tauri dependency graph
+and reached approximately 1.38 GB. Together with the registry and ORT caches,
+temporary growth was about 1.53 GB, exceeding the approved 600 MB estimate by
+about 930 MB. Work stopped, the overage was reported, and only the
+research-owned `/tmp/hibiki-native-onnx-target` was removed. Persistent added
+cache was reduced to approximately 147 MB. No source, model, lockfile, or user
+data was deleted.
+
+The Linux static-library hash is development evidence only. Windows x86-64
+runtime bytes, size, SHA-256, attestation, and bundling behavior remain
+unverified.
+
 ## Primary references reviewed
 
 - `ort` repository and its MIT/Apache-2.0 license files:

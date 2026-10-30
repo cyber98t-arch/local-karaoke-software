@@ -439,3 +439,10 @@
 - The current Rust 1.99 toolchain satisfies both MSRVs. CPU-only minimal features, exact version pins, artifact hashes, notices, and offline behavior are required; no GPU provider was selected.
 - Stopped before dependency resolution/download. The proposed bounded probe is up to 150 MB network transfer and 600 MB additional temporary build/cache storage for crates, one CPU runtime archive, hash/license capture, compilation, and a generated-input test.
 
+## 2026-10-30 — Native ONNX dependencies pinned
+
+- After capacity approval, pinned `ort`/`ort-sys` 2.0.0-rc.15 and `realfft` 3.5.0 with CPU-only features; Cargo.lock records the complete crates.io closure and checksums. No GPU feature was enabled.
+- `cargo check` passed using a dedicated target. The cached Linux CPU static ONNX Runtime library is 111,701,892 bytes with SHA-256 `184360cecb39400bc59f98269ed179f4925bf75dd11be084604f4070edbf1493`.
+- Cargo registry growth was approximately 35.4 MB. The dedicated target rebuilt all Tauri dependencies and temporarily grew to approximately 1.38 GB, causing total growth of about 1.53 GB—roughly 930 MB over the approved estimate.
+- Stopped immediately, reported the overage, and removed only the research-owned temporary target. Remaining added caches total approximately 147 MB. Windows runtime bytes/hashes and native inference remain unverified.
+
