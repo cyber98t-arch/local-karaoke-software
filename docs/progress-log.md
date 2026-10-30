@@ -446,3 +446,10 @@
 - Cargo registry growth was approximately 35.4 MB. The dedicated target rebuilt all Tauri dependencies and temporarily grew to approximately 1.38 GB, causing total growth of about 1.53 GB—roughly 930 MB over the approved estimate.
 - Stopped immediately, reported the overage, and removed only the research-owned temporary target. Remaining added caches total approximately 147 MB. Windows runtime bytes/hashes and native inference remain unverified.
 
+## 2026-10-30 — Native Spleeter signal transforms
+
+- Added application-owned Rust STFT/inverse-STFT using pinned `realfft`: 4096-point periodic Hann windows, 1024-sample hop, stereo channels, tail padding, overlap-add, and Spleeter's `2/3` compensation.
+- RED evidence: the focused generated-stereo test failed at the intentional STFT `todo!`. GREEN evidence: the fully overlapped region round-tripped within `2e-5` per sample/channel.
+- Added magnitude partitioning into ONNX input shape `[segments, 512, 1024, 2]` with zero padding after the final real frame. Both focused signal tests passed.
+- No source audio, model artifact, GPU provider, decoder, UI command, or cache output was accessed by these tests.
+
