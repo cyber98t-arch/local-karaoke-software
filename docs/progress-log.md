@@ -340,3 +340,11 @@
 - No model binary was copied into the repository or application cache. Spleeter and Whisper model binaries were not downloaded.
 - Full baseline passed: frontend lint, 10 frontend tests, production build, 35 Rust tests, Rust check, targeted Rust formatting, and `git diff --check`.
 
+## 2026-10-30 — Atomic analysis state persistence
+
+- Added cache-owned append-only state snapshots. Every transition writes and syncs a new temporary JSON file, then renames it to a previously unused sequence path; existing snapshots are never overwritten.
+- Recovery removes the matching stale temporary file before retry. Persisted transition validation requires an initial queued state, permits active progress/failure/cancellation, permits restart only after retryable failure, and keeps completed, cancelled, and non-retryable failure states terminal.
+- RED evidence: the persistence tests failed to compile before `append_job_state` existed. GREEN evidence: 7 focused analysis-job tests passed, including stale-temporary recovery and preservation of completed state.
+- Full baseline passed: frontend lint, 10 frontend tests, production build, 37 Rust tests, Rust check, targeted Rust formatting, and `git diff --check`.
+- No process was launched and no model/runtime dependency or original source file was opened.
+
