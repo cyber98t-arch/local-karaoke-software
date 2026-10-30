@@ -355,3 +355,11 @@
 - Defined a bounded first probe that uses an isolated Python 3.11 CPU worker and a generated PCM array through the Spleeter API, avoiding user music and an external FFmpeg executable.
 - Deferred real source decoding, FFmpeg build/license selection, production Python bundling, and ONNX conversion. None was silently chosen or installed.
 
+## 2026-10-30 — Versioned local analysis-worker protocol
+
+- Added a protocol-versioned Rust request/response boundary behind an injected backend. The synthetic probe request contains only a safe request ID, fixed operation, and cache-owned output directory; it has no source-audio field.
+- The service rejects traversal-capable IDs, protocol/request mismatches, failed responses without actionable errors, missing metrics, and zero-valued metrics.
+- Added a Python-standard-library fake worker that reads one JSON request from stdin, writes one cache-owned probe manifest by temporary-file replacement, and emits one JSON response. It has no model, audio decoder, network, or user-source access.
+- RED evidence: 2 focused Rust tests failed at the intentional service `todo!`. GREEN evidence: both focused tests passed, and a manual fake-worker invocation returned the expected 16 kHz stereo/16,000-frame metrics.
+- Full baseline passed: frontend lint, 10 frontend tests, production build, 39 Rust tests, Rust check, targeted Rust formatting, Python bytecode compilation, and `git diff --check`.
+
