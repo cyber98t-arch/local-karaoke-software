@@ -74,10 +74,13 @@
 
 ### D-008 — Production ONNX Runtime packaging boundary
 
-- Status: Waiting
+- Status: Approved
 - Question: Should the approved CPU ONNX separation path run through a native Rust ONNX Runtime binding with Rust signal processing, or through a bundled Python/NumPy/ONNX Runtime worker?
 - Recommended option: Native Rust. It best matches the user's lightweight priority, avoids shipping a Python interpreter and NumPy, and keeps the stable pipeline behind the existing Rust orchestration boundary. It requires more implementation and Windows binary/provider packaging work.
 - Alternative: Bundled Python worker. It can reuse the numerically verified prototype with less immediate engineering, but retains a Python interpreter, NumPy, and wheel/native-library packaging overhead.
 - Not recommended: Require a user-managed Python installation. This reduces installer contents but harms offline reliability and ordinary-user setup.
 - Scope held until decision: The dependency-free request validation and cache commit boundary may remain, but do not add a production ONNX binding/runtime package or choose its binary acquisition strategy.
 - Reason approval is required: This selects the production inference packaging boundary and materially affects installed size, dependency licensing/notices, Windows deployment, and maintenance.
+- Decision: Use a native Rust ONNX Runtime binding and application-owned Rust signal processing. Do not bundle a Python interpreter or NumPy for production separation.
+- Source: User approval on 2026-10-30 after the native Rust option was explicitly recommended.
+- Initial dependency direction: Evaluate pinned `ort` 2.0.0-rc.15 with CPU-only minimal features and `realfft` 3.5.0. Do not enable a GPU execution provider under this decision. Do not rely on an unrecorded build-time binary download for release artifacts.

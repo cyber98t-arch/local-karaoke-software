@@ -100,3 +100,8 @@ separation, numerical comparison, representative listening review, preliminary
 time/memory measurement, license inventory, and artifact hashing. GPU providers,
 publishing, and release were not selected by this decision.
 
+D-008 approved 2026-10-30: implement the stable separation path with a native
+Rust ONNX Runtime binding and Rust signal processing. A bundled Python/NumPy
+runtime is excluded from production separation. Exact binary acquisition and
+release packaging still require reproducible hashes and Windows verification.
+

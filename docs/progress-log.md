@@ -432,3 +432,10 @@
 - RED evidence: both Python tests initially failed because the worker module did not exist. GREEN evidence: 2 Python tests and 5 focused Rust worker tests passed; Python bytecode compilation and `git diff --check` passed.
 - Actual inference remains intentionally disconnected. Opened D-008 as `Waiting` because native Rust ONNX versus bundled Python materially changes installed size and Windows packaging.
 
+## 2026-10-30 — Native Rust ONNX boundary approved
+
+- The user approved D-008's recommended native Rust ONNX Runtime plus Rust signal-processing direction. Production separation will not bundle Python or NumPy.
+- Reviewed current primary metadata without downloading dependencies: `ort` 2.0.0-rc.15 targets ONNX Runtime 1.31, uses `MIT OR Apache-2.0`, requires Rust 1.92, and defaults to binary download/copy plus extra features. `realfft` 3.5.0 is MIT and supports the required real FFT path.
+- The current Rust 1.99 toolchain satisfies both MSRVs. CPU-only minimal features, exact version pins, artifact hashes, notices, and offline behavior are required; no GPU provider was selected.
+- Stopped before dependency resolution/download. The proposed bounded probe is up to 150 MB network transfer and 600 MB additional temporary build/cache storage for crates, one CPU runtime archive, hash/license capture, compilation, and a generated-input test.
+
