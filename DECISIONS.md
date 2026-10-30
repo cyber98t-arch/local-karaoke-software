@@ -108,3 +108,13 @@
 - Reason approval is required: This changes model acquisition, application storage, download UX, provenance handling, and eventual release contents.
 - Decision: Use an explicit one-time, app-managed download into the separate model cache, with exact size/SHA-256/provenance/license verification and atomic commit. Development may inject a local artifact; publishing the future release asset remains separately gated.
 - Source: User approval on 2026-10-30.
+
+### D-011 — Offline analysis sample-rate conversion
+
+- Status: Waiting
+- Question: How should MP3/FLAC/WAV sources that are not 44.1 kHz be converted to Spleeter's required 44.1 kHz stereo input?
+- Recommended option: Pin Rubato 5.0.1 and use its synchronous FFT resampler for fixed-ratio, pre-playback conversion. Upstream specifically recommends `Fft` plus whole-clip `process_all()` for offline file-rate conversion; it is pure Rust, CPU-capable, and licensed `MIT OR Apache-2.0`. The existing pipeline already uses `realfft` 3.5.0, which Rubato's FFT feature also pins.
+- Alternative: Implement application-owned windowed-sinc resampling. This reduces third-party API exposure but adds substantial DSP correctness, anti-aliasing, delay-trimming, and test responsibility without a product advantage.
+- Rejected shortcut: Linear or polynomial-only interpolation for arbitrary file conversion. It is lighter but can alias during downsampling such as 96 kHz to 44.1 kHz and is unsuitable for the model's analysis input.
+- Scope if approved: Resample decoded in-memory stereo only before separation, preserve the original read-only file and native-rate decoded data, record the conversion parameters in analysis identity, and test duration/channel/finite-sample/source-immutability behavior. This does not change playback or microphone resampling.
+- Reason approval is required: This selects an audio-processing dependency and conversion strategy that affects model input, analysis reproducibility, performance, and output quality.

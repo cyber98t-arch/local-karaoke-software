@@ -479,3 +479,10 @@
 - The tests observed 44.1 kHz preservation, finite/nonempty output, exact mono-to-stereo duplication, byte-for-byte source preservation, and an unchanged source-directory entry list. `cargo check` and `git diff --check` also passed.
 - Symphonia is MPL-2.0 and unmodified. Final installer notices/source-availability materials and native Windows validation remain packaging work; see `docs/phase-4-analysis-decoder-review.md`.
 
+## 2026-10-30 — Read-only decoding connected to injected separation
+
+- Added a typed path from a Rust-owned decoded source to the existing injected Spleeter spectrogram boundary and Rust signal transforms. It performs no cache write and does not load a real model.
+- RED evidence: the focused test failed to compile before the source-separation function existed. GREEN evidence: all three focused inference tests passed, including byte-for-byte preservation of the WAV fixture.
+- The connection currently accepts 44.1 kHz only. Other native rates fail with an explicit resampling-not-configured error rather than being silently processed incorrectly.
+- Opened D-011 as `Waiting` after reviewing Rubato's current official repository/docs. No resampling dependency was added and no sample-rate strategy was selected.
+
