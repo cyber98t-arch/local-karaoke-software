@@ -1,9 +1,43 @@
 use ndarray::Array2;
+use rubato::{audioadapter_buffers::direct::InterleavedSlice, Fft, FixedSync, Resampler};
 
 pub const CREPE_SAMPLE_RATE: u32 = 16_000;
 pub const CREPE_WINDOW: usize = 1_024;
 pub const CREPE_HOP: usize = 160;
 pub const CREPE_BINS: usize = 360;
+
+pub fn mono_for_crepe(stereo: &[[f32; 2]], sample_rate: u32) -> Result<Vec<f32>, String> {
+    if sample_rate == 0 || stereo.is_empty() {
+        return Err("CREPE conversion requires nonempty audio with a sample rate".to_owned());
+    }
+    if stereo.iter().flatten().any(|sample| !sample.is_finite()) {
+        return Err("CREPE conversion requires finite audio samples".to_owned());
+    }
+
+    let mono = stereo
+        .iter()
+        .map(|frame| (frame[0] + frame[1]) * 0.5)
+        .collect::<Vec<_>>();
+    if sample_rate == CREPE_SAMPLE_RATE {
+        return Ok(mono);
+    }
+
+    let input_frames = mono.len();
+    let input = InterleavedSlice::new(&mono, 1, input_frames)
+        .map_err(|error| format!("invalid mono input for CREPE resampling: {error}"))?;
+    let mut resampler = Fft::<f32>::new(
+        sample_rate as usize,
+        CREPE_SAMPLE_RATE as usize,
+        1024,
+        1,
+        FixedSync::Both,
+    )
+    .map_err(|error| format!("failed to configure CREPE resampling: {error}"))?;
+    Ok(resampler
+        .process_all(&input, input_frames, None)
+        .map_err(|error| format!("CREPE resampling failed: {error}"))?
+        .take_data())
+}
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct PitchPoint {
@@ -93,8 +127,8 @@ pub fn decode_local_average(salience: &Array2<f32>) -> Result<Vec<PitchPoint>, S
 #[cfg(test)]
 mod tests {
     use super::{
-        centered_normalized_frames, decode_local_average, CREPE_BINS, CREPE_HOP, CREPE_SAMPLE_RATE,
-        CREPE_WINDOW,
+        centered_normalized_frames, decode_local_average, mono_for_crepe, CREPE_BINS, CREPE_HOP,
+        CREPE_SAMPLE_RATE, CREPE_WINDOW,
     };
     use ndarray::Array2;
 
@@ -149,5 +183,23 @@ mod tests {
         let mut nonfinite = Array2::zeros((1, CREPE_BINS));
         nonfinite[(0, 0)] = f32::INFINITY;
         assert!(decode_local_average(&nonfinite).is_err());
+    }
+
+    #[test]
+    fn downmixes_and_resamples_vocals_to_sixteen_kilohertz() {
+        let stereo = (0..44_100)
+            .map(|index| {
+                let phase = 2.0 * std::f32::consts::PI * 220.0 * index as f32 / 44_100.0;
+                [0.2 * phase.sin(), 0.0]
+            })
+            .collect::<Vec<_>>();
+        let unchanged = stereo.clone();
+
+        let mono = mono_for_crepe(&stereo, 44_100).expect("vocals should convert");
+
+        assert_eq!(mono.len(), CREPE_SAMPLE_RATE as usize);
+        assert!(mono.iter().all(|sample| sample.is_finite()));
+        assert!(mono.iter().any(|sample| sample.abs() > 0.05));
+        assert_eq!(stereo, unchanged);
     }
 }
