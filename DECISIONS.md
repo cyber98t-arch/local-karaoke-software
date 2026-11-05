@@ -213,3 +213,13 @@
 - Reason approval is required: This establishes a new persistent cache format and therefore crosses the repository's explicit cache-format approval gate.
 - Decision: Persist validated Japanese transcription drafts as atomic, versioned `transcript.json` artifacts only beneath the identity-derived application cache, using the recommended provenance and raw-draft fields.
 - Source: User approval on 2026-11-05.
+
+### D-020 — Production Whisper executable and model acquisition
+
+- Status: Waiting
+- Question: How should the Windows application obtain the pinned CPU-only `whisper.cpp` executable and multilingual base model?
+- Recommended option: Bundle a pinned, CPU-only `whisper.cpp` executable and required notices with the application, while downloading the 147,951,465-byte multilingual base model only after an explicit in-app action. Verify exact byte size and SHA-256 before atomic commit to the separate model cache; never download silently.
+- Alternative: Bundle both executable and model in every installer. This improves first-run offline availability but increases every installer by about 148 MB and couples model updates to application releases.
+- Rejected alternative: Require users to install or locate `whisper.cpp` themselves. This reduces installer size but conflicts with reliable ordinary-user setup.
+- Scope if approved: Implement an injected development adapter and typed acquisition boundary with generated/public-domain tests. Do not publish binaries/models, download the model during tests, create a release, select alignment, or add GPU execution.
+- Reason approval is required: This selects native executable packaging, installer contents, and model acquisition behavior.

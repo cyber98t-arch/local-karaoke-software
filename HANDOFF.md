@@ -12,9 +12,9 @@
 - Whisper feasibility: Pinned multilingual base processed 30.93 seconds of public-domain Japanese speech in 1.483 seconds with about 289 MiB sampled peak RSS. It produced useful timestamps but several material word errors; see `docs/phase-4-whisper-feasibility-results.md`.
 - Whisper worker boundary: Protocol v2 now defines a Japanese transcription request with verified source/model identities and identity-derived output, plus validated timestamped response segments. Focused Rust and Python tests pass; no production executable is connected.
 - Transcript cache: D-019 is approved and implemented as atomic, validated, raw-draft `transcript.json` below the identity-derived cache. Four focused tests pass and input audio bytes remain unchanged.
-- Next safe action: Review and gate the development `whisper.cpp` worker adapter/packaging boundary before connecting an executable. Alignment remains a later independent decision.
+- Next safe action: Obtain D-020 approval before connecting or packaging a `whisper.cpp` executable or adding Whisper model acquisition. Alignment remains a later independent decision.
 - Windows command queue: The user ran `scripts/windows/run-pending-phase4-checks.ps1`; exact-model verification and the generated-vocal probe passed, while the optional representative-vocal probe was safely skipped because no cached `vocals.flac` existed. Future Windows-only commands should be appended to `docs/windows-pending-commands.md` rather than sent piecemeal in chat.
-- Blockers and decisions: Production Whisper executable packaging and alignment remain later major gates. Confidence thresholds, Viterbi smoothing, stable model/application publishing, automatic downloads, GPU strategy, and release remain unapproved. The user's untracked `sample music/`, `screenshot/`, and attached `docs/ui-mockups/seimitsusaitenai-09.png` must never be staged.
+- Blockers and decisions: D-020 production Whisper executable/model acquisition is waiting; alignment remains a later major gate. Confidence thresholds, Viterbi smoothing, stable model/application publishing, GPU strategy, and release remain unapproved. The user's untracked `sample music/`, `screenshot/`, and attached `docs/ui-mockups/seimitsusaitenai-09.png` must never be staged.
 
 ## Resume checklist
 
