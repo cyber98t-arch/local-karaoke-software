@@ -230,13 +230,8 @@ mod tests {
             }
         }
         let cache = TestDirectory::new();
-        let state = run_analysis_pipeline(
-            &cache.0,
-            &identity(),
-            &mut CancellingRunner,
-            || false,
-        )
-        .unwrap();
+        let state =
+            run_analysis_pipeline(&cache.0, &identity(), &mut CancellingRunner, || false).unwrap();
         assert_eq!(state, AnalysisJobState::Cancelled);
     }
 }

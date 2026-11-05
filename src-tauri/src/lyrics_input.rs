@@ -1,9 +1,5 @@
 use sha2::{Digest, Sha256};
-use std::{
-    fs::File,
-    io::Read,
-    path::Path,
-};
+use std::{fs::File, io::Read, path::Path};
 
 pub const MAX_LYRICS_BYTES: usize = 1024 * 1024;
 
