@@ -171,9 +171,11 @@
 
 ### D-016 — Development CREPE ONNX artifact publication
 
-- Status: Waiting
+- Status: Approved
 - Question: May the verified converted CREPE tiny ONNX artifact be published as a GitHub development prerelease asset for the native Windows melody probe?
 - Recommended option: Publish exactly one clearly labeled development-only asset, `crepe-tiny-research.onnx`, with byte size `1,956,735` and SHA-256 `03fb909a5618fa9f19942e20de749bc8e658a1ac0df4a778b354c15b6f7a59d4`. Include the MIT upstream license, pinned H5 provenance, conversion versions, tensor contract, and non-byte-deterministic conversion warning.
 - Alternative: Manually copy the same file from the Dev Container temporary path `/tmp/hibiki-crepe-onnx.9BrlHI/crepe-tiny.onnx` into the ignored Windows `models/` directory. This avoids publication but is machine-specific and less reproducible.
 - Scope if approved: A model-only development prerelease, not an application release, installer, stable artifact, automatic-download endpoint, GPU strategy, or approval of representative-source quality.
 - Reason approval is required: Uploading the converted model creates a public release asset and is an explicit publishing gate.
+- Decision: Publish the exact verified ONNX file as one clearly labeled GitHub development prerelease asset with pinned provenance, hash, size, tensor contract, license, and non-determinism notice.
+- Source: User approval to continue on 2026-11-05.
