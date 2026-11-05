@@ -537,3 +537,9 @@
 - The committed vocals FLAC SHA-256 is `b5022fbb9b03804ca8130a4c97cbab4e0ccff244c711fc58bae1b631d3d9abba`; accompaniment is `5d25ee278f1c7dc8e9a0b3b6884ed43a9ca0c7706e278af5d4d2a081378e8348`.
 - Native Windows representative-source execution is now verified. Output listening quality and source duration/real-time factor remain to be recorded; peak memory was not measured by this probe.
 
+## 2026-11-05 — Native Windows stem listening accepted
+
+- The user confirmed that both cached FLAC stems played normally and that the separated audio sounded acceptable.
+- This completes the representative-source usefulness check for the native Rust/CPU-ONNX Spleeter path. No source modification, external API, GPU provider, or application release was involved.
+- Source duration/real-time factor and peak memory were not captured, so the 128.96-second observation is retained without claiming a speed ratio.
+
