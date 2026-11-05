@@ -655,3 +655,9 @@
 - Cancellation is checked between stages and passed into each long-running stage for cooperative interruption. Cancelled and non-retryable terminal jobs cannot be resumed silently.
 - Four focused tests passed for ordered completion, retry from transcription, cancellation between stages, and cancellation returned by a running stage. No Tauri command, UI, model download, or source-directory write was added.
 
+## 2026-11-05 — Local authoritative lyric input implemented
+
+- The user approved D-023. Added a typed local-only boundary for pasted/edited lyrics and read-only UTF-8 `.txt` imports; no online lyric service is contacted.
+- The boundary preserves exact display text and hashes its UTF-8 bytes, removes only an optional file BOM, rejects empty/NUL/non-UTF-8/non-`.txt`/over-one-MiB input, and never writes to the imported file.
+- Three focused tests passed for exact pasted-text identity, BOM-aware read-only import with byte-for-byte source preservation, and invalid/unsafe inputs. Native picker/UI wiring remains separate.
+

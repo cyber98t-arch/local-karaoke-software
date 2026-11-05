@@ -124,6 +124,11 @@ snapshots now drive the four approved local stages in order, resume at a
 retryable failed/running stage, expose cooperative cancellation during long
 stages, and keep terminal jobs terminal. Concrete application/UI wiring remains.
 
+D-023 approved 2026-11-05: authoritative lyrics initially come only from
+explicit local paste/edit input or read-only UTF-8 `.txt` import. Input is
+bounded, validated, and identified by exact-text SHA-256; no lyric-provider
+network request is made.
+
 ## D-007 ONNX feasibility research criteria
 
 - Convert only the pinned Spleeter 2-stem artifact with a versioned, reviewable script; hash every input, output, and downloaded distribution.
