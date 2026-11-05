@@ -494,3 +494,13 @@
 - Three focused decoder/resampler tests and three focused separation tests passed. `cargo check --features native-onnx` and `git diff --check` passed. Native Windows and representative-source performance remain unverified.
 - The phase handoff baseline also passed: frontend lint, 10 frontend tests, production build, all 51 Rust library tests, default `cargo check`, and `git diff --check`.
 
+## 2026-11-05 — Lossless two-stem cache approved and implemented
+
+- The user approved D-012. Pinned pure-Rust `flacenc` 0.5.1 with default features disabled and implemented stereo 44.1 kHz signed 16-bit FLAC output beneath an injected analysis cache only.
+- RED evidence: the first focused test failed at the intentional cache-writer `todo!`. Initial encoded files were valid to FFmpeg but exposed fixed-block STREAMINFO incompatibility with Symphonia; explicitly recording equal fixed block sizes resolved application-owned decoding.
+- Both stems are encoded and synced as temporary files, decoded through Symphonia for frame/rate validation, renamed to fixed artifact names, then committed by renaming a synced JSON marker containing format, frame count, byte sizes, and SHA-256 values.
+- Three cache tests pass: valid two-stem commit/decode, preservation of an existing valid cache, and rejection of nonfinite samples without artifacts. All 55 Rust library tests and `cargo check --features native-onnx` passed after the identity-derived coordinator was added.
+- Added an injected end-to-end boundary from read-only source decoding through resampling, fake spectrogram inference, Rust inverse transforms, and FLAC cache commit. Its RED `todo!` failure and GREEN test confirm source-byte preservation and cache-only output.
+- The public coordinator now derives the output directory from `AnalysisIdentity` plus the injected application-cache root; callers cannot provide an arbitrary final artifact directory.
+- The handoff baseline passed: frontend lint, 10 frontend tests, production build, all 55 Rust library tests, default and `native-onnx` cargo checks, and `git diff --check`.
+

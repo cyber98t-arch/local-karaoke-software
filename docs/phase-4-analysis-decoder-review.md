@@ -47,3 +47,23 @@ directory entry changes. A generated one-second 96 kHz stereo signal verifies
 conversion to exactly 44,100 finite stereo frames without collapsing the two
 channels. Native Windows decoding/resampling and representative-source timing
 remain unverified.
+
+## Derived stem cache
+
+After D-012 approval, `flacenc` 0.5.1 is pinned with all default features
+disabled. Both stems are deterministically clamped and quantized to signed
+16-bit stereo at 44.1 kHz, encoded as FLAC, and written only beneath the
+content/model/parameter-derived analysis cache directory.
+
+The encoder's fixed-block output must report equal minimum and maximum block
+sizes in FLAC STREAMINFO; otherwise strict readers including Symphonia 0.6.1
+interpret the stream as variable-block and reject it. Tests reproduced this
+failure and verify the compatible fixed-block metadata. Application-owned
+decode validation remains part of the commit boundary rather than relying on
+the filename or encoder success alone.
+
+Both temporary FLAC files are fully encoded, synced, and decoded through
+Symphonia before they receive final names. A synced `stems.json` containing the
+format parameters, frame count, byte sizes, and SHA-256 values is renamed last
+as the cache-validity marker. An existing valid manifest and matching artifacts
+are reused without overwrite.
