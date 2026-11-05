@@ -237,3 +237,12 @@
 - Reason approval is required: This selects the lyric-alignment algorithm and error-handling strategy for Phase 4.
 - Decision: Use application-owned character-level dynamic programming against timestamped Whisper draft segments, preserving original display text and leaving unmatched or ambiguous spans un-timed.
 - Source: User approval on 2026-11-05.
+
+### D-022 — Aligned-lyrics cache format
+
+- Status: Waiting
+- Question: Should Phase 4 persist authoritative lyric alignment as a versioned `aligned-lyrics.json` artifact beneath the identity-derived cache?
+- Recommended option: Store schema version, alignment algorithm/version, SHA-256 of the exact authoritative lyric text, original display text, and per-character byte bounds/status/optional timestamps. Validate UTF-8 boundaries and timing order, commit atomically, and preserve an existing compatible artifact.
+- Alternative: Recompute alignment from `transcript.json` every time. This avoids a cache format but loses explicit provenance for the exact lyric revision and complicates later user corrections.
+- Scope if approved: Cache type, validation, atomic commit, and injected pipeline tests only. Do not select confidence thresholds, correction UI, lyric-provider/network behavior, scoring, or live display integration.
+- Reason approval is required: This introduces another persistent cache format and establishes the identity of an authoritative lyric revision.
