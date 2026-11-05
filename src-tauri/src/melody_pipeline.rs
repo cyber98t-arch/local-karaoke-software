@@ -112,4 +112,49 @@ mod tests {
             "cache root should contain only the source identity directory"
         );
     }
+
+    #[cfg(feature = "native-onnx")]
+    #[test]
+    #[ignore = "requires HIBIKI_CREPE_ONNX_MODEL and performs native melody inference"]
+    fn extracts_generated_vocals_with_verified_native_model() {
+        use crate::{cache::content_sha256, crepe_inference::NativeCrepeSession};
+
+        const MODEL_SHA256: &str =
+            "03fb909a5618fa9f19942e20de749bc8e658a1ac0df4a778b354c15b6f7a59d4";
+        let model_path = PathBuf::from(
+            std::env::var_os("HIBIKI_CREPE_ONNX_MODEL")
+                .expect("HIBIKI_CREPE_ONNX_MODEL must name the converted ONNX file"),
+        );
+        assert_eq!(
+            content_sha256(&model_path).expect("model should be hashable"),
+            MODEL_SHA256
+        );
+        let cache = TestDirectory::new();
+        let vocals = (0..88_200)
+            .map(|index| {
+                let phase = 2.0 * std::f32::consts::PI * 220.0 * index as f32 / 44_100.0;
+                [0.2 * phase.sin(), 0.2 * phase.sin()]
+            })
+            .collect::<Vec<_>>();
+        let identity = AnalysisIdentity {
+            source_sha256: "d".repeat(64),
+            pipeline_version: "melody-v1".to_owned(),
+            model_ids: vec!["crepe-tiny-onnx-research-v1".to_owned()],
+            parameters_sha256: "e".repeat(64),
+        };
+        let model = MelodyModelIdentity {
+            artifact_id: "crepe-tiny-onnx-research-v1".to_owned(),
+            sha256: MODEL_SHA256.to_owned(),
+        };
+        let output = identity.cache_directory(&cache.0).unwrap();
+        let mut runtime = NativeCrepeSession::from_file(&model_path)
+            .expect("verified research model should load");
+
+        let artifact =
+            extract_melody_to_cache(&mut runtime, &vocals, 44_100, &cache.0, &identity, &model)
+                .expect("native melody pipeline should commit");
+
+        assert_eq!(artifact.point_count, 201);
+        assert!(output.join("melody.json").is_file());
+    }
 }
