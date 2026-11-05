@@ -1,6 +1,6 @@
 # D-007 ONNX feasibility results
 
-Status: **CPU ONNX Runtime adopted on 2026-10-30; GPU strategy, publishing, and release remain unapproved**.
+Status: **CPU ONNX Runtime adopted on 2026-10-30; one development-only model prerelease approved on 2026-11-05; GPU strategy and application release remain unapproved**.
 
 ## Scope and environment
 
