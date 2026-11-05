@@ -530,3 +530,10 @@
 - The probe passed and confirmed the repository WAV fixture SHA-256 was unchanged. Both FLAC stems and the commit manifest existed only in the disposable cache directory.
 - Added a separate ignored full-source probe requiring explicit model, source, and cache environment variables. It preserves output under the supplied cache root for listening, prints elapsed time and artifact hashes, and rechecks source SHA-256 after completion.
 
+## 2026-11-05 — Native Windows representative-source separation completed
+
+- The user ran the explicit-source native probe against a selected file under the ignored `sample music/` directory. The complete CPU separation path finished in 128.96 seconds; total test time was 132.29 seconds.
+- The test passed, which includes exact source SHA-256 equality before and after processing. Derived output was written only under the identity-derived `cache/native-separation/` path.
+- The committed vocals FLAC SHA-256 is `b5022fbb9b03804ca8130a4c97cbab4e0ccff244c711fc58bae1b631d3d9abba`; accompaniment is `5d25ee278f1c7dc8e9a0b3b6884ed43a9ca0c7706e278af5d4d2a081378e8348`.
+- Native Windows representative-source execution is now verified. Output listening quality and source duration/real-time factor remain to be recorded; peak memory was not measured by this probe.
+

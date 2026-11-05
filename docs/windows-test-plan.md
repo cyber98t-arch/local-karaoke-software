@@ -21,6 +21,8 @@ Observed 2026-11-05: after an explicit 78.7 MB development-model download and ex
 
 Observed 2026-11-05: the ignored native fixture-to-cache probe completed the full read-only decode, CPU inference, Rust signal-processing, FLAC validation, and cache-commit path in 1.41 seconds. The source fixture hash remained unchanged.
 
+Observed 2026-11-05: a selected `sample music/` source completed the same native cache path in 128.96 seconds (132.29-second total test time). The test's before/after source hash assertion passed, and both identity-derived FLAC artifacts were committed. Listening quality, source duration/real-time factor, and peak memory remain to be recorded.
+
 ### Phase 2 library round trip
 
 1. Copy the repository MP3, FLAC, and WAV fixtures plus one ignored text or image file into a disposable folder; record recursive file names and SHA-256 values before launch.
