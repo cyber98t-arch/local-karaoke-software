@@ -578,3 +578,10 @@
 - The release and repository metadata record the pinned H5 provenance, TensorFlow/tf2onnx versions, tensor contract, MIT upstream license, numerical comparison, and non-byte-deterministic conversion warning.
 - Native Windows CREPE model loading and full generated-vocal contour persistence remain the next user-run verification; no user audio is required for that probe.
 
+## 2026-11-05 — Singing-screen visual direction accepted
+
+- The user accepted `docs/ui-mockups/singing-screen-concept-v5.png` as the implementation reference for the singing screen.
+- The approved behavior uses cyan outlined frames for target notes, same-sized yellow sampled blocks for correct performed pitch, and same-sized red blocks on the detected row for incorrect pitch. It does not use a smooth or connected live-pitch line.
+- The concept retains large synchronized lyrics, a fixed timing playhead, compact technique feedback, and secondary progress/microphone/key-shift/tempo controls. It shows no live total score or rank.
+- This is visual-direction approval only. Phase 6 scoring weights and implementation remain gated and were not started.
+

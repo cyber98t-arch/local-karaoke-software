@@ -68,3 +68,17 @@ The total score remains absent during singing and appears only after the perform
 3. End transition: a short, original reveal that clearly marks the performance as complete.
 4. Result summary: final total first, then a compact breakdown and one or two actionable observations.
 5. Result detail: section history and diagnostic graphs available after the summary, without crowding the reveal.
+
+## Approved singing-screen concept
+
+Accepted by the user on 2026-11-05. The visual reference is
+`docs/ui-mockups/singing-screen-concept-v5.png`.
+
+- Show the correct melody as cyan outlined note frames on a dense horizontal pitch grid.
+- Show the singer's sampled pitch as separate frame-sized blocks, never as a smooth or connected line.
+- Fill matching samples yellow inside the correct frame. Show incorrect samples as red blocks on the detected pitch row.
+- Keep future target notes as empty cyan outlines and retain a fixed central timing playhead.
+- Prioritize two large synchronized lyric lines below the pitch area; highlight the currently sung phrase in yellow.
+- Technique feedback may be compact and glanceable, but the live screen must not show a total score, projected score, or rank.
+- Key shift, tempo, progress, and microphone level remain secondary along the bottom.
+- This approves the visual direction, not scoring weights or Phase 6 implementation. All graphics and terminology must remain original rather than copying DAM trade dress.
