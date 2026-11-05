@@ -100,6 +100,12 @@ mod tests {
     use super::{infer_pitch, PitchInference};
     use crate::crepe_signal::{CREPE_BINS, CREPE_WINDOW};
     use ndarray::Array2;
+    #[cfg(feature = "native-onnx")]
+    use std::path::PathBuf;
+
+    #[cfg(feature = "native-onnx")]
+    const RESEARCH_MODEL_SHA256: &str =
+        "03fb909a5618fa9f19942e20de749bc8e658a1ac0df4a778b354c15b6f7a59d4";
 
     struct KnownSalience;
 
@@ -135,5 +141,32 @@ mod tests {
         assert!(infer_pitch(&mut KnownSalience, &Array2::zeros((0, CREPE_WINDOW))).is_err());
         assert!(infer_pitch(&mut KnownSalience, &Array2::zeros((1, CREPE_WINDOW - 1))).is_err());
         assert!(infer_pitch(&mut WrongShape, &Array2::zeros((1, CREPE_WINDOW))).is_err());
+    }
+
+    #[cfg(feature = "native-onnx")]
+    #[test]
+    #[ignore = "requires HIBIKI_CREPE_ONNX_MODEL and performs native inference"]
+    fn loads_verified_research_model_and_runs_generated_input() {
+        use super::NativeCrepeSession;
+        use crate::cache::content_sha256;
+
+        let model_path = PathBuf::from(
+            std::env::var_os("HIBIKI_CREPE_ONNX_MODEL")
+                .expect("HIBIKI_CREPE_ONNX_MODEL must name the converted ONNX file"),
+        );
+        assert_eq!(
+            content_sha256(&model_path).expect("model should be hashable"),
+            RESEARCH_MODEL_SHA256,
+            "research model hash must match the verified local conversion"
+        );
+        let mut runtime = NativeCrepeSession::from_file(&model_path)
+            .expect("verified research model should load");
+
+        let points = infer_pitch(&mut runtime, &Array2::zeros((2, CREPE_WINDOW)))
+            .expect("generated frames should infer");
+
+        assert_eq!(points.len(), 2);
+        assert!(points.iter().all(|point| point.frequency_hz.is_finite()));
+        assert!(points.iter().all(|point| point.confidence.is_finite()));
     }
 }
