@@ -248,3 +248,13 @@
 - Reason approval is required: This introduces another persistent cache format and establishes the identity of an authoritative lyric revision.
 - Decision: Persist versioned `aligned-lyrics.json` with exact authoritative-text SHA-256, original display text, algorithm provenance, and validated per-character bounds/status/timing beneath the identity-derived cache.
 - Source: User approval on 2026-11-05.
+
+### D-023 — Authoritative lyric input source
+
+- Status: Waiting
+- Question: What should provide the authoritative Japanese lyric text that is aligned against the imperfect Whisper draft?
+- Recommended option: Start with explicit local input: paste/edit text in the application or import a UTF-8 `.txt` file through the native file picker. Read imported files without modifying them, copy only the text identity/result into application cache, and make no lyric-network request.
+- Alternative: Treat raw Whisper output as authoritative. This requires no user input but would display known recognition errors as lyrics and defeats the distinction established by D-019/D-021.
+- Deferred alternative: Fetch lyrics from an online provider. This introduces a network service, licensing/terms, privacy, attribution, matching, and availability concerns and requires a separate explicit approval.
+- Initial scope if approved: Typed Rust validation for pasted/imported UTF-8 lyrics, exact-text SHA-256 identity, size bounds, and source-read-only tests. UI editing and provider integrations remain separate.
+- Reason approval is required: This selects the source and privacy boundary for authoritative lyric content used by alignment.

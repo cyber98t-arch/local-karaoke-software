@@ -17,9 +17,9 @@
 - Lyric alignment: D-021 uses deterministic character-level edit distance, preserves original text, and leaves recognition errors un-timed. Four focused alignment tests pass.
 - Aligned lyrics cache: D-022 records exact lyric identity, algorithm provenance, original display text, and validated per-character timing/status below the identity-derived cache. Four focused tests pass.
 - Analysis orchestration: Existing atomic job snapshots now drive all four stages in order, resume retryable work, and expose cooperative cancellation. Four focused tests pass.
-- Next safe action: Review the Tauri command/UI boundary for starting and observing analysis without exposing source paths. Windows Whisper binary packaging/publication remains separately gated.
+- Next safe action: Obtain D-023 approval for local pasted/imported authoritative lyrics before connecting alignment to the Tauri/UI boundary. Windows Whisper binary packaging/publication remains separately gated.
 - Windows command queue: The user ran `scripts/windows/run-pending-phase4-checks.ps1`; exact-model verification and the generated-vocal probe passed, while the optional representative-vocal probe was safely skipped because no cached `vocals.flac` existed. Future Windows-only commands should be appended to `docs/windows-pending-commands.md` rather than sent piecemeal in chat.
-- Blockers and decisions: Exact Windows `whisper.cpp` binary build/hash/notices and any publication remain unverified and gated. Confidence thresholds, lyric correction UI, Viterbi smoothing, stable model/application publishing, GPU strategy, and release remain unapproved. The user's untracked `sample music/`, `screenshot/`, and attached `docs/ui-mockups/seimitsusaitenai-09.png` must never be staged.
+- Blockers and decisions: D-023 authoritative lyric input is waiting. Exact Windows `whisper.cpp` binary build/hash/notices and any publication remain unverified and gated. Confidence thresholds, lyric correction UI, Viterbi smoothing, stable model/application publishing, GPU strategy, and release remain unapproved. The user's untracked `sample music/`, `screenshot/`, and attached `docs/ui-mockups/seimitsusaitenai-09.png` must never be staged.
 
 ## Resume checklist
 
