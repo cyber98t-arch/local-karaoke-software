@@ -90,6 +90,11 @@ the consolidated Windows script. Japanese transcription awaits D-017 capacity
 approval before the pinned 148 MB Whisper model and CPU research build are
 downloaded.
 
+Whisper feasibility completed 2026-11-05: pinned multilingual base processed a
+30.93-second public-domain Japanese exercise in 1.483 seconds at about 289 MiB
+peak RSS. Raw text contained material errors, so it is suitable only as an
+editable/aligned draft. Prototype integration awaits D-018.
+
 ## D-007 ONNX feasibility research criteria
 
 - Convert only the pinned Spleeter 2-stem artifact with a versioned, reviewable script; hash every input, output, and downloaded distribution.

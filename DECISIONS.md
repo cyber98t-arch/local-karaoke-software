@@ -182,9 +182,21 @@
 
 ### D-017 — Bounded Whisper base feasibility download
 
-- Status: Waiting
+- Status: Approved
 - Question: May Phase 4 download and build the pinned CPU-only `whisper.cpp` feasibility environment and download multilingual Whisper `base` for a bounded Japanese transcription probe?
 - Recommended option: Allow a research-only disposable probe using the already approved MIT model family. Download exactly the pinned 147,951,465-byte `ggml-base.bin` (SHA-256 `60ed5bc3dd14eea856493d334349b405782ddcaf0028d4b5df4088345fba2efe`), a pinned `whisper.cpp` source revision, and CPU build dependencies only. Budget up to 200 MB network transfer and 1 GB temporary source/build/model storage; keep all binaries and models out of Git and application distribution.
 - Initial probe: Use generated/public-domain or repository-safe Japanese speech only, open input read-only, write derived transcripts only to a disposable cache, record elapsed time and peak memory, and assess timestamp/text usefulness. Do not use user music for the first probe.
 - Scope exclusion: This does not adopt a production FFI/process boundary, transcript cache schema, alignment strategy, automatic download UX, GPU provider, model publication, or installer contents.
 - Reason approval is required: The probe requires a substantial model/dependency download and temporary build footprint under the user's explicit capacity-approval condition.
+- Decision: Permit the research-only disposable CPU probe within the stated transfer and temporary-storage budget. All downloaded and built artifacts remain in the development environment only and outside Git/application distribution.
+- Source: User approval on 2026-11-05, with explicit confirmation that the capacity applies only to the development environment.
+
+### D-018 — Whisper prototype runtime boundary
+
+- Status: Waiting
+- Question: Should the Phase 4 Japanese transcription prototype invoke pinned CPU-only `whisper.cpp` through a versioned local process protocol?
+- Recommended option: Use a supervised local process boundary. It isolates C++ crashes and peak memory from Tauri, keeps input/output typed and cache-scoped, and avoids committing to a Rust FFI wrapper before Windows packaging evidence. The executable and model remain local-only and pre-playback.
+- Alternative: Add a Rust `whisper.cpp` binding. This gives direct calls but couples the application build, C++ ABI, native library lifecycle, and failure containment to a third-party wrapper.
+- Evidence: `docs/phase-4-whisper-feasibility-results.md`; multilingual base processed 30.93 seconds in 1.483 seconds with about 289 MiB peak RSS, but produced several material word errors.
+- Scope if approved: Define and test an injected typed request/response protocol and a development worker command. Do not yet select transcript cache format, alignment algorithm, confidence threshold, automatic model download, GPU provider, or installer packaging.
+- Reason approval is required: This selects the transcription engine integration boundary and native process strategy.

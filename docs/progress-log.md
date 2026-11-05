@@ -598,3 +598,11 @@
 - The script downloads only the already-approved 1.96 MB CREPE development artifact when absent, verifies exact size and SHA-256, runs the generated-input probe, discovers the newest cached `vocals.flac`, and runs the representative read-only probe when available.
 - Added `docs/windows-pending-commands.md` as the durable queue for future Windows-only checks. The Dev Container has no PowerShell runtime, so script execution remains Windows-unverified; all 65 default Rust tests and `git diff --check` passed after adding it.
 
+## 2026-11-05 — Whisper base CPU feasibility completed
+
+- The user approved D-017 for development-environment-only transfer and temporary storage. Pinned `whisper.cpp` v1.9.5 commit `d1be6fde11ac6e0407606b4e42fe72d34add8037` and downloaded the already pinned 147,951,465-byte multilingual base model into `/tmp`; its SHA-256 matched `60ed5bc3dd14eea856493d334349b405782ddcaf0028d4b5df4088345fba2efe`.
+- Installed CMake 4.2.0 and Ninja 1.13.0 only under the disposable research directory and built a CPU-only CLI with GPU and BLAS providers disabled. Total research storage was approximately 293 MB, below the approved 1 GB budget.
+- Evaluated a 30.93-second public-domain native-Japanese pronunciation exercise. CPU inference finished in 1.483 seconds with sampled peak RSS 296,304 KiB and produced 14 timestamped segments.
+- The output recognized much of the word sequence but included material errors such as `天気→電気`, `煎餅/玄米→専米/現買`, and `単位→タイム`. Raw base output is therefore a draft, not authoritative lyrics.
+- Recorded input/runtime hashes, licenses, timings, memory, transcript comparison, and the recommended process boundary in `docs/phase-4-whisper-feasibility-results.md`. Opened D-018 as `Waiting`; no runtime, transcript schema, model distribution, or alignment method was adopted.
+
