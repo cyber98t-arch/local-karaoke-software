@@ -84,6 +84,12 @@ Phase 3 completed 2026-10-30: automated coverage passes for the typed/injected a
 4. Add one bounded separation feasibility probe using only a generated or public-domain fixture, then measure Windows CPU duration, memory, installed size, and output usefulness.
 5. Repeat bounded probes for monophonic melody and Japanese transcription before connecting the stages into a resumable pipeline.
 
+Melody status 2026-11-05: the native CREPE generated-input path is verified on
+Windows through cache commit. Representative-vocal verification is queued in
+the consolidated Windows script. Japanese transcription awaits D-017 capacity
+approval before the pinned 148 MB Whisper model and CPU research build are
+downloaded.
+
 ## D-007 ONNX feasibility research criteria
 
 - Convert only the pinned Spleeter 2-stem artifact with a versioned, reviewable script; hash every input, output, and downloaded distribution.

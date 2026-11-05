@@ -179,3 +179,12 @@
 - Reason approval is required: Uploading the converted model creates a public release asset and is an explicit publishing gate.
 - Decision: Publish the exact verified ONNX file as one clearly labeled GitHub development prerelease asset with pinned provenance, hash, size, tensor contract, license, and non-determinism notice.
 - Source: User approval to continue on 2026-11-05.
+
+### D-017 — Bounded Whisper base feasibility download
+
+- Status: Waiting
+- Question: May Phase 4 download and build the pinned CPU-only `whisper.cpp` feasibility environment and download multilingual Whisper `base` for a bounded Japanese transcription probe?
+- Recommended option: Allow a research-only disposable probe using the already approved MIT model family. Download exactly the pinned 147,951,465-byte `ggml-base.bin` (SHA-256 `60ed5bc3dd14eea856493d334349b405782ddcaf0028d4b5df4088345fba2efe`), a pinned `whisper.cpp` source revision, and CPU build dependencies only. Budget up to 200 MB network transfer and 1 GB temporary source/build/model storage; keep all binaries and models out of Git and application distribution.
+- Initial probe: Use generated/public-domain or repository-safe Japanese speech only, open input read-only, write derived transcripts only to a disposable cache, record elapsed time and peak memory, and assess timestamp/text usefulness. Do not use user music for the first probe.
+- Scope exclusion: This does not adopt a production FFI/process boundary, transcript cache schema, alignment strategy, automatic download UX, GPU provider, model publication, or installer contents.
+- Reason approval is required: The probe requires a substantial model/dependency download and temporary build footprint under the user's explicit capacity-approval condition.
