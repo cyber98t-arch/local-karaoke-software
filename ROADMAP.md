@@ -108,6 +108,12 @@ after explicit user action with size/hash verification. The dependency-free
 model-cache commit boundary and development CLI adapter are implemented; no
 binary/model was downloaded, bundled, or published by this step.
 
+D-021 approved 2026-11-05: a Pure Rust character-level dynamic-programming
+foundation aligns authoritative Japanese lyrics against timestamped Whisper
+drafts. Original display text is preserved, comparison punctuation/spacing is
+ignored, and recognition errors remain explicitly un-timed rather than being
+presented as confident matches.
+
 ## D-007 ONNX feasibility research criteria
 
 - Convert only the pinned Spleeter 2-stem artifact with a versioned, reviewable script; hash every input, output, and downloaded distribution.

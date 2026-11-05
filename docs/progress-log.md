@@ -634,3 +634,10 @@
 - Three focused Rust model-cache tests and two Python parser tests passed. No Whisper binary or model was downloaded, bundled, published, or connected to the application UI.
 - Reused the existing disposable research CLI, pinned model, and public-domain Japanese fixture to exercise the adapter without a download. The complete adapter invocation succeeded in 1.8 seconds and returned 14 validated protocol-v2 segments; all writes stayed under a new `/tmp` output directory.
 
+## 2026-11-05 — Japanese lyric alignment foundation implemented
+
+- The user approved D-021's lightweight Pure Rust direction. Added deterministic character-level edit-distance alignment between authoritative lyrics and timestamped Whisper draft segments without another model or dependency.
+- Original lyric bytes and display characters are retained. Whitespace and Japanese/ASCII punctuation are ignored only during comparison, while matched comparison characters receive interpolated segment timing.
+- Substitutions, deletions, and other unmatched characters remain explicitly un-timed instead of inheriting a fabricated timestamp. Invalid or unordered transcript segments are rejected.
+- Four focused tests passed for exact Japanese timing, a `天気→電気` recognition error, original punctuation/spacing preservation, and invalid inputs. No alignment cache, confidence threshold, correction UI, or scoring connection was selected.
+
