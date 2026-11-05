@@ -14,9 +14,9 @@
 - Transcript cache: D-019 is approved and implemented as atomic, validated, raw-draft `transcript.json` below the identity-derived cache. Four focused tests pass and input audio bytes remain unchanged.
 - Whisper distribution: D-020 is approved. A staged model can be verified and atomically committed, and an explicit-CLI development adapter exists. No actual executable/model is bundled and no network acquisition/UI is connected yet.
 - Development adapter evidence: The existing disposable `whisper.cpp` CLI, pinned base model, and public-domain Japanese fixture produced 14 protocol-v2 segments in 1.8 seconds after source/model hash verification. Writes stayed under `/tmp`.
-- Next safe action: Design the explicit download UI and application command around the verified model-cache boundary without downloading or publishing a new artifact. Alignment remains independent.
+- Next safe action: Obtain D-021 approval before implementing the Japanese lyric-alignment foundation. Explicit model-download UI can be designed separately without downloading or publishing an artifact.
 - Windows command queue: The user ran `scripts/windows/run-pending-phase4-checks.ps1`; exact-model verification and the generated-vocal probe passed, while the optional representative-vocal probe was safely skipped because no cached `vocals.flac` existed. Future Windows-only commands should be appended to `docs/windows-pending-commands.md` rather than sent piecemeal in chat.
-- Blockers and decisions: Exact Windows `whisper.cpp` binary build/hash/notices and any publication remain unverified and gated; alignment remains a later major gate. Confidence thresholds, Viterbi smoothing, stable model/application publishing, GPU strategy, and release remain unapproved. The user's untracked `sample music/`, `screenshot/`, and attached `docs/ui-mockups/seimitsusaitenai-09.png` must never be staged.
+- Blockers and decisions: D-021 Japanese lyric alignment is waiting. Exact Windows `whisper.cpp` binary build/hash/notices and any publication remain unverified and gated. Confidence thresholds, Viterbi smoothing, stable model/application publishing, GPU strategy, and release remain unapproved. The user's untracked `sample music/`, `screenshot/`, and attached `docs/ui-mockups/seimitsusaitenai-09.png` must never be staged.
 
 ## Resume checklist
 

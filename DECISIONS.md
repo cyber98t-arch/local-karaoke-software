@@ -225,3 +225,13 @@
 - Reason approval is required: This selects native executable packaging, installer contents, and model acquisition behavior.
 - Decision: Bundle the pinned CPU-only `whisper.cpp` executable and notices with the application. Acquire the 147,951,465-byte multilingual base model only after explicit user action, verify its pinned size and SHA-256, and commit it atomically to the separate model cache.
 - Source: User approval on 2026-11-05.
+
+### D-021 — Japanese lyric alignment foundation
+
+- Status: Waiting
+- Question: How should Phase 4 align authoritative Japanese lyrics with the imperfect timestamped Whisper draft?
+- Recommended option: Normalize only comparison text, then use application-owned character-level dynamic programming to match supplied lyrics against Whisper segments. Preserve the original lyric text for display, interpolate timings only across matched spans, and mark unmatched/ambiguous spans for review rather than inventing confident timing.
+- Alternative: Adopt another neural forced-alignment model. This may improve phonetic alignment but adds another model family, license, download, runtime, memory, and packaging boundary before the lightweight CPU baseline is complete.
+- Alternative: Use Whisper segment timestamps directly. This is simplest but too coarse for karaoke highlighting and propagates recognition errors into displayed lyrics.
+- Initial scope if approved: Pure Rust alignment types and deterministic tests using generated Japanese strings; cache format, confidence thresholds, UI editing, model changes, and live scoring remain separate gates.
+- Reason approval is required: This selects the lyric-alignment algorithm and error-handling strategy for Phase 4.
