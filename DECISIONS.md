@@ -260,3 +260,12 @@
 - Reason approval is required: This selects the source and privacy boundary for authoritative lyric content used by alignment.
 - Decision: Accept authoritative lyrics only through explicit local paste/edit input or read-only UTF-8 `.txt` import in the initial implementation. Do not contact an online lyric provider.
 - Source: User approval on 2026-11-05.
+
+### D-024 — Reproducible Windows whisper.cpp development build
+
+- Status: Waiting
+- Question: May the repository use GitHub Actions to build and inspect a pinned CPU-only Windows `whisper.cpp` CLI without requiring local user commands?
+- Recommended option: Add a manually triggered Windows workflow pinned to `whisper.cpp` v1.9.5 commit `d1be6fde11ac6e0407606b4e42fe72d34add8037`, disable GPU providers, record toolchain/version/options, generate SHA-256 plus license/notices, and retain the result only as a short-lived workflow artifact for development inspection.
+- Alternative: Ask the user to build the same executable locally with Visual Studio/CMake. This avoids CI artifacts but repeats environment setup and manual commands the user explicitly wants minimized.
+- Scope if approved: Workflow and provenance validation only. Do not publish a GitHub release, bundle the executable, download the 148 MB model, alter GPU strategy, or create an application release.
+- Reason approval is required: This introduces an external CI build/artifact workflow and is preparatory to native executable distribution; any publication or bundling remains separately gated.
