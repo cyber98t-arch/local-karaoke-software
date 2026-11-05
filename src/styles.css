@@ -76,6 +76,16 @@ h1 { margin: 0; font-size: 24px; letter-spacing: 0; font-weight: 500; }
 .sing-button { width: 100%; border: 0; border-radius: 4px; background: #8ab4f8; color: #202124; padding: 11px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; }
 .sing-button:disabled { background: #3c4043; color: #80868b; cursor: not-allowed; }
 .score-note { display: block; text-align: left; color: #9aa0a6; font-size: 9px; line-height: 1.5; margin: 12px 2px 0; }
+.lyrics-input { display: grid; gap: 8px; padding: 12px 0; border-top: 1px solid #3c4043; }
+.lyrics-input label { color: #e8eaed; font-size: 12px; font-weight: 500; }
+.lyrics-input textarea { box-sizing: border-box; width: 100%; resize: vertical; min-height: 76px; padding: 9px 10px; border: 1px solid #5f6368; border-radius: 3px; background: #202124; color: #e8eaed; font: inherit; font-size: 12px; line-height: 1.5; }
+.lyrics-input textarea:focus { outline: 2px solid #8ab4f8; outline-offset: -1px; border-color: transparent; }
+.lyrics-actions { display: flex; gap: 8px; }
+.secondary-button { min-height: 32px; padding: 0 10px; border: 1px solid #5f6368; border-radius: 3px; background: transparent; color: #e8eaed; display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-size: 11px; cursor: pointer; }
+.secondary-button:hover:not(:disabled) { background: #3c4043; }
+.secondary-button:disabled { opacity: .5; cursor: default; }
+.lyrics-success { color: #81c995; }
+.lyrics-error { color: #f28b82; line-height: 1.4; }
 .empty { padding: 50px; text-align: center; color: #9aa0a6; }
 .empty-selection { min-height: 260px; display: grid; place-items: center; align-content: center; gap: 10px; color: #9aa0a6; text-align: center; }
 .empty-selection strong { color: #e8eaed; }

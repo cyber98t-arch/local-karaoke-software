@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
-import { Disc3, FolderOpen, ListMusic, Mic2, Search, Settings2, SlidersHorizontal } from "lucide-react";
+import { Disc3, FileText, FolderOpen, ListMusic, Mic2, Search, Settings2, SlidersHorizontal } from "lucide-react";
 import { songs } from "./data/songs";
 import { tauriAudioClient, type AudioClient, type AudioDevice, type InputProbeResult } from "./tauri/audioClient";
 import { tauriLibraryClient, type IndexedSong, type LibraryClient } from "./tauri/libraryClient";
+import { tauriLyricsClient, type LyricsClient } from "./tauri/lyricsClient";
 import type { Song } from "./types";
 
 const stateLabel: Record<Song["state"], string> = {
@@ -21,7 +22,7 @@ function formatDuration(durationMs: number) {
 
 function mapIndexedSongs(indexedSongs: IndexedSong[]): Song[] {
   return indexedSongs.map((song, index) => ({
-    id: `${song.id}:${index}`,
+    id: song.id,
     title: song.title ?? "タイトル不明",
     artist: song.artist ?? "アーティスト不明",
     duration: formatDuration(song.durationMs),
@@ -35,9 +36,10 @@ function mapIndexedSongs(indexedSongs: IndexedSong[]): Song[] {
 type AppProps = {
   libraryClient?: Partial<LibraryClient>;
   audioClient?: Partial<AudioClient>;
+  lyricsClient?: Partial<LyricsClient>;
 };
 
-function App({ libraryClient = tauriLibraryClient, audioClient }: AppProps) {
+function App({ libraryClient = tauriLibraryClient, audioClient, lyricsClient }: AppProps) {
   const [query, setQuery] = useState("");
   const [selectedId, setSelectedId] = useState("1");
   const [librarySongs, setLibrarySongs] = useState<Song[]>(songs);
@@ -50,6 +52,9 @@ function App({ libraryClient = tauriLibraryClient, audioClient }: AppProps) {
   const [playbackProbeStatus, setPlaybackProbeStatus] = useState<"idle" | "running" | "complete">("idle");
   const [inputProbeStatus, setInputProbeStatus] = useState<"idle" | "running" | "complete">("idle");
   const [inputProbeResult, setInputProbeResult] = useState<InputProbeResult | null>(null);
+  const [lyricsDraft, setLyricsDraft] = useState("");
+  const [lyricsStatus, setLyricsStatus] = useState<"idle" | "saving" | "selecting" | "accepted">("idle");
+  const [lyricsError, setLyricsError] = useState<string | null>(null);
   const loadLibraryCatalog = libraryClient
     ? libraryClient.loadLibraryCatalog
     : tauriLibraryClient.loadLibraryCatalog;
@@ -63,6 +68,12 @@ function App({ libraryClient = tauriLibraryClient, audioClient }: AppProps) {
   const listAudioDevices = audioClient ? audioClient.listAudioDevices : tauriAudioClient.listAudioDevices;
   const inputDevices = audioDevices.filter((device) => device.direction === "input");
   const outputDevices = audioDevices.filter((device) => device.direction === "output");
+
+  useEffect(() => {
+    setLyricsDraft("");
+    setLyricsStatus("idle");
+    setLyricsError(null);
+  }, [selectedId]);
 
   useEffect(() => {
     if (!listAudioDevices) {
@@ -171,6 +182,32 @@ function App({ libraryClient = tauriLibraryClient, audioClient }: AppProps) {
     }
   }
 
+  async function savePastedLyrics() {
+    if (!selected || !lyricsDraft.trim()) return;
+    setLyricsError(null);
+    setLyricsStatus("saving");
+    try {
+      await (lyricsClient?.setPastedLyrics ?? tauriLyricsClient.setPastedLyrics)(selected.id, lyricsDraft);
+      setLyricsStatus("accepted");
+    } catch {
+      setLyricsStatus("idle");
+      setLyricsError("歌詞を保存できませんでした。UTF-8テキストを確認してください。");
+    }
+  }
+
+  async function importLyricsFile() {
+    if (!selected) return;
+    setLyricsError(null);
+    setLyricsStatus("selecting");
+    try {
+      const result = await (lyricsClient?.selectLyricsFile ?? tauriLyricsClient.selectLyricsFile)(selected.id);
+      setLyricsStatus(result.selected ? "accepted" : "idle");
+    } catch {
+      setLyricsStatus("idle");
+      setLyricsError("歌詞ファイルを読み込めませんでした。UTF-8の.txtファイルを選択してください。");
+    }
+  }
+
   return (
     <main className="app-shell">
       <aside className="sidebar">
@@ -239,6 +276,16 @@ function App({ libraryClient = tauriLibraryClient, audioClient }: AppProps) {
             <p>{selected.artist}</p>
             <div className="facts"><span>キー <strong>{selected.key}</strong></span><span>長さ <strong>{selected.duration}</strong></span></div>
             <div className="cache-status"><i className={selected.state} /><div><strong>{stateLabel[selected.state]}</strong><small>伴奏・メロディ・歌詞をローカル保存</small></div></div>
+            <div className="lyrics-input">
+              <label htmlFor="lyrics-draft">正しい歌詞</label>
+              <textarea id="lyrics-draft" value={lyricsDraft} onChange={(event) => { setLyricsDraft(event.target.value); setLyricsStatus("idle"); }} placeholder="歌詞を貼り付けるか、UTF-8の.txtを選択" rows={4} />
+              <div className="lyrics-actions">
+                <button className="secondary-button" disabled={lyricsStatus === "saving" || !lyricsDraft.trim()} onClick={savePastedLyrics}>{lyricsStatus === "saving" ? "保存中…" : "貼り付けた歌詞を使用"}</button>
+                <button className="secondary-button" disabled={lyricsStatus === "selecting"} onClick={importLyricsFile}><FileText size={16} />{lyricsStatus === "selecting" ? "選択中…" : ".txtを選択"}</button>
+              </div>
+              {lyricsStatus === "accepted" && <small className="lyrics-success" role="status">歌詞をローカルで受け付けました</small>}
+              {lyricsError && <small className="lyrics-error" role="alert">{lyricsError}</small>}
+            </div>
             <button className="sing-button" disabled={selected.state !== "ready"}><Mic2 size={19} />この曲を歌う</button>
             <small className="score-note">歌唱中は総合点を表示しません。結果は終了後に確認できます。</small>
           </aside> : <aside className="now-card empty-selection"><Disc3 size={48} /><strong>楽曲がありません</strong><small>MP3、FLAC、WAVを含むフォルダーを選択してください。</small></aside>}

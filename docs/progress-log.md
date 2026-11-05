@@ -661,3 +661,10 @@
 - The boundary preserves exact display text and hashes its UTF-8 bytes, removes only an optional file BOM, rejects empty/NUL/non-UTF-8/non-`.txt`/over-one-MiB input, and never writes to the imported file.
 - Three focused tests passed for exact pasted-text identity, BOM-aware read-only import with byte-for-byte source preservation, and invalid/unsafe inputs. Native picker/UI wiring remains separate.
 
+## 2026-11-05 — Path-free lyric input connected to the song screen
+
+- Added Rust-managed per-song lyric state plus Tauri commands for pasted text and native `.txt` selection. Song identities must be lowercase content SHA-256 values.
+- Native file paths and lyric bodies remain in Rust. React receives only selection status, exact-text SHA-256, and byte size; cancellation does not change stored state.
+- The selected-song card now supports paste/edit submission and native `.txt` selection with local-only success/error states. Indexed song IDs are no longer decorated in React, preserving their catalog content identity.
+- Three focused Rust command tests, frontend lint, and production build passed. Two frontend interaction tests were added, but the container Vitest process again stalled immediately after startup even with one fork worker, so they are not reported as passed.
+

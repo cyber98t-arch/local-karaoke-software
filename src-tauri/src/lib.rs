@@ -14,12 +14,13 @@ pub mod library;
 pub mod library_commands;
 pub mod library_service;
 pub mod lyric_alignment;
+pub mod lyrics_commands;
 pub mod lyrics_input;
 pub mod melody_cache;
 pub mod melody_pipeline;
 pub mod metadata;
-pub mod model_manifest;
 pub mod model_cache;
+pub mod model_manifest;
 pub mod separation_pipeline;
 pub mod spleeter_inference;
 pub mod spleeter_signal;
@@ -51,6 +52,7 @@ pub fn run() {
             let application_data = app.path().app_data_dir()?;
             std::fs::create_dir_all(&application_data)?;
             app.manage(LibraryState::new(application_data.join("catalog.sqlite3")));
+            app.manage(lyrics_commands::LyricsState::default());
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
@@ -60,7 +62,9 @@ pub fn run() {
             audio_probe::probe_input_level,
             library_commands::select_library_folder,
             library_commands::index_selected_library,
-            library_commands::load_library_catalog
+            library_commands::load_library_catalog,
+            lyrics_commands::set_pasted_lyrics,
+            lyrics_commands::select_lyrics_file
         ])
         .run(tauri::generate_context!())
         .expect("failed to run Hibiki");

@@ -148,5 +148,31 @@ describe("song library", () => {
     expect(screen.queryByText("夜明けの航路")).not.toBeInTheDocument();
     expect(loadLibraryCatalog).toHaveBeenCalledOnce();
   });
+
+  it("submits pasted lyrics by song hash without returning a path", async () => {
+    const songId = "c".repeat(64);
+    const loadLibraryCatalog = vi.fn().mockResolvedValue({
+      songCount: 1,
+      songs: [{ id: songId, title: "歌詞テスト", artist: "ローカル歌手", durationMs: 60_000 }],
+    });
+    const setPastedLyrics = vi.fn().mockResolvedValue({ sha256: "d".repeat(64), byteSize: 9 });
+    render(<App libraryClient={{ loadLibraryCatalog }} audioClient={{}} lyricsClient={{ setPastedLyrics }} />);
+
+    fireEvent.change(await screen.findByLabelText("正しい歌詞"), { target: { value: "今日は" } });
+    fireEvent.click(screen.getByRole("button", { name: "貼り付けた歌詞を使用" }));
+
+    expect(await screen.findByRole("status")).toHaveTextContent("歌詞をローカルで受け付けました");
+    expect(setPastedLyrics).toHaveBeenCalledWith(songId, "今日は");
+  });
+
+  it("keeps lyrics unchanged when native file selection is cancelled", async () => {
+    const selectLyricsFile = vi.fn().mockResolvedValue({ selected: false, lyrics: null });
+    render(<App libraryClient={{}} audioClient={{}} lyricsClient={{ selectLyricsFile }} />);
+
+    fireEvent.click(screen.getByRole("button", { name: ".txtを選択" }));
+
+    await waitFor(() => expect(selectLyricsFile).toHaveBeenCalledOnce());
+    expect(screen.queryByText("歌詞をローカルで受け付けました")).not.toBeInTheDocument();
+  });
 });
 

@@ -129,6 +129,10 @@ explicit local paste/edit input or read-only UTF-8 `.txt` import. Input is
 bounded, validated, and identified by exact-text SHA-256; no lyric-provider
 network request is made.
 
+Path-free lyric UI boundary added 2026-11-05: pasted text is sent with only the
+content-hash song ID, while `.txt` selection and path handling stay in Rust.
+React receives only acceptance metadata, never the lyric file path or text.
+
 ## D-007 ONNX feasibility research criteria
 
 - Convert only the pinned Spleeter 2-stem artifact with a versioned, reviewable script; hash every input, output, and downloaded distribution.
