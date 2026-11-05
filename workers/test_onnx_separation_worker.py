@@ -59,7 +59,7 @@ class SeparationWorkerTests(unittest.TestCase):
 
 def request(source: Path, model: Path, output: Path) -> dict:
     return {
-        "protocolVersion": 1,
+        "protocolVersion": 2,
         "requestId": "request-1",
         "operation": {
             "separateTwoStems": {

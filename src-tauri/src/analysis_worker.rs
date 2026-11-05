@@ -8,7 +8,7 @@ use std::{
     time::{Duration, Instant},
 };
 
-pub const ANALYSIS_WORKER_PROTOCOL_VERSION: u32 = 1;
+pub const ANALYSIS_WORKER_PROTOCOL_VERSION: u32 = 2;
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(rename_all = "camelCase", rename_all_fields = "camelCase")]
@@ -19,6 +19,13 @@ pub enum WorkerOperation {
         model_path: PathBuf,
         expected_source_sha256: String,
         expected_model_sha256: String,
+    },
+    TranscribeJapanese {
+        input_audio_path: PathBuf,
+        model_path: PathBuf,
+        expected_source_sha256: String,
+        expected_model_sha256: String,
+        language: String,
     },
 }
 
@@ -59,12 +66,30 @@ pub struct SeparationResult {
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(rename_all = "camelCase")]
+pub struct TranscriptionSegment {
+    pub start_ms: u64,
+    pub end_ms: u64,
+    pub text: String,
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct TranscriptionResult {
+    pub language: String,
+    pub duration_ms: u64,
+    pub segments: Vec<TranscriptionSegment>,
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct WorkerResponse {
     pub protocol_version: u32,
     pub request_id: String,
     pub success: bool,
     pub metrics: Option<WorkerProbeMetrics>,
     pub separation: Option<SeparationResult>,
+    #[serde(default)]
+    pub transcription: Option<TranscriptionResult>,
     pub error: Option<String>,
 }
 
@@ -314,6 +339,74 @@ where
         validate_artifact(&result.accompaniment, "accompaniment.wav")?;
         Ok(result)
     }
+
+    pub fn run_japanese_transcription(
+        &self,
+        cache_root: &Path,
+        identity: &crate::analysis_job::AnalysisIdentity,
+        request_id: &str,
+        input_audio_path: &Path,
+        model_path: &Path,
+        expected_model_sha256: &str,
+    ) -> Result<TranscriptionResult, String> {
+        if !is_safe_token(request_id) {
+            return Err("worker request id must be a nonempty safe token".to_owned());
+        }
+        if !input_audio_path.is_file() || !model_path.is_file() {
+            return Err("transcription input and model must be existing files".to_owned());
+        }
+        if !is_sha256(expected_model_sha256) {
+            return Err("transcription model identity must be a lowercase SHA-256".to_owned());
+        }
+        let request = WorkerRequest {
+            protocol_version: ANALYSIS_WORKER_PROTOCOL_VERSION,
+            request_id: request_id.to_owned(),
+            operation: WorkerOperation::TranscribeJapanese {
+                input_audio_path: input_audio_path.to_owned(),
+                model_path: model_path.to_owned(),
+                expected_source_sha256: identity.source_sha256.clone(),
+                expected_model_sha256: expected_model_sha256.to_owned(),
+                language: "ja".to_owned(),
+            },
+            output_directory: identity
+                .cache_directory(cache_root)?
+                .join("transcription")
+                .join(request_id),
+        };
+        let response = self.backend.execute(&request)?;
+        validate_response_identity(&request, &response)?;
+        if !response.success {
+            return Err(response
+                .error
+                .filter(|message| !message.trim().is_empty())
+                .unwrap_or_else(|| {
+                    "transcription worker failed without an error message".to_owned()
+                }));
+        }
+        let result = response
+            .transcription
+            .ok_or_else(|| "worker succeeded without transcription metadata".to_owned())?;
+        validate_transcription(&result)?;
+        Ok(result)
+    }
+}
+
+fn validate_transcription(result: &TranscriptionResult) -> Result<(), String> {
+    if result.language != "ja" || result.duration_ms == 0 {
+        return Err("worker returned invalid transcription metadata".to_owned());
+    }
+    let mut previous_end = 0;
+    for segment in &result.segments {
+        if segment.start_ms < previous_end
+            || segment.end_ms <= segment.start_ms
+            || segment.end_ms > result.duration_ms
+            || segment.text.trim().is_empty()
+        {
+            return Err("worker returned invalid transcription segments".to_owned());
+        }
+        previous_end = segment.end_ms;
+    }
+    Ok(())
 }
 
 fn validate_response_identity(
@@ -359,7 +452,8 @@ mod tests {
     use super::LocalProcessWorker;
     use super::{
         AnalysisWorkerBackend, AnalysisWorkerService, SeparationArtifact, SeparationResult,
-        WorkerProbeMetrics, WorkerRequest, WorkerResponse, ANALYSIS_WORKER_PROTOCOL_VERSION,
+        TranscriptionResult, TranscriptionSegment, WorkerProbeMetrics, WorkerRequest,
+        WorkerResponse, ANALYSIS_WORKER_PROTOCOL_VERSION,
     };
     use crate::analysis_job::AnalysisIdentity;
     #[cfg(unix)]
@@ -376,6 +470,7 @@ mod tests {
         response_version: u32,
         response_request_id: String,
         separation: Option<SeparationResult>,
+        transcription: Option<TranscriptionResult>,
     }
 
     impl AnalysisWorkerBackend for FakeWorker {
@@ -391,6 +486,7 @@ mod tests {
                     frames: 16_000,
                 }),
                 separation: self.separation.clone(),
+                transcription: self.transcription.clone(),
                 error: None,
             })
         }
@@ -403,6 +499,7 @@ mod tests {
             response_version: ANALYSIS_WORKER_PROTOCOL_VERSION,
             response_request_id: "probe-1".to_owned(),
             separation: None,
+            transcription: None,
         };
         let service = AnalysisWorkerService::new(worker);
 
@@ -434,6 +531,7 @@ mod tests {
             response_version: ANALYSIS_WORKER_PROTOCOL_VERSION + 1,
             response_request_id: "different".to_owned(),
             separation: None,
+            transcription: None,
         });
 
         assert!(service
@@ -476,6 +574,7 @@ mod tests {
                     sha256: "d".repeat(64),
                 },
             }),
+            transcription: None,
         };
         let service = AnalysisWorkerService::new(worker);
         let input_before = fs::read(&input).expect("input should be readable");
@@ -520,6 +619,71 @@ mod tests {
             Some("eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee")
         );
         fs::remove_dir_all(directory).expect("test directory should be removable");
+    }
+
+    #[test]
+    fn constructs_a_cache_owned_japanese_transcription_request() {
+        let directory = test_directory("transcription-contract");
+        let input = directory.join("vocals.flac");
+        let model = directory.join("ggml-base.bin");
+        fs::write(&input, b"read-only vocal fixture").unwrap();
+        fs::write(&model, b"model fixture").unwrap();
+        let identity = AnalysisIdentity {
+            source_sha256: "a".repeat(64),
+            pipeline_version: "transcription-v1".to_owned(),
+            model_ids: vec!["whisper-base-multilingual".to_owned()],
+            parameters_sha256: "b".repeat(64),
+        };
+        let worker = FakeWorker {
+            observed: RefCell::new(None),
+            response_version: ANALYSIS_WORKER_PROTOCOL_VERSION,
+            response_request_id: "transcribe-1".to_owned(),
+            separation: None,
+            transcription: Some(TranscriptionResult {
+                language: "ja".to_owned(),
+                duration_ms: 4_000,
+                segments: vec![TranscriptionSegment {
+                    start_ms: 0,
+                    end_ms: 2_000,
+                    text: "天気".to_owned(),
+                }],
+            }),
+        };
+        let service = AnalysisWorkerService::new(worker);
+        let before = fs::read(&input).unwrap();
+
+        let result = service
+            .run_japanese_transcription(
+                &directory.join("cache"),
+                &identity,
+                "transcribe-1",
+                &input,
+                &model,
+                &"c".repeat(64),
+            )
+            .expect("valid transcription response should succeed");
+
+        assert_eq!(result.language, "ja");
+        assert_eq!(result.segments[0].text, "天気");
+        assert_eq!(fs::read(&input).unwrap(), before);
+        let request = service.backend.observed.borrow().clone().unwrap();
+        assert!(request
+            .output_directory
+            .starts_with(directory.join("cache")));
+        let encoded = serde_json::to_value(request).unwrap();
+        assert_eq!(
+            encoded
+                .pointer("/operation/transcribeJapanese/language")
+                .and_then(serde_json::Value::as_str),
+            Some("ja")
+        );
+        assert_eq!(
+            encoded
+                .pointer("/operation/transcribeJapanese/expectedModelSha256")
+                .and_then(serde_json::Value::as_str),
+            Some("cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc")
+        );
+        fs::remove_dir_all(directory).unwrap();
     }
 
     #[cfg(unix)]

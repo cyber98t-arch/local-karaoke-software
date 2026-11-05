@@ -10,7 +10,7 @@ import sys
 from typing import Callable, Optional
 
 
-PROTOCOL_VERSION = 1
+PROTOCOL_VERSION = 2
 Inference = Callable[[Path, Path, Path, Path], Optional[tuple[int, int, int]]]
 
 
@@ -29,6 +29,7 @@ def response(request_id: str, *, success: bool, separation=None, error=None) -> 
         "success": success,
         "metrics": None,
         "separation": separation,
+        "transcription": None,
         "error": error,
     }
 

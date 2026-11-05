@@ -8,7 +8,7 @@ from pathlib import Path
 import sys
 
 
-PROTOCOL_VERSION = 1
+PROTOCOL_VERSION = 2
 OPERATION = "syntheticSeparationProbe"
 
 
@@ -18,6 +18,8 @@ def response(request_id: str, *, success: bool, metrics=None, error=None) -> dic
         "requestId": request_id,
         "success": success,
         "metrics": metrics,
+        "separation": None,
+        "transcription": None,
         "error": error,
     }
 
