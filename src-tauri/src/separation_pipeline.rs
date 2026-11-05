@@ -1,6 +1,7 @@
 use std::path::Path;
 
 use crate::{
+    analysis_job::AnalysisIdentity,
     spleeter_inference::{separate_source, SpectrogramInference},
     stem_cache::{commit_stems, StemCacheArtifacts},
 };
@@ -8,20 +9,25 @@ use crate::{
 pub fn separate_source_to_cache<I>(
     inference: &mut I,
     source_path: &Path,
-    cache_directory: &Path,
+    cache_root: &Path,
+    identity: &AnalysisIdentity,
 ) -> Result<StemCacheArtifacts, String>
 where
     I: SpectrogramInference,
 {
+    let cache_directory = identity.cache_directory(cache_root)?;
     let stems = separate_source(inference, source_path)?;
-    commit_stems(cache_directory, &stems)
+    commit_stems(&cache_directory, &stems)
         .map_err(|error| format!("stem cache commit failed: {error}"))
 }
 
 #[cfg(test)]
 mod tests {
     use super::separate_source_to_cache;
-    use crate::spleeter_inference::{SpectrogramInference, StemEstimates};
+    use crate::{
+        analysis_job::AnalysisIdentity,
+        spleeter_inference::{SpectrogramInference, StemEstimates},
+    };
     use ndarray::Array4;
     use std::{
         fs,
@@ -68,14 +74,24 @@ mod tests {
         let source = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/metadata.wav");
         let before = fs::read(&source).expect("source should be readable");
         let cache = TestDirectory::new();
+        let identity = AnalysisIdentity {
+            source_sha256: "a".repeat(64),
+            pipeline_version: "separation-v1".to_owned(),
+            model_ids: vec!["spleeter-2stems-onnx".to_owned()],
+            parameters_sha256: "b".repeat(64),
+        };
+        let output = identity
+            .cache_directory(&cache.0)
+            .expect("identity should derive a cache path");
 
-        let artifacts = separate_source_to_cache(&mut VocalOnlyInference, &source, &cache.0)
-            .expect("injected pipeline should commit stems");
+        let artifacts =
+            separate_source_to_cache(&mut VocalOnlyInference, &source, &cache.0, &identity)
+                .expect("injected pipeline should commit stems");
 
         assert_eq!(artifacts.vocals_sha256.len(), 64);
-        assert!(cache.0.join("vocals.flac").is_file());
-        assert!(cache.0.join("accompaniment.flac").is_file());
-        assert!(cache.0.join("stems.json").is_file());
+        assert!(output.join("vocals.flac").is_file());
+        assert!(output.join("accompaniment.flac").is_file());
+        assert!(output.join("stems.json").is_file());
         assert_eq!(
             fs::read(source).expect("source should remain readable"),
             before
