@@ -97,4 +97,50 @@ mod tests {
             before
         );
     }
+
+    #[cfg(feature = "native-onnx")]
+    #[test]
+    #[ignore = "requires HIBIKI_SPLEETER_ONNX_MODEL and performs native separation"]
+    fn separates_fixture_with_verified_native_model_into_cache() {
+        use crate::{cache::content_sha256, spleeter_inference::NativeOrtSession};
+
+        const MODEL_SHA256: &str =
+            "8d58651b5979075c954bcbe96c6776b2dc41e7852fb6f2d054b83a696a8db26f";
+        let model_path = PathBuf::from(
+            std::env::var_os("HIBIKI_SPLEETER_ONNX_MODEL")
+                .expect("HIBIKI_SPLEETER_ONNX_MODEL must name the downloaded ONNX file"),
+        );
+        assert_eq!(
+            content_sha256(&model_path).expect("model should be hashable"),
+            MODEL_SHA256
+        );
+        let source = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/metadata.wav");
+        let source_sha256 = content_sha256(&source).expect("fixture should be hashable");
+        let cache = TestDirectory::new();
+        let identity = AnalysisIdentity {
+            source_sha256: source_sha256.clone(),
+            pipeline_version: "separation-v1".to_owned(),
+            model_ids: vec!["spleeter-2stems-onnx-dev-v1".to_owned()],
+            parameters_sha256: "9ea689566c7c6a6803323a6131377046dd09d06affc295f412524deed0844eb0"
+                .to_owned(),
+        };
+        let output = identity
+            .cache_directory(&cache.0)
+            .expect("identity should derive a cache path");
+        let mut runtime = NativeOrtSession::from_file(&model_path)
+            .expect("verified development model should load");
+
+        let artifacts = separate_source_to_cache(&mut runtime, &source, &cache.0, &identity)
+            .expect("native separation should commit both stems");
+
+        assert_eq!(artifacts.vocals_sha256.len(), 64);
+        assert!(output.join("vocals.flac").is_file());
+        assert!(output.join("accompaniment.flac").is_file());
+        assert!(output.join("stems.json").is_file());
+        assert_eq!(
+            content_sha256(&source).expect("fixture should remain hashable"),
+            source_sha256,
+            "native separation must not change the source"
+        );
+    }
 }

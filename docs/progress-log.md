@@ -518,3 +518,9 @@
 - Provenance, conversion versions, tensor contract, non-byte-determinism warning, and MIT license evidence are recorded in `docs/model-artifacts/spleeter-2stems-onnx-dev-v1.md` and the prerelease body.
 - Added an ignored, feature-gated Windows probe that requires an explicit `HIBIKI_SPLEETER_ONNX_MODEL` path, verifies the published SHA-256 before loading, and runs one generated zero-spectrogram inference. Normal tests never download or load the model.
 
+## 2026-11-05 — Native Windows model inference verified
+
+- The user explicitly downloaded the development prerelease model into the ignored local `models/` directory. PowerShell SHA-256 was `8D58651B5979075C954BCBE96C6776B2DC41E7852FB6F2D054B83A696A8DB26F`, exactly matching the published manifest.
+- The ignored native probe compiled on Windows, loaded the verified ONNX file, ran one generated `[1, 512, 1024, 2]` zero-spectrogram input through CPU ONNX Runtime, validated both output shapes and finite values, and passed in 1.35 seconds.
+- This verifies Windows model loading and direct neural-subgraph inference. It does not yet verify waveform transforms plus cache output on Windows; a separate ignored fixture-to-cache test is added for that next step.
+

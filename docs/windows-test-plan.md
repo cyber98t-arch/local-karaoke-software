@@ -17,6 +17,8 @@
 
 Observed 2026-11-05: native Windows MSVC compiled `ort`/`ort-sys` 2.0.0-rc.15 and ran 53 library tests successfully in 0.44 seconds. Two Windows-only unused-import warnings were subsequently fixed in source. Actual model loading and inference remain separate checks.
 
+Observed 2026-11-05: after an explicit 78.7 MB development-model download and exact SHA-256 verification, the ignored native model probe loaded the ONNX artifact and completed generated CPU inference in 1.35 seconds with valid output shapes and finite values.
+
 ### Phase 2 library round trip
 
 1. Copy the repository MP3, FLAC, and WAV fixtures plus one ignored text or image file into a disposable folder; record recursive file names and SHA-256 values before launch.
