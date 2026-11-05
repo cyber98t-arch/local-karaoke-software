@@ -105,3 +105,8 @@ Rust ONNX Runtime binding and Rust signal processing. A bundled Python/NumPy
 runtime is excluded from production separation. Exact binary acquisition and
 release packaging still require reproducible hashes and Windows verification.
 
+D-014 approved 2026-11-05: implement CREPE tiny with the existing native CPU
+ONNX Runtime plus Rust-owned 16 kHz mono conversion, centered normalized frames,
+and local-average pitch decoding. The pure signal path and injected inference
+boundary are implemented; persistent contour output awaits D-015.
+

@@ -552,3 +552,12 @@
 - Added reproducible conversion and pitch-probe scripts plus `docs/phase-4-crepe-feasibility-results.md`. No model or generated artifact is committed.
 - Opened D-014 as `Waiting`; no CREPE production runtime, converted artifact, publication, or Viterbi strategy was adopted.
 
+## 2026-11-05 — Native CREPE signal and inference boundary implemented
+
+- The user approved D-014. Added Rust-owned stereo downmix and Rubato FFT conversion to 16 kHz mono, centered 1024-sample frames at 160-sample hops, per-frame normalization, local nine-bin weighted pitch decoding, and confidence/timestamp output.
+- RED evidence: the framing/decoder tests first failed at their intentional implementation placeholders; the injected inference tests likewise failed before tensor validation/decoding existed; the 44.1 kHz conversion test failed before downmix/resampling was implemented.
+- GREEN evidence: four focused signal tests and two injected inference tests passed. The full default Rust library suite passed with 61 tests, and `cargo check --features native-onnx` passed.
+- Added a native `ort` session behind `native-onnx` using the converted model's pinned `input` and `classifier` tensor names and `[frames, 1024]` / `[frames, 360]` contracts. Normal tests use an injected fake and never load or download a model.
+- Added an ignored real-model probe requiring explicit `HIBIKI_CREPE_ONNX_MODEL` and exact SHA-256 `03fb909a5618fa9f19942e20de749bc8e658a1ac0df4a778b354c15b6f7a59d4`. The Linux Dev Container could not link the rc.15 prebuilt static ONNX Runtime because it requires newer glibc/libstdc++ symbols; this is the already documented container ABI limitation. No real native CREPE inference result is claimed.
+- Opened D-015 for the concrete melody-contour cache format. No contour artifact, model publication, Viterbi smoothing, GPU provider, or source-directory write was added.
+
