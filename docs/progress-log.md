@@ -504,3 +504,10 @@
 - The public coordinator now derives the output directory from `AnalysisIdentity` plus the injected application-cache root; callers cannot provide an arbitrary final artifact directory.
 - The handoff baseline passed: frontend lint, 10 frontend tests, production build, all 55 Rust library tests, default and `native-onnx` cargo checks, and `git diff --check`.
 
+## 2026-11-05 — Native Windows ONNX Runtime link verified
+
+- The user ran `cargo test --manifest-path src-tauri/Cargo.toml --features native-onnx --lib` from Windows PowerShell with the MSVC toolchain.
+- Cargo downloaded 17 crates (3.0 MiB), compiled `ort` and `ort-sys` 2.0.0-rc.15, linked the native test executable, and passed all 53 Windows-applicable library tests in 0.44 seconds.
+- This resolves the earlier Linux-container ABI link blocker for the approved Windows target. It does not yet prove model loading, real inference, output quality, runtime binary hashes, or installer packaging.
+- The run reported two unused test-import warnings because Unix-only process-worker tests are excluded on Windows. The imports are now guarded by `cfg(unix)`.
+

@@ -355,17 +355,20 @@ fn is_safe_token(value: &str) -> bool {
 
 #[cfg(test)]
 mod tests {
+    #[cfg(unix)]
+    use super::LocalProcessWorker;
     use super::{
-        AnalysisWorkerBackend, AnalysisWorkerService, LocalProcessWorker, SeparationArtifact,
-        SeparationResult, WorkerProbeMetrics, WorkerRequest, WorkerResponse,
-        ANALYSIS_WORKER_PROTOCOL_VERSION,
+        AnalysisWorkerBackend, AnalysisWorkerService, SeparationArtifact, SeparationResult,
+        WorkerProbeMetrics, WorkerRequest, WorkerResponse, ANALYSIS_WORKER_PROTOCOL_VERSION,
     };
     use crate::analysis_job::AnalysisIdentity;
+    #[cfg(unix)]
+    use std::time::Duration;
     use std::{
         cell::RefCell,
         fs,
         path::PathBuf,
-        time::{Duration, SystemTime, UNIX_EPOCH},
+        time::{SystemTime, UNIX_EPOCH},
     };
 
     struct FakeWorker {

@@ -9,6 +9,14 @@
 5. Measure microphone round-trip behavior and pitch update cadence using at least one built-in laptop microphone.
 6. Probe available ONNX Runtime providers and verify automatic CPU fallback.
 
+### Phase 4 native ONNX link probe
+
+1. Run `cargo test --manifest-path src-tauri/Cargo.toml --features native-onnx --lib` from native Windows PowerShell.
+2. Confirm `ort` and `ort-sys` compile for the MSVC target and the test executable starts; this specifically validates the link step that the Linux Dev Container ABI cannot complete.
+3. Record the number of passing tests and every warning/error. This probe does not load a model or analyze music.
+
+Observed 2026-11-05: native Windows MSVC compiled `ort`/`ort-sys` 2.0.0-rc.15 and ran 53 library tests successfully in 0.44 seconds. Two Windows-only unused-import warnings were subsequently fixed in source. Actual model loading and inference remain separate checks.
+
 ### Phase 2 library round trip
 
 1. Copy the repository MP3, FLAC, and WAV fixtures plus one ignored text or image file into a disposable folder; record recursive file names and SHA-256 values before launch.

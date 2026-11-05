@@ -133,3 +133,12 @@
 - Reason approval is required: This selects the persistent derived-audio cache format, precision, encoder dependency, storage footprint, and compatibility boundary.
 - Decision: Store both derived stems as stereo 44.1 kHz signed 16-bit FLAC using pure-Rust `flacenc` 0.5.1 with default features disabled. Commit only after both temporary artifacts validate.
 - Source: User approval on 2026-10-30.
+
+### D-013 — Development ONNX artifact publication
+
+- Status: Waiting
+- Question: May the verified converted Spleeter ONNX artifact be published as a GitHub prerelease asset so the native Windows checkout can load and test it?
+- Recommended option: Publish one clearly labeled development-only prerelease asset, not an application release. Use `spleeter-2stems-repro.onnx`, exactly 78,652,254 bytes with SHA-256 `8d58651b5979075c954bcbe96c6776b2dc41e7852fb6f2d054b83a696a8db26f`, and attach its MIT license/provenance/conversion-version notes. Windows development then downloads it explicitly and verifies size/hash before local injection.
+- Alternative: The user manually copies the same 78.7 MB file from the Dev Container path `/tmp/hibiki-onnx-feasibility.OrMRC1/spleeter-2stems-repro.onnx` to the Windows checkout. This avoids publication but is machine-specific and less reproducible.
+- Scope if approved: Create a prerelease/development asset only; do not publish an installer, stable release, application update, or automatic-download endpoint. Do not claim byte-deterministic conversion; pin this exact artifact instead.
+- Reason approval is required: Uploading the model creates a public release asset and distributes a converted model artifact; publishing is an explicit human approval gate.
