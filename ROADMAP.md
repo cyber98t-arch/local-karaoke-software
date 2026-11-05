@@ -102,6 +102,12 @@ The format records model and worker provenance and marks content as a raw draft;
 alignment, correction UI, confidence policy, and production worker packaging
 remain separate decisions.
 
+D-020 approved 2026-11-05: the production direction bundles a pinned CPU-only
+`whisper.cpp` executable while acquiring the 147,951,465-byte base model only
+after explicit user action with size/hash verification. The dependency-free
+model-cache commit boundary and development CLI adapter are implemented; no
+binary/model was downloaded, bundled, or published by this step.
+
 ## D-007 ONNX feasibility research criteria
 
 - Convert only the pinned Spleeter 2-stem artifact with a versioned, reviewable script; hash every input, output, and downloaded distribution.

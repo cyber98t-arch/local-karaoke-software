@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 use std::{
+    ffi::OsString,
     fs,
     io::{Read, Write},
     path::{Path, PathBuf},
@@ -100,6 +101,7 @@ pub trait AnalysisWorkerBackend {
 pub struct LocalProcessWorker {
     executable: PathBuf,
     script: PathBuf,
+    arguments: Vec<OsString>,
     timeout: Duration,
     max_output_bytes: usize,
 }
@@ -114,9 +116,15 @@ impl LocalProcessWorker {
         Self {
             executable,
             script,
+            arguments: Vec::new(),
             timeout,
             max_output_bytes,
         }
+    }
+
+    pub fn with_arguments(mut self, arguments: impl IntoIterator<Item = OsString>) -> Self {
+        self.arguments = arguments.into_iter().collect();
+        self
     }
 }
 
@@ -131,6 +139,7 @@ impl AnalysisWorkerBackend for LocalProcessWorker {
 
         let mut child = Command::new(&self.executable)
             .arg(&self.script)
+            .args(&self.arguments)
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
             .stderr(Stdio::piped())

@@ -626,3 +626,11 @@
 - Validation rejects unsafe identities, invalid hashes, zero durations, empty transcripts, blank text, overlaps, reversed intervals, and out-of-duration segments. A compatible existing artifact is preserved rather than replaced.
 - An injected pipeline test verifies worker output commits only below the derived cache and leaves the input audio bytes unchanged. Four focused transcript tests passed; no production Whisper executable, alignment, correction UI, confidence policy, or download path was added.
 
+## 2026-11-05 — Whisper distribution boundary approved and implemented
+
+- The user approved D-020: the eventual Windows application will bundle a pinned CPU-only `whisper.cpp` executable and notices, while the 147,951,465-byte multilingual base model requires an explicit user action and exact size/SHA-256 verification before model-cache commit.
+- Added a network-independent Rust boundary that validates a staged model against its manifest, copies it to a temporary file below the separate model cache, revalidates it, syncs it, and atomically commits it. Existing valid models are preserved and invalid content leaves the model cache empty.
+- Added a development-only Python protocol adapter that receives an explicit `whisper.cpp` CLI path, verifies input and model hashes, invokes fixed Japanese JSON-output arguments without a shell, and converts timestamped JSON into protocol-v2 segments. The Rust process wrapper now accepts explicitly injected arguments for this adapter.
+- Three focused Rust model-cache tests and two Python parser tests passed. No Whisper binary or model was downloaded, bundled, published, or connected to the application UI.
+- Reused the existing disposable research CLI, pinned model, and public-domain Japanese fixture to exercise the adapter without a download. The complete adapter invocation succeeded in 1.8 seconds and returned 14 validated protocol-v2 segments; all writes stayed under a new `/tmp` output directory.
+

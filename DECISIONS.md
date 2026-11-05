@@ -216,10 +216,12 @@
 
 ### D-020 — Production Whisper executable and model acquisition
 
-- Status: Waiting
+- Status: Approved
 - Question: How should the Windows application obtain the pinned CPU-only `whisper.cpp` executable and multilingual base model?
 - Recommended option: Bundle a pinned, CPU-only `whisper.cpp` executable and required notices with the application, while downloading the 147,951,465-byte multilingual base model only after an explicit in-app action. Verify exact byte size and SHA-256 before atomic commit to the separate model cache; never download silently.
 - Alternative: Bundle both executable and model in every installer. This improves first-run offline availability but increases every installer by about 148 MB and couples model updates to application releases.
 - Rejected alternative: Require users to install or locate `whisper.cpp` themselves. This reduces installer size but conflicts with reliable ordinary-user setup.
 - Scope if approved: Implement an injected development adapter and typed acquisition boundary with generated/public-domain tests. Do not publish binaries/models, download the model during tests, create a release, select alignment, or add GPU execution.
 - Reason approval is required: This selects native executable packaging, installer contents, and model acquisition behavior.
+- Decision: Bundle the pinned CPU-only `whisper.cpp` executable and notices with the application. Acquire the 147,951,465-byte multilingual base model only after explicit user action, verify its pinned size and SHA-256, and commit it atomically to the separate model cache.
+- Source: User approval on 2026-11-05.

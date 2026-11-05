@@ -14,6 +14,7 @@ pub mod melody_cache;
 pub mod melody_pipeline;
 pub mod metadata;
 pub mod model_manifest;
+pub mod model_cache;
 pub mod separation_pipeline;
 pub mod spleeter_inference;
 pub mod spleeter_signal;
