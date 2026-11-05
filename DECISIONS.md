@@ -147,7 +147,7 @@
 
 ### D-014 — CREPE tiny production inference boundary
 
-- Status: Waiting
+- Status: Approved
 - Question: Should the approved CREPE tiny melody family use a converted ONNX artifact with the existing native Rust CPU ONNX Runtime and application-owned Rust preprocessing/postprocessing?
 - Recommended option: Adopt native ONNX plus Rust signal processing. The 487,096-parameter model converts successfully to about 1.96 MB, agrees with TensorFlow within `6.11e-7`, and estimated 110/220/440 Hz generated tones within 6.94 cents. This avoids adding TensorFlow, Python, NumPy, resampy, or hmmlearn to the application.
 - Alternative: Bundle the original TensorFlow/Keras runtime. This preserves the upstream implementation directly but reintroduces the dependency size and memory strategy rejected for Spleeter.
@@ -155,3 +155,5 @@
 - Scope if approved: Implement and test Rust-owned 16 kHz mono conversion, centered 1024-sample frames at 10 ms hops, normalization, native CPU inference, local-average cents decoding, confidence, and cache-only contour output. Do not publish an artifact, enable GPU providers, or adopt Viterbi smoothing under this decision.
 - Evidence: `docs/phase-4-crepe-feasibility-results.md`.
 - Reason approval is required: This selects the stable runtime and converted model-artifact strategy for the melody stage and excludes the upstream TensorFlow runtime from production.
+- Decision: Use a converted CREPE tiny ONNX artifact through the existing native Rust CPU ONNX Runtime boundary with application-owned Rust preprocessing and local-average decoding. Keep TensorFlow/Python research-only; do not add Viterbi smoothing, GPU providers, or artifact publication under this decision.
+- Source: User approval to continue on 2026-11-05 after the feasibility report and recommended boundary were presented.
