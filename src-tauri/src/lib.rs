@@ -5,6 +5,7 @@ pub mod audio_devices;
 pub mod audio_probe;
 pub mod cache;
 pub mod catalog;
+pub mod crepe_inference;
 pub mod crepe_signal;
 pub mod library;
 pub mod library_commands;
