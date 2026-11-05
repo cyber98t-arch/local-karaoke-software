@@ -193,10 +193,21 @@
 
 ### D-018 — Whisper prototype runtime boundary
 
-- Status: Waiting
+- Status: Approved
 - Question: Should the Phase 4 Japanese transcription prototype invoke pinned CPU-only `whisper.cpp` through a versioned local process protocol?
 - Recommended option: Use a supervised local process boundary. It isolates C++ crashes and peak memory from Tauri, keeps input/output typed and cache-scoped, and avoids committing to a Rust FFI wrapper before Windows packaging evidence. The executable and model remain local-only and pre-playback.
 - Alternative: Add a Rust `whisper.cpp` binding. This gives direct calls but couples the application build, C++ ABI, native library lifecycle, and failure containment to a third-party wrapper.
 - Evidence: `docs/phase-4-whisper-feasibility-results.md`; multilingual base processed 30.93 seconds in 1.483 seconds with about 289 MiB peak RSS, but produced several material word errors.
 - Scope if approved: Define and test an injected typed request/response protocol and a development worker command. Do not yet select transcript cache format, alignment algorithm, confidence threshold, automatic model download, GPU provider, or installer packaging.
 - Reason approval is required: This selects the transcription engine integration boundary and native process strategy.
+- Decision: Use a supervised, versioned local process protocol for the Whisper transcription prototype. Keep C++ execution and failure outside Tauri and validate all identities, paths, bounds, and response segments in Rust.
+- Source: User approval to continue on 2026-11-05 after the feasibility report and recommended boundary were presented.
+
+### D-019 — Whisper transcript cache format
+
+- Status: Waiting
+- Question: Should Phase 4 persist validated Whisper drafts as a versioned `transcript.json` beneath the identity-derived application cache?
+- Recommended option: Store an atomic, validated JSON artifact containing schema version, fixed `ja` language, source duration, model artifact ID and SHA-256, worker protocol version, and ordered `{ startMs, endMs, text }` segments. Mark it as a raw draft so later alignment or user correction cannot be confused with authoritative lyrics.
+- Alternative: Keep transcription only in memory until lyric alignment is selected. This avoids one migration boundary, but prevents resumable analysis and needlessly repeats the expensive transcription stage.
+- Scope if approved: Add the cache type, validation, atomic commit, preservation of an existing compatible artifact, and injected pipeline tests. Do not select alignment, correction UI, confidence policy, automatic model download, executable packaging, or a GPU provider.
+- Reason approval is required: This establishes a new persistent cache format and therefore crosses the repository's explicit cache-format approval gate.

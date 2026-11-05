@@ -85,15 +85,16 @@ Phase 3 completed 2026-10-30: automated coverage passes for the typed/injected a
 5. Repeat bounded probes for monophonic melody and Japanese transcription before connecting the stages into a resumable pipeline.
 
 Melody status 2026-11-05: the native CREPE generated-input path is verified on
-Windows through cache commit. Representative-vocal verification is queued in
-the consolidated Windows script. Japanese transcription awaits D-017 capacity
-approval before the pinned 148 MB Whisper model and CPU research build are
-downloaded.
+Windows through cache commit. The consolidated Windows script also verified the
+published model and generated-input probe; no cached representative vocal was
+available, so that optional probe was safely skipped.
 
 Whisper feasibility completed 2026-11-05: pinned multilingual base processed a
 30.93-second public-domain Japanese exercise in 1.483 seconds at about 289 MiB
 peak RSS. Raw text contained material errors, so it is suitable only as an
-editable/aligned draft. Prototype integration awaits D-018.
+editable/aligned draft. D-018 approved the supervised protocol-v2 local-process
+boundary, which now has typed and tested Rust request/response validation.
+Persisting results awaits the D-019 transcript-cache decision.
 
 ## D-007 ONNX feasibility research criteria
 

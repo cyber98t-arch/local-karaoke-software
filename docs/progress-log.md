@@ -606,3 +606,16 @@
 - The output recognized much of the word sequence but included material errors such as `天気→電気`, `煎餅/玄米→専米/現買`, and `単位→タイム`. Raw base output is therefore a draft, not authoritative lyrics.
 - Recorded input/runtime hashes, licenses, timings, memory, transcript comparison, and the recommended process boundary in `docs/phase-4-whisper-feasibility-results.md`. Opened D-018 as `Waiting`; no runtime, transcript schema, model distribution, or alignment method was adopted.
 
+## 2026-11-05 — Whisper local-process protocol approved and typed
+
+- The user approved D-018's supervised local-process recommendation. Bumped the analysis-worker protocol to version 2 and added a typed Japanese transcription operation carrying input/model paths, expected source/model SHA-256 values, fixed `ja` language, request identity, and an identity-derived cache output directory.
+- Added typed response segments with millisecond bounds and Rust validation for language, duration, monotonic nonoverlapping timestamps, range bounds, and nonempty text. Successful responses without transcription metadata are rejected.
+- The existing timeout, bounded stdout/stderr, no-shell process launch, response-ID matching, and cache-path derivation remain in force. Research workers were updated to protocol v2 without adding a production Whisper executable.
+- Six focused Rust worker tests passed, including the new cache-owned Japanese request contract. Two existing Python separation-worker tests passed from their intended `workers/` directory. Transcript persistence, alignment, confidence policy, executable packaging, and model acquisition remain unselected.
+
+## 2026-11-05 — Consolidated Windows Phase 4 checks passed
+
+- The user ran `scripts/windows/run-pending-phase4-checks.ps1` from Windows PowerShell. It verified the exact CREPE model SHA-256 and the generated-vocal native integration probe passed in 0.19 seconds.
+- No cached `vocals.flac` was present, so the script safely skipped the optional representative-vocal probe and reported all currently runnable Phase 4 Windows checks passed.
+- No additional Windows command is pending from this batch. Representative-vocal contour quality remains unverified until a cache contains a suitable vocal stem.
+
