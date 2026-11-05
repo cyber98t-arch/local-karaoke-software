@@ -143,4 +143,71 @@ mod tests {
             "native separation must not change the source"
         );
     }
+
+    #[cfg(feature = "native-onnx")]
+    #[test]
+    #[ignore = "requires explicit model, source, and cache paths; performs full native separation"]
+    fn separates_explicit_source_with_verified_native_model() {
+        use crate::{cache::content_sha256, spleeter_inference::NativeOrtSession};
+        use std::time::Instant;
+
+        const MODEL_SHA256: &str =
+            "8d58651b5979075c954bcbe96c6776b2dc41e7852fb6f2d054b83a696a8db26f";
+        let model_path = required_path("HIBIKI_SPLEETER_ONNX_MODEL");
+        let source = required_path("HIBIKI_SEPARATION_SOURCE");
+        let cache_root = required_path("HIBIKI_SEPARATION_CACHE");
+        assert!(
+            source.is_file(),
+            "separation source must be an existing file"
+        );
+        assert!(
+            source
+                .parent()
+                .is_none_or(|source_directory| !cache_root.starts_with(source_directory)),
+            "cache root must not be inside the source directory"
+        );
+        assert_eq!(
+            content_sha256(&model_path).expect("model should be hashable"),
+            MODEL_SHA256
+        );
+        let source_sha256 = content_sha256(&source).expect("source should be hashable");
+        let identity = AnalysisIdentity {
+            source_sha256: source_sha256.clone(),
+            pipeline_version: "separation-v1".to_owned(),
+            model_ids: vec!["spleeter-2stems-onnx-dev-v1".to_owned()],
+            parameters_sha256: "9ea689566c7c6a6803323a6131377046dd09d06affc295f412524deed0844eb0"
+                .to_owned(),
+        };
+        let output = identity
+            .cache_directory(&cache_root)
+            .expect("identity should derive a cache path");
+        let mut runtime = NativeOrtSession::from_file(&model_path)
+            .expect("verified development model should load");
+        let started = Instant::now();
+
+        let artifacts = separate_source_to_cache(&mut runtime, &source, &cache_root, &identity)
+            .expect("native separation should commit both stems");
+
+        let elapsed = started.elapsed();
+        assert!(output.join("vocals.flac").is_file());
+        assert!(output.join("accompaniment.flac").is_file());
+        assert!(output.join("stems.json").is_file());
+        assert_eq!(
+            content_sha256(&source).expect("source should remain hashable"),
+            source_sha256,
+            "native separation must not change the source"
+        );
+        eprintln!("native separation elapsed: {elapsed:.2?}");
+        eprintln!("cache directory: {}", output.display());
+        eprintln!("vocals SHA-256: {}", artifacts.vocals_sha256);
+        eprintln!("accompaniment SHA-256: {}", artifacts.accompaniment_sha256);
+    }
+
+    #[cfg(feature = "native-onnx")]
+    fn required_path(name: &str) -> PathBuf {
+        PathBuf::from(
+            std::env::var_os(name)
+                .unwrap_or_else(|| panic!("{name} must be set to an explicit local path")),
+        )
+    }
 }

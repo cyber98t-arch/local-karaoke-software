@@ -524,3 +524,9 @@
 - The ignored native probe compiled on Windows, loaded the verified ONNX file, ran one generated `[1, 512, 1024, 2]` zero-spectrogram input through CPU ONNX Runtime, validated both output shapes and finite values, and passed in 1.35 seconds.
 - This verifies Windows model loading and direct neural-subgraph inference. It does not yet verify waveform transforms plus cache output on Windows; a separate ignored fixture-to-cache test is added for that next step.
 
+## 2026-11-05 — Native Windows fixture-to-cache separation verified
+
+- The user ran the ignored integration probe with the verified local model. Native Windows completed read-only WAV decoding, CPU ONNX inference, Rust signal transforms, two 16-bit FLAC encodes, validation, and identity-derived cache commit in 1.41 seconds.
+- The probe passed and confirmed the repository WAV fixture SHA-256 was unchanged. Both FLAC stems and the commit manifest existed only in the disposable cache directory.
+- Added a separate ignored full-source probe requiring explicit model, source, and cache environment variables. It preserves output under the supplied cache root for listening, prints elapsed time and artifact hashes, and rechecks source SHA-256 after completion.
+

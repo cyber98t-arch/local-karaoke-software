@@ -19,6 +19,8 @@ Observed 2026-11-05: native Windows MSVC compiled `ort`/`ort-sys` 2.0.0-rc.15 an
 
 Observed 2026-11-05: after an explicit 78.7 MB development-model download and exact SHA-256 verification, the ignored native model probe loaded the ONNX artifact and completed generated CPU inference in 1.35 seconds with valid output shapes and finite values.
 
+Observed 2026-11-05: the ignored native fixture-to-cache probe completed the full read-only decode, CPU inference, Rust signal-processing, FLAC validation, and cache-commit path in 1.41 seconds. The source fixture hash remained unchanged.
+
 ### Phase 2 library round trip
 
 1. Copy the repository MP3, FLAC, and WAV fixtures plus one ignored text or image file into a disposable folder; record recursive file names and SHA-256 values before launch.
