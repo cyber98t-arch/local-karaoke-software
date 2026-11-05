@@ -543,3 +543,12 @@
 - This completes the representative-source usefulness check for the native Rust/CPU-ONNX Spleeter path. No source modification, external API, GPU provider, or application release was involved.
 - Source duration/real-time factor and peak memory were not captured, so the 128.96-second observation is retained without claiming a speed ratio.
 
+## 2026-11-05 — CREPE tiny ONNX feasibility demonstrated
+
+- Reused the existing isolated TensorFlow/tf2onnx research environment with no new downloads. The pinned 1,307,310-byte compressed H5 passed bzip2 validation and expanded to 2,011,144 bytes with SHA-256 `409254d6a537cc432061112b7ec5f6fd283658f108fc2abc24db9c25858b42df`.
+- Reconstructed the official 487,096-parameter tiny architecture and converted it to an approximately 1.96 MB opset-13 ONNX model. Eight normalized frames matched TensorFlow at RMSE `4.4096e-8` and maximum absolute difference `6.1095e-7`.
+- Two conversions had different bytes/hashes but identical numerical results, so byte-determinism remains unresolved and an adopted artifact must be individually pinned.
+- CPU ONNX generated-tone probes estimated 110, 220, and 440 Hz within 1.586, 6.931, and 1.559 cents; each 2-second/201-frame inference took 0.053–0.089 seconds in the Linux container.
+- Added reproducible conversion and pitch-probe scripts plus `docs/phase-4-crepe-feasibility-results.md`. No model or generated artifact is committed.
+- Opened D-014 as `Waiting`; no CREPE production runtime, converted artifact, publication, or Viterbi strategy was adopted.
+

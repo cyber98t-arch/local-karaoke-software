@@ -144,3 +144,14 @@
 - Reason approval is required: Uploading the model creates a public release asset and distributes a converted model artifact; publishing is an explicit human approval gate.
 - Decision: Publish the exact verified artifact as a clearly labeled GitHub development prerelease with license and provenance notes. This does not approve a stable application release, installer, or automatic download endpoint.
 - Source: User approval on 2026-11-05.
+
+### D-014 — CREPE tiny production inference boundary
+
+- Status: Waiting
+- Question: Should the approved CREPE tiny melody family use a converted ONNX artifact with the existing native Rust CPU ONNX Runtime and application-owned Rust preprocessing/postprocessing?
+- Recommended option: Adopt native ONNX plus Rust signal processing. The 487,096-parameter model converts successfully to about 1.96 MB, agrees with TensorFlow within `6.11e-7`, and estimated 110/220/440 Hz generated tones within 6.94 cents. This avoids adding TensorFlow, Python, NumPy, resampy, or hmmlearn to the application.
+- Alternative: Bundle the original TensorFlow/Keras runtime. This preserves the upstream implementation directly but reintroduces the dependency size and memory strategy rejected for Spleeter.
+- Alternative if singing accuracy is insufficient: Evaluate CREPE small or Basic Pitch under a new artifact/license/performance comparison rather than silently changing capacity or family.
+- Scope if approved: Implement and test Rust-owned 16 kHz mono conversion, centered 1024-sample frames at 10 ms hops, normalization, native CPU inference, local-average cents decoding, confidence, and cache-only contour output. Do not publish an artifact, enable GPU providers, or adopt Viterbi smoothing under this decision.
+- Evidence: `docs/phase-4-crepe-feasibility-results.md`.
+- Reason approval is required: This selects the stable runtime and converted model-artifact strategy for the melody stage and excludes the upstream TensorFlow runtime from production.
