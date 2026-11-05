@@ -561,3 +561,12 @@
 - Added an ignored real-model probe requiring explicit `HIBIKI_CREPE_ONNX_MODEL` and exact SHA-256 `03fb909a5618fa9f19942e20de749bc8e658a1ac0df4a778b354c15b6f7a59d4`. The Linux Dev Container could not link the rc.15 prebuilt static ONNX Runtime because it requires newer glibc/libstdc++ symbols; this is the already documented container ABI limitation. No real native CREPE inference result is claimed.
 - Opened D-015 for the concrete melody-contour cache format. No contour artifact, model publication, Viterbi smoothing, GPU provider, or source-directory write was added.
 
+## 2026-11-05 — Versioned melody contour cache implemented
+
+- The user approved D-015's recommended JSON format. Added a schema-versioned `melody.json` containing the 16 kHz rate, 160-sample hop, model artifact ID and SHA-256, decoder name/version, and ordered time/frequency/confidence points.
+- RED evidence: three cache tests failed at the intentional commit placeholder, and the identity-derived pipeline test failed at its separate placeholder. GREEN evidence: all four focused tests passed after implementation.
+- The writer rejects invalid model identities, empty/nonfinite/out-of-range/unordered contours, syncs a request-specific temporary file, atomically renames it, validates and preserves an existing compatible cache, and refuses to replace an incompatible one.
+- The public pipeline accepts only an application cache root plus validated `AnalysisIdentity`; it derives the final directory before 16 kHz conversion, framing, injected inference, decoding, and cache commit. It receives in-memory vocals and never opens or writes a source file.
+- All 65 default Rust library tests and `cargo check --features native-onnx` passed. Added an ignored end-to-end native probe that requires an explicit verified model path; no model is loaded by normal tests.
+- Opened D-016 for optional publication of the exact 1,956,735-byte development artifact. No model or release was published.
+

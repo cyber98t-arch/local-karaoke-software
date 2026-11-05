@@ -108,5 +108,6 @@ release packaging still require reproducible hashes and Windows verification.
 D-014 approved 2026-11-05: implement CREPE tiny with the existing native CPU
 ONNX Runtime plus Rust-owned 16 kHz mono conversion, centered normalized frames,
 and local-average pitch decoding. The pure signal path and injected inference
-boundary are implemented; persistent contour output awaits D-015.
+boundary and validated, identity-derived `melody.json` output are implemented.
+Native Windows model execution awaits a separately supplied artifact.
 
