@@ -7,6 +7,8 @@ download path.
 ## Published artifact
 
 - File: `crepe-tiny-research.onnx`
+- Release: <https://github.com/cyber98t-arch/local-karaoke-software/releases/tag/model-crepe-tiny-onnx-dev-v1>
+- Download: <https://github.com/cyber98t-arch/local-karaoke-software/releases/download/model-crepe-tiny-onnx-dev-v1/crepe-tiny-research.onnx>
 - Bytes: `1,956,735`
 - SHA-256: `03fb909a5618fa9f19942e20de749bc8e658a1ac0df4a778b354c15b6f7a59d4`
 - ONNX opset: 13

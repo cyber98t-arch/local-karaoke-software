@@ -570,3 +570,11 @@
 - All 65 default Rust library tests and `cargo check --features native-onnx` passed. Added an ignored end-to-end native probe that requires an explicit verified model path; no model is loaded by normal tests.
 - Opened D-016 for optional publication of the exact 1,956,735-byte development artifact. No model or release was published.
 
+## 2026-11-05 — Development CREPE ONNX artifact published
+
+- After explicit D-016 approval, created GitHub prerelease `model-crepe-tiny-onnx-dev-v1`. It is a model-only development artifact, not an application release, installer, stable artifact, or automatic-download endpoint.
+- Uploaded only `crepe-tiny-research.onnx`. GitHub reported state `uploaded` and exactly 1,956,735 bytes.
+- A fresh streamed download produced SHA-256 `03fb909a5618fa9f19942e20de749bc8e658a1ac0df4a778b354c15b6f7a59d4`, exactly matching the pinned local conversion.
+- The release and repository metadata record the pinned H5 provenance, TensorFlow/tf2onnx versions, tensor contract, MIT upstream license, numerical comparison, and non-byte-deterministic conversion warning.
+- Native Windows CREPE model loading and full generated-vocal contour persistence remain the next user-run verification; no user audio is required for that probe.
+
