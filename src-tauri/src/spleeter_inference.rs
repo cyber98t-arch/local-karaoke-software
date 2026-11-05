@@ -149,6 +149,10 @@ mod tests {
     use ndarray::Array4;
     use std::{fs, path::PathBuf};
 
+    #[cfg(feature = "native-onnx")]
+    const DEVELOPMENT_MODEL_SHA256: &str =
+        "8d58651b5979075c954bcbe96c6776b2dc41e7852fb6f2d054b83a696a8db26f";
+
     struct VocalOnlyInference;
 
     impl SpectrogramInference for VocalOnlyInference {
@@ -218,5 +222,38 @@ mod tests {
             fs::read(source).expect("fixture should remain readable"),
             before
         );
+    }
+
+    #[cfg(feature = "native-onnx")]
+    #[test]
+    #[ignore = "requires HIBIKI_SPLEETER_ONNX_MODEL and performs native inference"]
+    fn loads_verified_development_model_and_runs_generated_input() {
+        use super::NativeOrtSession;
+        use crate::cache::content_sha256;
+
+        let model_path = PathBuf::from(
+            std::env::var_os("HIBIKI_SPLEETER_ONNX_MODEL")
+                .expect("HIBIKI_SPLEETER_ONNX_MODEL must name the downloaded ONNX file"),
+        );
+        assert_eq!(
+            content_sha256(&model_path).expect("model should be hashable"),
+            DEVELOPMENT_MODEL_SHA256,
+            "development model hash must match the published artifact"
+        );
+        let mut runtime = NativeOrtSession::from_file(&model_path)
+            .expect("verified development model should load");
+        let input = Array4::zeros((1, 512, 1024, 2));
+
+        let estimates = runtime
+            .infer(&input)
+            .expect("generated spectrogram inference should succeed");
+
+        assert_eq!(estimates.vocals.shape(), input.shape());
+        assert_eq!(estimates.accompaniment.shape(), input.shape());
+        assert!(estimates.vocals.iter().all(|value| value.is_finite()));
+        assert!(estimates
+            .accompaniment
+            .iter()
+            .all(|value| value.is_finite()));
     }
 }

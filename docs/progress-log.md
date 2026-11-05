@@ -511,3 +511,10 @@
 - This resolves the earlier Linux-container ABI link blocker for the approved Windows target. It does not yet prove model loading, real inference, output quality, runtime binary hashes, or installer packaging.
 - The run reported two unused test-import warnings because Unix-only process-worker tests are excluded on Windows. The imports are now guarded by `cfg(unix)`.
 
+## 2026-11-05 — Development ONNX artifact published
+
+- After explicit D-013 approval, created GitHub prerelease `model-spleeter-2stems-onnx-dev-v1`; this is a model-only development artifact, not an application release or installer.
+- Uploaded only `spleeter-2stems-repro.onnx`. GitHub reports state `uploaded` and exactly 78,652,254 bytes. A fresh streamed download, without retaining another copy, produced SHA-256 `8d58651b5979075c954bcbe96c6776b2dc41e7852fb6f2d054b83a696a8db26f`, matching the pinned local artifact.
+- Provenance, conversion versions, tensor contract, non-byte-determinism warning, and MIT license evidence are recorded in `docs/model-artifacts/spleeter-2stems-onnx-dev-v1.md` and the prerelease body.
+- Added an ignored, feature-gated Windows probe that requires an explicit `HIBIKI_SPLEETER_ONNX_MODEL` path, verifies the published SHA-256 before loading, and runs one generated zero-spectrogram inference. Normal tests never download or load the model.
+
