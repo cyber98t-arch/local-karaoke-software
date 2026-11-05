@@ -1,13 +1,16 @@
 use crate::analysis_worker::TranscriptionSegment;
+use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub enum AlignmentStatus {
     Matched,
     Unmatched,
     Ignored,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct AlignedLyricCharacter {
     pub text: String,
     pub byte_start: usize,
@@ -17,7 +20,8 @@ pub struct AlignedLyricCharacter {
     pub status: AlignmentStatus,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct LyricAlignment {
     pub original_text: String,
     pub characters: Vec<AlignedLyricCharacter>,

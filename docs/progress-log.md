@@ -641,3 +641,10 @@
 - Substitutions, deletions, and other unmatched characters remain explicitly un-timed instead of inheriting a fabricated timestamp. Invalid or unordered transcript segments are rejected.
 - Four focused tests passed for exact Japanese timing, a `天気→電気` recognition error, original punctuation/spacing preservation, and invalid inputs. No alignment cache, confidence threshold, correction UI, or scoring connection was selected.
 
+## 2026-11-05 — Versioned aligned-lyrics cache implemented
+
+- The user approved D-022. Added atomic `aligned-lyrics.json` persistence below the content/pipeline identity cache with schema and alignment-algorithm versions.
+- The manifest records SHA-256 of the exact authoritative UTF-8 lyric text, preserves the original display text, and stores each character's UTF-8 byte bounds, match status, and optional timing.
+- Validation requires complete contiguous reconstruction of the original text, valid UTF-8 boundaries, ordered positive timing for matched characters, and no fabricated timing for ignored/unmatched characters. Existing compatible artifacts are preserved.
+- Three focused cache tests and one identity-derived pipeline test passed. Confidence thresholds, correction UI, lyric-provider behavior, scoring, and live display remain outside this decision.
+

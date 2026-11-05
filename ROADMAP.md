@@ -114,6 +114,11 @@ drafts. Original display text is preserved, comparison punctuation/spacing is
 ignored, and recognition errors remain explicitly un-timed rather than being
 presented as confident matches.
 
+D-022 approved 2026-11-05: alignment output is persisted atomically as
+versioned `aligned-lyrics.json` beneath the identity-derived cache. Exact lyric
+text SHA-256, original display text, algorithm version, UTF-8 byte bounds,
+match status, and optional timestamps are validated before reuse.
+
 ## D-007 ONNX feasibility research criteria
 
 - Convert only the pinned Spleeter 2-stem artifact with a versioned, reviewable script; hash every input, output, and downloaded distribution.
