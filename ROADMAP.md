@@ -133,6 +133,11 @@ Path-free lyric UI boundary added 2026-11-05: pasted text is sent with only the
 content-hash song ID, while `.txt` selection and path handling stay in Rust.
 React receives only acceptance metadata, never the lyric file path or text.
 
+D-024 approved 2026-11-05: use a manual GitHub Actions `windows-2022` job to
+build the pinned CPU-only `whisper.cpp` CLI and retain hash/provenance/license
+evidence for seven days. This is development inspection only, not publication,
+bundling, model acquisition, or a release.
+
 ## D-007 ONNX feasibility research criteria
 
 - Convert only the pinned Spleeter 2-stem artifact with a versioned, reviewable script; hash every input, output, and downloaded distribution.

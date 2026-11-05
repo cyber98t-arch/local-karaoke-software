@@ -263,9 +263,11 @@
 
 ### D-024 — Reproducible Windows whisper.cpp development build
 
-- Status: Waiting
+- Status: Approved
 - Question: May the repository use GitHub Actions to build and inspect a pinned CPU-only Windows `whisper.cpp` CLI without requiring local user commands?
 - Recommended option: Add a manually triggered Windows workflow pinned to `whisper.cpp` v1.9.5 commit `d1be6fde11ac6e0407606b4e42fe72d34add8037`, disable GPU providers, record toolchain/version/options, generate SHA-256 plus license/notices, and retain the result only as a short-lived workflow artifact for development inspection.
 - Alternative: Ask the user to build the same executable locally with Visual Studio/CMake. This avoids CI artifacts but repeats environment setup and manual commands the user explicitly wants minimized.
 - Scope if approved: Workflow and provenance validation only. Do not publish a GitHub release, bundle the executable, download the 148 MB model, alter GPU strategy, or create an application release.
 - Reason approval is required: This introduces an external CI build/artifact workflow and is preparatory to native executable distribution; any publication or bundling remains separately gated.
+- Decision: Add a manually triggered GitHub Actions Windows CPU-only build for the pinned upstream commit, recording binary hash/size, build provenance, and MIT license in a seven-day development artifact.
+- Source: User approval on 2026-11-05.

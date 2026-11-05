@@ -1,0 +1,82 @@
+name: Build Windows whisper.cpp development CLI
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-2022
+    timeout-minutes: 30
+    env:
+      WHISPER_CPP_COMMIT: d1be6fde11ac6e0407606b4e42fe72d34add8037
+    steps:
+      - name: Fetch pinned whisper.cpp source
+        shell: pwsh
+        run: |
+          git init whisper.cpp
+          git -C whisper.cpp remote add origin https://github.com/ggml-org/whisper.cpp.git
+          git -C whisper.cpp fetch --depth 1 origin $env:WHISPER_CPP_COMMIT
+          git -C whisper.cpp checkout --detach FETCH_HEAD
+          $resolved = git -C whisper.cpp rev-parse HEAD
+          if ($resolved -ne $env:WHISPER_CPP_COMMIT) {
+            throw "Resolved whisper.cpp commit does not match the pin."
+          }
+
+      - name: Configure CPU-only x64 build
+        shell: pwsh
+        run: |
+          cmake -S whisper.cpp -B build -A x64 `
+            -DCMAKE_BUILD_TYPE=Release `
+            -DBUILD_SHARED_LIBS=OFF `
+            -DGGML_CUDA=OFF `
+            -DGGML_HIP=OFF `
+            -DGGML_VULKAN=OFF `
+            -DGGML_BLAS=OFF `
+            -DWHISPER_BUILD_TESTS=OFF `
+            -DWHISPER_BUILD_EXAMPLES=ON
+
+      - name: Build whisper-cli
+        shell: pwsh
+        run: cmake --build build --config Release --target whisper-cli --parallel 2
+
+      - name: Collect binary and provenance
+        shell: pwsh
+        run: |
+          $binary = Resolve-Path "build/bin/Release/whisper-cli.exe"
+          $output = New-Item -ItemType Directory -Path "artifact"
+          Copy-Item $binary "$output/whisper-cli.exe"
+          Copy-Item "whisper.cpp/LICENSE" "$output/LICENSE-whisper.cpp.txt"
+          $hash = (Get-FileHash $binary -Algorithm SHA256).Hash.ToLowerInvariant()
+          $size = (Get-Item $binary).Length
+          $cmakeVersion = (cmake --version | Select-Object -First 1)
+          $generator = Select-String -Path "build/CMakeCache.txt" -Pattern '^CMAKE_GENERATOR:INTERNAL=' | ForEach-Object { $_.Line.Split('=', 2)[1] }
+          $provenance = [ordered]@{
+            schemaVersion = 1
+            upstreamRepository = "https://github.com/ggml-org/whisper.cpp.git"
+            upstreamCommit = $env:WHISPER_CPP_COMMIT
+            upstreamTag = "v1.9.5"
+            runner = "windows-2022"
+            architecture = "x86_64"
+            configuration = "Release"
+            cmakeVersion = $cmakeVersion
+            cmakeGenerator = $generator
+            buildSharedLibs = $false
+            gpuProviders = @()
+            binary = "whisper-cli.exe"
+            byteSize = $size
+            sha256 = $hash
+            licenseSpdx = "MIT"
+          }
+          $provenance | ConvertTo-Json -Depth 4 | Set-Content "$output/provenance.json" -Encoding utf8
+          Get-Content "$output/provenance.json"
+
+      - name: Upload short-lived development artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: whisper-cpp-v1.9.5-windows-x64-cpu-dev
+          path: artifact/
+          if-no-files-found: error
+          retention-days: 7
