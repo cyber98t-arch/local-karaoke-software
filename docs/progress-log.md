@@ -585,3 +585,10 @@
 - The concept retains large synchronized lyrics, a fixed timing playhead, compact technique feedback, and secondary progress/microphone/key-shift/tempo controls. It shows no live total score or rank.
 - This is visual-direction approval only. Phase 6 scoring weights and implementation remain gated and were not started.
 
+## 2026-11-05 — Native Windows CREPE integration verified
+
+- The user explicitly downloaded `crepe-tiny-research.onnx`. PowerShell reported exactly 1,956,735 bytes and SHA-256 `03FB909A5618FA9F19942E20DE749BC8E658A1AC0DF4A778B354C15B6F7A59D4`, matching the published artifact.
+- The ignored native integration probe passed on Windows in 0.14 seconds. It loaded the verified model, converted two seconds of generated 44.1 kHz stereo vocals to 16 kHz mono, created 201 normalized frames, ran CPU ONNX inference, decoded pitch/confidence points, and committed validated `melody.json` under a disposable identity-derived cache.
+- This verifies the complete native melody path on generated input. It does not establish accuracy or confidence behavior on separated singing voice.
+- Added a separate ignored representative-vocal probe. It accepts explicit model, read-only vocal-stem, and cache-root paths; verifies the model and input hashes; decodes without modifying the stem; commits `melody.json` only beneath the identity-derived cache; and prints duration, hash, point count, and output path.
+
