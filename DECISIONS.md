@@ -205,9 +205,11 @@
 
 ### D-019 — Whisper transcript cache format
 
-- Status: Waiting
+- Status: Approved
 - Question: Should Phase 4 persist validated Whisper drafts as a versioned `transcript.json` beneath the identity-derived application cache?
 - Recommended option: Store an atomic, validated JSON artifact containing schema version, fixed `ja` language, source duration, model artifact ID and SHA-256, worker protocol version, and ordered `{ startMs, endMs, text }` segments. Mark it as a raw draft so later alignment or user correction cannot be confused with authoritative lyrics.
 - Alternative: Keep transcription only in memory until lyric alignment is selected. This avoids one migration boundary, but prevents resumable analysis and needlessly repeats the expensive transcription stage.
 - Scope if approved: Add the cache type, validation, atomic commit, preservation of an existing compatible artifact, and injected pipeline tests. Do not select alignment, correction UI, confidence policy, automatic model download, executable packaging, or a GPU provider.
 - Reason approval is required: This establishes a new persistent cache format and therefore crosses the repository's explicit cache-format approval gate.
+- Decision: Persist validated Japanese transcription drafts as atomic, versioned `transcript.json` artifacts only beneath the identity-derived application cache, using the recommended provenance and raw-draft fields.
+- Source: User approval on 2026-11-05.

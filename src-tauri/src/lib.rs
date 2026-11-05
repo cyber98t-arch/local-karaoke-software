@@ -18,6 +18,8 @@ pub mod separation_pipeline;
 pub mod spleeter_inference;
 pub mod spleeter_signal;
 pub mod stem_cache;
+pub mod transcript_cache;
+pub mod transcript_pipeline;
 
 #[cfg(not(test))]
 use library_commands::LibraryState;

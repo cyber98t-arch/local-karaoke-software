@@ -96,6 +96,12 @@ editable/aligned draft. D-018 approved the supervised protocol-v2 local-process
 boundary, which now has typed and tested Rust request/response validation.
 Persisting results awaits the D-019 transcript-cache decision.
 
+D-019 approved 2026-11-05: validated Japanese drafts are persisted atomically
+as versioned `transcript.json` artifacts beneath the identity-derived cache.
+The format records model and worker provenance and marks content as a raw draft;
+alignment, correction UI, confidence policy, and production worker packaging
+remain separate decisions.
+
 ## D-007 ONNX feasibility research criteria
 
 - Convert only the pinned Spleeter 2-stem artifact with a versioned, reviewable script; hash every input, output, and downloaded distribution.

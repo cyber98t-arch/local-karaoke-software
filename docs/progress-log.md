@@ -619,3 +619,10 @@
 - No cached `vocals.flac` was present, so the script safely skipped the optional representative-vocal probe and reported all currently runnable Phase 4 Windows checks passed.
 - No additional Windows command is pending from this batch. Representative-vocal contour quality remains unverified until a cache contains a suitable vocal stem.
 
+## 2026-11-05 — Versioned transcript draft cache implemented
+
+- The user approved D-019. Added atomic, schema-versioned `transcript.json` persistence beneath the existing content- and pipeline-identity cache directory.
+- Each artifact is explicitly marked `rawDraft` and records fixed Japanese language, duration, Whisper model artifact ID and SHA-256, worker protocol version, and ordered millisecond transcript segments.
+- Validation rejects unsafe identities, invalid hashes, zero durations, empty transcripts, blank text, overlaps, reversed intervals, and out-of-duration segments. A compatible existing artifact is preserved rather than replaced.
+- An injected pipeline test verifies worker output commits only below the derived cache and leaves the input audio bytes unchanged. Four focused transcript tests passed; no production Whisper executable, alignment, correction UI, confidence policy, or download path was added.
+
