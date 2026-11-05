@@ -10,7 +10,8 @@
 - Verified: All 65 default Rust library tests, `cargo check --features native-onnx`, frontend lint, 10 frontend tests, production build, default cargo check, and `git diff --check` pass. Windows loaded the exact CREPE model and completed generated-audio conversion, 201-frame CPU inference, decoding, and identity-derived `melody.json` persistence in 0.14 seconds.
 - Unverified: Contour quality/performance on representative separated singing; Windows runtime hashes/notices; Whisper; GPU providers; installer; and VMware guest.
 - Next safe action: On Windows, point `HIBIKI_MELODY_SOURCE` to the previously cached `vocals.flac`, set a separate `HIBIKI_MELODY_CACHE`, and run the ignored `melody_pipeline::tests::extracts_explicit_vocal_source_with_verified_native_model` probe. Review the resulting contour statistics before considering confidence thresholds or smoothing.
-- Blockers and decisions: The next step requires the user to select the existing cached `vocals.flac` path and run the Windows command. Confidence thresholds, Viterbi smoothing, stable model/application publishing, automatic downloads, GPU strategy, and release remain unapproved. The user's untracked `sample music/`, `screenshot/`, and attached `docs/ui-mockups/seimitsusaitenai-09.png` must never be staged.
+- Windows command queue: Run `scripts/windows/run-pending-phase4-checks.ps1` once later; `docs/windows-pending-commands.md` lists its checks. Future Windows-only commands should be appended there rather than sent piecemeal in chat.
+- Blockers and decisions: Representative Windows melody evidence is deferred to the consolidated script and does not block container-side work. Confidence thresholds, Viterbi smoothing, stable model/application publishing, automatic downloads, GPU strategy, and release remain unapproved. The user's untracked `sample music/`, `screenshot/`, and attached `docs/ui-mockups/seimitsusaitenai-09.png` must never be staged.
 
 ## Resume checklist
 

@@ -592,3 +592,9 @@
 - This verifies the complete native melody path on generated input. It does not establish accuracy or confidence behavior on separated singing voice.
 - Added a separate ignored representative-vocal probe. It accepts explicit model, read-only vocal-stem, and cache-root paths; verifies the model and input hashes; decodes without modifying the stem; commits `melody.json` only beneath the identity-derived cache; and prints duration, hash, point count, and output path.
 
+## 2026-11-05 — Windows checks consolidated
+
+- Added `scripts/windows/run-pending-phase4-checks.ps1` so pending native checks can be run as one batch instead of requiring repeated chat commands.
+- The script downloads only the already-approved 1.96 MB CREPE development artifact when absent, verifies exact size and SHA-256, runs the generated-input probe, discovers the newest cached `vocals.flac`, and runs the representative read-only probe when available.
+- Added `docs/windows-pending-commands.md` as the durable queue for future Windows-only checks. The Dev Container has no PowerShell runtime, so script execution remains Windows-unverified; all 65 default Rust tests and `git diff --check` passed after adding it.
+
