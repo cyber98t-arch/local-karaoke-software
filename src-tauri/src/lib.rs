@@ -10,6 +10,8 @@ pub mod crepe_signal;
 pub mod library;
 pub mod library_commands;
 pub mod library_service;
+pub mod melody_cache;
+pub mod melody_pipeline;
 pub mod metadata;
 pub mod model_manifest;
 pub mod separation_pipeline;

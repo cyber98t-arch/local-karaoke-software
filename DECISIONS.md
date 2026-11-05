@@ -160,9 +160,11 @@
 
 ### D-015 — Melody contour cache format
 
-- Status: Waiting
+- Status: Approved
 - Question: Which concrete cache format should persist the pre-playback CREPE melody contour?
 - Recommended option: Commit one versioned `melody.json` beneath the analysis-identity-derived cache. Store the schema version, 16 kHz input rate, 10 ms hop, model artifact identity and SHA-256, decoder name/version, and ordered points containing time, frequency, and confidence. Write a request-specific temporary file, validate finite values and monotonic timestamps, sync it, then atomically rename it without replacing an existing valid contour.
 - Alternative: Store a compact binary array plus a separate JSON manifest. This reduces size and parse time, but adds a second format and migration surface before contour size is demonstrated to be a problem.
 - Scope if approved: Derived cache only; never write beside a source. Do not add smoothing, voiced/unvoiced thresholding, lyrics, scoring weights, model publication, or a UI contract under this decision.
 - Reason approval is required: This selects a persistent derived-artifact cache format and validation/migration boundary.
+- Decision: Store one versioned, validated `melody.json` under the analysis-identity-derived cache, including model provenance and ordered time/frequency/confidence points. Commit it atomically without replacing an existing valid contour.
+- Source: User approval on 2026-11-05.

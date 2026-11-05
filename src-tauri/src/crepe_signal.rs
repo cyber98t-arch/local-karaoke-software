@@ -1,5 +1,6 @@
 use ndarray::Array2;
 use rubato::{audioadapter_buffers::direct::InterleavedSlice, Fft, FixedSync, Resampler};
+use serde::{Deserialize, Serialize};
 
 pub const CREPE_SAMPLE_RATE: u32 = 16_000;
 pub const CREPE_WINDOW: usize = 1_024;
@@ -39,7 +40,8 @@ pub fn mono_for_crepe(stereo: &[[f32; 2]], sample_rate: u32) -> Result<Vec<f32>,
         .take_data())
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct PitchPoint {
     pub time_seconds: f32,
     pub frequency_hz: f32,
