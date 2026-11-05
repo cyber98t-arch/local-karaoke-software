@@ -648,3 +648,10 @@
 - Validation requires complete contiguous reconstruction of the original text, valid UTF-8 boundaries, ordered positive timing for matched characters, and no fabricated timing for ignored/unmatched characters. Existing compatible artifacts are preserved.
 - Three focused cache tests and one identity-derived pipeline test passed. Confidence thresholds, correction UI, lyric-provider behavior, scoring, and live display remain outside this decision.
 
+## 2026-11-05 — Resumable Phase 4 orchestration foundation added
+
+- Added an injected coordinator that drives separation, melody, transcription, and alignment in order while appending the existing atomic typed job snapshots.
+- A fresh job starts queued; interrupted/running or retryable failed jobs resume at their recorded stage; completed jobs return without repeating work. Stage failures retain an actionable message and retryable stage identity.
+- Cancellation is checked between stages and passed into each long-running stage for cooperative interruption. Cancelled and non-retryable terminal jobs cannot be resumed silently.
+- Four focused tests passed for ordered completion, retry from transcription, cancellation between stages, and cancellation returned by a running stage. No Tauri command, UI, model download, or source-directory write was added.
+

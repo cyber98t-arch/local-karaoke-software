@@ -207,6 +207,17 @@ fn latest_state_snapshot(directory: &Path) -> Result<Option<(u64, AnalysisJobSta
         .transpose()
 }
 
+pub fn latest_job_state(
+    cache_root: &Path,
+    identity: &AnalysisIdentity,
+) -> Result<Option<AnalysisJobState>, String> {
+    let directory = identity.cache_directory(cache_root)?;
+    if !directory.exists() {
+        return Ok(None);
+    }
+    latest_state_snapshot(&directory).map(|latest| latest.map(|(_, state)| state))
+}
+
 fn snapshot_sequence(name: &str) -> Option<u64> {
     let digits = name.strip_prefix("state-")?.strip_suffix(".json")?;
     (digits.len() == 6 && digits.bytes().all(|byte| byte.is_ascii_digit()))

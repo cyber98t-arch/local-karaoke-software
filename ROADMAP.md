@@ -119,6 +119,11 @@ versioned `aligned-lyrics.json` beneath the identity-derived cache. Exact lyric
 text SHA-256, original display text, algorithm version, UTF-8 byte bounds,
 match status, and optional timestamps are validated before reuse.
 
+Phase 4 orchestration foundation added 2026-11-05: the existing versioned job
+snapshots now drive the four approved local stages in order, resume at a
+retryable failed/running stage, expose cooperative cancellation during long
+stages, and keep terminal jobs terminal. Concrete application/UI wiring remains.
+
 ## D-007 ONNX feasibility research criteria
 
 - Convert only the pinned Spleeter 2-stem artifact with a versioned, reviewable script; hash every input, output, and downloaded distribution.

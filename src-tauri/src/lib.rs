@@ -2,6 +2,7 @@ pub mod aligned_lyrics_cache;
 pub mod aligned_lyrics_pipeline;
 pub mod analysis_audio;
 pub mod analysis_job;
+pub mod analysis_pipeline;
 pub mod analysis_worker;
 pub mod audio_devices;
 pub mod audio_probe;
