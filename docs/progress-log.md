@@ -722,3 +722,9 @@
 - The concrete runner now converts the validated cached vocal stem to an atomic 16-bit stereo PCM WAV below the identity cache before invoking transcription, avoiding an unsupported assumption that the CPU CLI accepts FLAC directly.
 - A round-trip decode test and the full four-stage injected integration test passed. Temporary output is removed by atomic rename and no file is created beside the original music.
 
+## 2026-11-06 — Direct Rust whisper.cpp backend added
+
+- Added a production-oriented Rust backend that verifies the pinned CLI byte size and SHA-256, verifies the exact cache-owned WAV and model hashes, launches `whisper-cli` without a shell using fixed Japanese JSON arguments, enforces a timeout, and parses timestamped output into the typed protocol response.
+- Corrected transcription request identity to hash the actual cache-owned WAV rather than incorrectly reusing the original song hash. The original content identity remains part of the cache path.
+- Two backend tests, the typed request-contract test, the four-stage integration test, and default `cargo check` passed. The development Python adapter remains research-only and is no longer required by this concrete runtime path.
+

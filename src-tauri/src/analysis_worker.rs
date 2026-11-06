@@ -367,13 +367,15 @@ where
         if !is_sha256(expected_model_sha256) {
             return Err("transcription model identity must be a lowercase SHA-256".to_owned());
         }
+        let expected_input_sha256 = crate::cache::content_sha256(input_audio_path)
+            .map_err(|error| format!("transcription input could not be hashed: {error}"))?;
         let request = WorkerRequest {
             protocol_version: ANALYSIS_WORKER_PROTOCOL_VERSION,
             request_id: request_id.to_owned(),
             operation: WorkerOperation::TranscribeJapanese {
                 input_audio_path: input_audio_path.to_owned(),
                 model_path: model_path.to_owned(),
-                expected_source_sha256: identity.source_sha256.clone(),
+                expected_source_sha256: expected_input_sha256,
                 expected_model_sha256: expected_model_sha256.to_owned(),
                 language: "ja".to_owned(),
             },
@@ -691,6 +693,12 @@ mod tests {
                 .pointer("/operation/transcribeJapanese/expectedModelSha256")
                 .and_then(serde_json::Value::as_str),
             Some("cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc")
+        );
+        assert_eq!(
+            encoded
+                .pointer("/operation/transcribeJapanese/expectedSourceSha256")
+                .and_then(serde_json::Value::as_str),
+            Some(crate::cache::content_sha256(&input).unwrap().as_str())
         );
         fs::remove_dir_all(directory).unwrap();
     }

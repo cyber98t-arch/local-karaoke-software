@@ -29,6 +29,7 @@ pub mod spleeter_signal;
 pub mod stem_cache;
 pub mod transcript_cache;
 pub mod transcript_pipeline;
+pub mod whisper_cpp_backend;
 
 #[cfg(not(test))]
 use library_commands::LibraryState;

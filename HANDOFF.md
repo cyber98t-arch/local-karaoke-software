@@ -2,7 +2,7 @@
 
 - Updated: 2026-11-06
 - Current phase: Phase 3 complete; Phase 4 in progress. All four local analysis foundations, caches, resumable orchestration, and path-free local lyric input exist; full analysis command wiring and Windows Whisper packaging evidence remain.
-- Current implementation: D-024 and D-025 are complete. Phase 4 now has a Rust-only hash-revalidating source resolver, validated cache handoffs, and a concrete injected runner that completes separation, melody, transcription, and alignment under one identity without changing source bytes.
+- Current implementation: D-024 and D-025 are complete. Phase 4 now has a hash-revalidating source resolver, validated cache handoffs, a concrete four-stage runner, cache-owned PCM preparation, and a direct Rust `whisper-cli` backend that does not require Python in production.
 - Recent commits: `6ab9670` records the bounded Whisper feasibility result; `a2cdeae` adds the typed protocol-v2 local-process boundary and response validation.
 - Repository state: CREPE has Rust-owned 16 kHz conversion, centered normalized frames, native/injected ONNX inference, local-average decoding, and identity-derived cache-only persistence. The exact development artifact is available from GitHub prerelease `model-crepe-tiny-onnx-dev-v1`; no automatic download path uses it.
 - Approved UI reference: `docs/ui-mockups/singing-screen-concept-v5.png`. Target pitch uses cyan outlined frames; correct sampled pitch uses same-sized yellow blocks; incorrect sampled pitch uses same-sized red blocks on its detected row. No smooth live-pitch line or live total score.
@@ -19,7 +19,7 @@
 - Analysis orchestration: Existing atomic job snapshots now drive all four stages in order, resume retryable work, and expose cooperative cancellation. Four focused tests pass.
 - Authoritative lyrics: D-023 accepts bounded pasted text or read-only UTF-8 `.txt`, hashes exact display text, and makes no lyric-network request. Three focused tests pass.
 - Lyric UI boundary: Rust owns native paths and lyric bodies; React receives acceptance metadata only. Three focused Rust command tests, lint, and build pass; two new UI tests are written but container Vitest still stalls at startup.
-- Next safe action: Add a direct Rust `whisper-cli` backend plus native runtime/model preflight and a background start command, then connect path-free status/cancel/retry controls to the UI. Do not yet bundle the executable or add automatic model acquisition.
+- Next safe action: Add native Spleeter/CREPE runtime and model preflight plus a background start command, then connect path-free status/cancel/retry controls to the UI. Do not yet bundle the executable or add automatic model acquisition.
 - Windows command queue: The user ran `scripts/windows/run-pending-phase4-checks.ps1`; exact-model verification and the generated-vocal probe passed, while the optional representative-vocal probe was safely skipped because no cached `vocals.flac` existed. Future Windows-only commands should be appended to `docs/windows-pending-commands.md` rather than sent piecemeal in chat.
 - Blockers and decisions: The Windows Whisper development executable is published and verified, but application bundling and application release remain unapproved. Confidence thresholds, full lyric correction UX, Viterbi smoothing, stable model/application publishing, GPU strategy, and release remain unapproved. The user's untracked `sample music/`, `screenshot/`, and attached `docs/ui-mockups/seimitsusaitenai-09.png` must never be staged.
 
