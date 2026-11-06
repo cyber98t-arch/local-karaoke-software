@@ -1,6 +1,7 @@
 pub mod aligned_lyrics_cache;
 pub mod aligned_lyrics_pipeline;
 pub mod analysis_audio;
+pub mod analysis_commands;
 pub mod analysis_job;
 pub mod analysis_pipeline;
 pub mod analysis_worker;
@@ -54,6 +55,7 @@ pub fn run() {
             std::fs::create_dir_all(&application_data)?;
             app.manage(LibraryState::new(application_data.join("catalog.sqlite3")));
             app.manage(lyrics_commands::LyricsState::default());
+            app.manage(analysis_commands::AnalysisCommandState::default());
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
@@ -65,7 +67,9 @@ pub fn run() {
             library_commands::index_selected_library,
             library_commands::load_library_catalog,
             lyrics_commands::set_pasted_lyrics,
-            lyrics_commands::select_lyrics_file
+            lyrics_commands::select_lyrics_file,
+            analysis_commands::get_analysis_status,
+            analysis_commands::cancel_analysis
         ])
         .run(tauri::generate_context!())
         .expect("failed to run Hibiki");

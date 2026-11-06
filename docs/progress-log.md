@@ -711,3 +711,9 @@
 - A full injected integration test completed all four stages and produced stems, `melody.json`, `transcript.json`, and `aligned-lyrics.json` beneath one identity-derived cache while preserving the source bytes exactly.
 - The runner uses injected inference/process backends so normal tests do not load models. Native runtime construction, application state, and Tauri/UI commands remain the next layer.
 
+## 2026-11-06 — Path-free analysis command state added
+
+- Added a Rust-owned per-song job registry with typed state, duplicate-active-job rejection, cooperative atomic cancellation, and safe retry replacement after terminal state.
+- Registered path-free Tauri commands for status lookup and cancellation. Two focused tests passed; no source/model/cache path is serialized to React.
+- The start command remains intentionally unregistered until native model/runtime preflight is connected, so the UI cannot report fake analysis progress.
+
