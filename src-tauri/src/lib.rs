@@ -13,6 +13,7 @@ pub mod crepe_signal;
 pub mod library;
 pub mod library_commands;
 pub mod library_service;
+pub mod local_analysis_runner;
 pub mod lyric_alignment;
 pub mod lyrics_commands;
 pub mod lyrics_input;

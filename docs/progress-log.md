@@ -705,3 +705,9 @@
 - Added readers that revalidate the stem manifest and hashes before decoding cached `vocals.flac` for melody extraction, and revalidate transcript identity, protocol, language, duration, and segments before lyric alignment.
 - Two focused tests passed for the separation-to-melody and transcription-to-alignment handoffs. Downstream stages consume only cache-owned artifacts; no source path is exposed to React.
 
+## 2026-11-06 — Concrete four-stage local analysis runner added
+
+- Added a typed runner that executes separation, reloads validated cached vocals for melody extraction, transcribes the cache-owned vocal stem, reloads the validated transcript, and aligns authoritative lyrics.
+- A full injected integration test completed all four stages and produced stems, `melody.json`, `transcript.json`, and `aligned-lyrics.json` beneath one identity-derived cache while preserving the source bytes exactly.
+- The runner uses injected inference/process backends so normal tests do not load models. Native runtime construction, application state, and Tauri/UI commands remain the next layer.
+
