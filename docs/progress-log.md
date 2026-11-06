@@ -747,3 +747,10 @@
 - The completed state enables singing. Cancelled work remains visibly terminal rather than claiming it can resume through the existing terminal cache snapshot.
 - All 15 song-library UI tests passed, including new start/stage, cancel, and retry cases. Frontend lint, production build, default cargo check, native-ONNX cargo check, and `git diff --check` also passed.
 
+## 2026-11-06 — One-command Windows native development launch added
+
+- Added `scripts/windows/start-phase4-native-dev.ps1` to acquire only missing approved development artifacts, verify all four exact byte sizes and SHA-256 values, set process-local paths, and start Tauri with the `native-onnx` feature.
+- A clean machine downloads approximately 220 MiB into temporary names below the Git-ignored `models` directory. Existing invalid files cause a hard failure and are never overwritten; `-SkipDownload` and `-VerifyOnly` provide stricter modes.
+- HTTP redirect checks returned 200 for the published Spleeter ONNX, CREPE ONNX, pinned Whisper base model, and CPU-only Windows `whisper-cli` URLs. No artifact body was downloaded during this container check.
+- The script does not bundle models, select a GPU provider, publish an application, or write beside source music. Actual PowerShell execution and the first UI-driven four-stage run remain Windows-only verification.
+

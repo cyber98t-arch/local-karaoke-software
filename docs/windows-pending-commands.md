@@ -1,6 +1,34 @@
 # Pending Windows commands
 
-Updated: 2026-11-05
+Updated: 2026-11-06
+
+## Run the Phase 4 native development app
+
+The selected-song UI is now connected to the real four-stage local analysis
+runner. From the repository root, this single command verifies or downloads the
+four pinned development artifacts and starts Tauri with `native-onnx` enabled:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\windows\start-phase4-native-dev.ps1
+```
+
+When all four files are absent, the script downloads approximately 220 MiB in
+total: Spleeter ONNX (75.0 MiB), CREPE ONNX (1.9 MiB), multilingual Whisper base
+(141.1 MiB), and the CPU-only Windows `whisper-cli` (2.0 MiB). Each file is
+downloaded to a temporary name, checked against its pinned byte size and
+SHA-256, and only then moved under the Git-ignored `models` directory. Existing
+files are never replaced silently. Use `-SkipDownload` to prohibit downloads,
+or `-VerifyOnly` to validate everything without starting the app.
+
+In the app, choose a music folder, select a song, provide its correct lyrics,
+and click **この曲を解析**. The UI reports separation, melody extraction,
+transcription, and alignment without exposing a source path. Derived files are
+written only to the application analysis cache.
+
+This script is for the development environment only. It does not bundle models,
+publish an application, or enable a GPU provider.
+
+## Run the older focused CREPE checks
 
 This is the single queue for native Windows checks that cannot run in the Dev
 Container. Do not copy individual commands from chat. Pull the latest `main`,
