@@ -1,8 +1,8 @@
 # Current handoff
 
-- Updated: 2026-11-05
+- Updated: 2026-11-06
 - Current phase: Phase 3 complete; Phase 4 in progress. All four local analysis foundations, caches, resumable orchestration, and path-free local lyric input exist; full analysis command wiring and Windows Whisper packaging evidence remain.
-- Current implementation: D-024 manual Windows CPU-only `whisper.cpp` workflow is ready for validation, commit, and dispatch.
+- Current implementation commit: `3836dce` adds the approved D-024 manual Windows CPU-only `whisper.cpp` workflow and is pushed. The workflow has not yet run.
 - Recent commits: `6ab9670` records the bounded Whisper feasibility result; `a2cdeae` adds the typed protocol-v2 local-process boundary and response validation.
 - Repository state: CREPE has Rust-owned 16 kHz conversion, centered normalized frames, native/injected ONNX inference, local-average decoding, and identity-derived cache-only persistence. The exact development artifact is available from GitHub prerelease `model-crepe-tiny-onnx-dev-v1`; no automatic download path uses it.
 - Approved UI reference: `docs/ui-mockups/singing-screen-concept-v5.png`. Target pitch uses cyan outlined frames; correct sampled pitch uses same-sized yellow blocks; incorrect sampled pitch uses same-sized red blocks on its detected row. No smooth live-pitch line or live total score.
@@ -19,9 +19,9 @@
 - Analysis orchestration: Existing atomic job snapshots now drive all four stages in order, resume retryable work, and expose cooperative cancellation. Four focused tests pass.
 - Authoritative lyrics: D-023 accepts bounded pasted text or read-only UTF-8 `.txt`, hashes exact display text, and makes no lyric-network request. Three focused tests pass.
 - Lyric UI boundary: Rust owns native paths and lyric bodies; React receives acceptance metadata only. Three focused Rust command tests, lint, and build pass; two new UI tests are written but container Vitest still stalls at startup.
-- Next safe action: Validate and dispatch the approved D-024 workflow, then record its binary hash/size and build evidence. Do not publish or bundle the artifact.
+- Next safe action: Manually run **Build Windows whisper.cpp development CLI** from the repository Actions tab. After it completes, inspect the artifact/log and record binary hash/size/build evidence. Do not publish or bundle it.
 - Windows command queue: The user ran `scripts/windows/run-pending-phase4-checks.ps1`; exact-model verification and the generated-vocal probe passed, while the optional representative-vocal probe was safely skipped because no cached `vocals.flac` existed. Future Windows-only commands should be appended to `docs/windows-pending-commands.md` rather than sent piecemeal in chat.
-- Blockers and decisions: Windows workflow evidence is pending; publication/bundling remains a later gate. Confidence thresholds, full lyric correction UX, Viterbi smoothing, stable model/application publishing, GPU strategy, and release remain unapproved. The user's untracked `sample music/`, `screenshot/`, and attached `docs/ui-mockups/seimitsusaitenai-09.png` must never be staged.
+- Blockers and decisions: Workflow dispatch requires a user click because this environment has no `gh` executable or API token. Windows evidence is pending; publication/bundling remains a later gate. Confidence thresholds, full lyric correction UX, Viterbi smoothing, stable model/application publishing, GPU strategy, and release remain unapproved. The user's untracked `sample music/`, `screenshot/`, and attached `docs/ui-mockups/seimitsusaitenai-09.png` must never be staged.
 
 ## Resume checklist
 

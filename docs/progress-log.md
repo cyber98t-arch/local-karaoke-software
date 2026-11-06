@@ -668,3 +668,9 @@
 - The selected-song card now supports paste/edit submission and native `.txt` selection with local-only success/error states. Indexed song IDs are no longer decorated in React, preserving their catalog content identity.
 - Three focused Rust command tests, frontend lint, and production build passed. Two frontend interaction tests were added, but the container Vitest process again stalled immediately after startup even with one fork worker, so they are not reported as passed.
 
+## 2026-11-06 — Windows whisper.cpp development workflow added
+
+- The user approved D-024. Added a manual `windows-2022` workflow that fetches only pinned `whisper.cpp` commit `d1be6fde11ac6e0407606b4e42fe72d34add8037`, configures an x64 CPU-only static Release build, and builds `whisper-cli`.
+- The seven-day development artifact is configured to contain only `whisper-cli.exe`, the upstream MIT license, and JSON provenance with revision, build options, toolchain/generator, byte size, and SHA-256. It does not download the Whisper model or publish a release.
+- The workflow file was accepted by GitHub on push. It has not been dispatched: this development environment has neither the GitHub CLI nor a GitHub API token, so it cannot start a manual workflow without new credentials/tool installation or a user click.
+
