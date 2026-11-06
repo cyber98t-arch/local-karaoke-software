@@ -4,6 +4,7 @@ pub mod analysis_audio;
 pub mod analysis_commands;
 pub mod analysis_job;
 pub mod analysis_pipeline;
+pub mod analysis_runtime;
 pub mod analysis_worker;
 pub mod audio_devices;
 pub mod audio_probe;

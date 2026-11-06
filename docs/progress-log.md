@@ -728,3 +728,9 @@
 - Corrected transcription request identity to hash the actual cache-owned WAV rather than incorrectly reusing the original song hash. The original content identity remains part of the cache path.
 - Two backend tests, the typed request-contract test, the four-stage integration test, and default `cargo check` passed. The development Python adapter remains research-only and is no longer required by this concrete runtime path.
 
+## 2026-11-06 — Native analysis artifact preflight added
+
+- Added one development configuration boundary for the exact published Spleeter ONNX, CREPE ONNX, Whisper base model, and Windows `whisper-cli` artifacts.
+- Every file must be explicitly configured and match its pinned byte size and SHA-256 before analysis can start. A focused test covers exact acceptance plus size/hash rejection, and default `cargo check` passed.
+- This is a local development preflight only; it does not bundle or automatically download any artifact.
+
