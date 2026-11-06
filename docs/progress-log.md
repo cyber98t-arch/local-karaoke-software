@@ -673,4 +673,6 @@
 - The user approved D-024. Added a manual `windows-2022` workflow that fetches only pinned `whisper.cpp` commit `d1be6fde11ac6e0407606b4e42fe72d34add8037`, configures an x64 CPU-only static Release build, and builds `whisper-cli`.
 - The seven-day development artifact is configured to contain only `whisper-cli.exe`, the upstream MIT license, and JSON provenance with revision, build options, toolchain/generator, byte size, and SHA-256. It does not download the Whisper model or publish a release.
 - The workflow file was accepted by GitHub on push. It has not been dispatched: this development environment has neither the GitHub CLI nor a GitHub API token, so it cannot start a manual workflow without new credentials/tool installation or a user click.
+- The user dispatched run `42135598802`. All build and upload steps succeeded in 1 minute 28 seconds. GitHub reported one 901,923-byte artifact with archive SHA-256 `548da9d9a17b52211ebeb7fc79eba5962fb6cf564b1c54ef8bcadafbca3de992`, expiring 2026-11-13.
+- GitHub requires authentication to download even a public repository's Actions artifact and detailed step log, while this environment has no API token. Updated the workflow to duplicate provenance into the public Job Summary so a second run can be inspected without downloading or publishing the artifact.
 

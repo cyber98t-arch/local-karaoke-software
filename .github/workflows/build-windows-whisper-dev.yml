@@ -70,8 +70,16 @@ jobs:
             sha256 = $hash
             licenseSpdx = "MIT"
           }
-          $provenance | ConvertTo-Json -Depth 4 | Set-Content "$output/provenance.json" -Encoding utf8
+          $provenanceJson = $provenance | ConvertTo-Json -Depth 4
+          $provenanceJson | Set-Content "$output/provenance.json" -Encoding utf8
           Get-Content "$output/provenance.json"
+          @(
+            "## Windows whisper.cpp development provenance"
+            ""
+            '```json'
+            $provenanceJson
+            '```'
+          ) | Add-Content $env:GITHUB_STEP_SUMMARY -Encoding utf8
 
       - name: Upload short-lived development artifact
         uses: actions/upload-artifact@v4
