@@ -70,18 +70,18 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          @"
-          Development-only CPU build of `whisper.cpp` `whisper-cli` for Windows x64 integration testing.
+          @'
+          Development-only CPU build of whisper.cpp whisper-cli for Windows x64 integration testing.
 
-          - Upstream: `ggml-org/whisper.cpp` v1.9.5
-          - Commit: `d1be6fde11ac6e0407606b4e42fe72d34add8037`
-          - Binary size: `2,115,584` bytes
-          - Binary SHA-256: `e8c1a1390c22ec4bb48c5a32ccd65942303c8633b09d6f897e1a1562d19ba7f2`
+          - Upstream: ggml-org/whisper.cpp v1.9.5
+          - Commit: d1be6fde11ac6e0407606b4e42fe72d34add8037
+          - Binary size: 2,115,584 bytes
+          - Binary SHA-256: e8c1a1390c22ec4bb48c5a32ccd65942303c8633b09d6f897e1a1562d19ba7f2
           - Configuration: Windows x86_64 Release, static libraries, CPU only
           - License: MIT
 
           This is not an application release, installer, stable distribution, or model download. Verify the executable hash before development use.
-          "@ | Set-Content -LiteralPath "release-notes.md" -Encoding utf8
+          '@ | Set-Content -LiteralPath "release-notes.md" -Encoding utf8
 
           gh release create $env:RELEASE_TAG `
             --repo $env:GITHUB_REPOSITORY `
