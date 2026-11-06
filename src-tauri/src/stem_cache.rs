@@ -22,6 +22,12 @@ pub struct StemCacheArtifacts {
     pub accompaniment_sha256: String,
 }
 
+pub fn load_cached_vocals(cache_directory: &Path) -> io::Result<(u32, Vec<[f32; 2]>)> {
+    validate_existing(cache_directory, &cache_directory.join("stems.json"))?;
+    let decoded = decode_for_analysis(&cache_directory.join("vocals.flac"))?;
+    Ok((decoded.sample_rate, decoded.stereo_frames))
+}
+
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 struct StemManifest {
@@ -195,7 +201,7 @@ fn invalid_data(error: impl Into<Box<dyn std::error::Error + Send + Sync>>) -> i
 
 #[cfg(test)]
 mod tests {
-    use super::commit_stems;
+    use super::{commit_stems, load_cached_vocals};
     use crate::{analysis_audio::decode_for_analysis, spleeter_inference::SeparatedWaveforms};
     use std::{
         fs,
@@ -257,6 +263,18 @@ mod tests {
         assert!(!directory.0.join("vocals.tmp.flac").exists());
         assert!(!directory.0.join("accompaniment.tmp.flac").exists());
         assert!(!directory.0.join("stems.json.tmp").exists());
+    }
+
+    #[test]
+    fn reloads_validated_vocals_for_the_melody_stage() {
+        let directory = TestDirectory::new();
+        let stems = generated_stems();
+        commit_stems(&directory.0, &stems).unwrap();
+
+        let (sample_rate, vocals) = load_cached_vocals(&directory.0).unwrap();
+
+        assert_eq!(sample_rate, 44_100);
+        assert_eq!(vocals.len(), stems.vocals.len());
     }
 
     #[test]

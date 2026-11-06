@@ -700,3 +700,8 @@
 - Before analysis use, the boundary verifies that the source is still a file and recomputes its SHA-256 read-only. Missing or externally changed sources fail with an actionable re-index message instead of analyzing stale catalog identity.
 - Three focused tests passed for catalog identity lookup, unchanged source resolution with byte-for-byte preservation, and rejection after external mutation. No analysis process, model acquisition, or source-directory write was started by this step.
 
+## 2026-11-06 — Validated analysis-stage cache handoff added
+
+- Added readers that revalidate the stem manifest and hashes before decoding cached `vocals.flac` for melody extraction, and revalidate transcript identity, protocol, language, duration, and segments before lyric alignment.
+- Two focused tests passed for the separation-to-melody and transcription-to-alignment handoffs. Downstream stages consume only cache-owned artifacts; no source path is exposed to React.
+

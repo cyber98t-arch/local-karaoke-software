@@ -36,6 +36,26 @@ pub struct TranscriptCacheArtifact {
     pub segment_count: usize,
 }
 
+pub fn load_transcript_segments(
+    cache_directory: &Path,
+    expected: &TranscriptIdentity,
+) -> io::Result<Vec<TranscriptionSegment>> {
+    validate_identity(expected)?;
+    let bytes = fs::read(cache_directory.join("transcript.json"))?;
+    let manifest: TranscriptManifest = serde_json::from_slice(&bytes).map_err(invalid_data)?;
+    if manifest.schema_version != SCHEMA_VERSION
+        || !manifest.raw_draft
+        || manifest.language != "ja"
+        || manifest.model_artifact_id != expected.model_artifact_id
+        || manifest.model_sha256 != expected.model_sha256
+        || manifest.worker_protocol_version != expected.worker_protocol_version
+    {
+        return Err(invalid_data("transcript cache identity does not match"));
+    }
+    validate_segments(manifest.duration_ms, &manifest.segments)?;
+    Ok(manifest.segments)
+}
+
 pub fn commit_transcript(
     cache_directory: &Path,
     identity: &TranscriptIdentity,
@@ -162,7 +182,7 @@ fn invalid_data(error: impl Into<Box<dyn std::error::Error + Send + Sync>>) -> i
 
 #[cfg(test)]
 mod tests {
-    use super::{commit_transcript, TranscriptIdentity};
+    use super::{commit_transcript, load_transcript_segments, TranscriptIdentity};
     use crate::analysis_worker::TranscriptionSegment;
     use serde_json::Value;
     use std::{
@@ -188,6 +208,32 @@ mod tests {
         fn drop(&mut self) {
             fs::remove_dir_all(&self.0).unwrap();
         }
+    }
+
+    #[test]
+    fn reloads_validated_segments_for_the_alignment_stage() {
+        let directory = TestDirectory::new();
+        let identity = TranscriptIdentity {
+            model_artifact_id: "whisper-base".into(),
+            model_sha256: "a".repeat(64),
+            worker_protocol_version: 2,
+        };
+        let segments = vec![TranscriptionSegment {
+            start_ms: 0,
+            end_ms: 500,
+            text: "今日は".into(),
+        }];
+        commit_transcript(&directory.0, &identity, 600, &segments).unwrap();
+
+        assert_eq!(
+            load_transcript_segments(&directory.0, &identity).unwrap(),
+            segments
+        );
+        let wrong = TranscriptIdentity {
+            model_sha256: "b".repeat(64),
+            ..identity
+        };
+        assert!(load_transcript_segments(&directory.0, &wrong).is_err());
     }
     fn identity() -> TranscriptIdentity {
         TranscriptIdentity {
