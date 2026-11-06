@@ -1,5 +1,9 @@
 use rubato::{audioadapter_buffers::direct::InterleavedSlice, Fft, FixedSync, Resampler};
-use std::{fs::File, io, path::Path};
+use std::{
+    fs::{self, File, OpenOptions},
+    io::{self, Write},
+    path::{Path, PathBuf},
+};
 use symphonia::{
     core::{
         codecs::audio::AudioDecoderOptions,
@@ -15,6 +19,66 @@ use symphonia::{
 pub struct DecodedAudio {
     pub sample_rate: u32,
     pub stereo_frames: Vec<[f32; 2]>,
+}
+
+pub fn write_pcm16_wav(
+    output_path: &Path,
+    sample_rate: u32,
+    frames: &[[f32; 2]],
+) -> io::Result<PathBuf> {
+    if sample_rate == 0 || frames.is_empty() {
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidInput,
+            "WAV input must be nonempty",
+        ));
+    }
+    let data_bytes = frames
+        .len()
+        .checked_mul(4)
+        .and_then(|n| u32::try_from(n).ok())
+        .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidInput, "WAV input is too large"))?;
+    let riff_bytes = 36u32
+        .checked_add(data_bytes)
+        .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidInput, "WAV input is too large"))?;
+    let temporary = output_path.with_extension("wav.tmp");
+    if let Some(parent) = output_path.parent() {
+        fs::create_dir_all(parent)?;
+    }
+    match fs::remove_file(&temporary) {
+        Ok(()) => {}
+        Err(e) if e.kind() == io::ErrorKind::NotFound => {}
+        Err(e) => return Err(e),
+    }
+    let mut file = OpenOptions::new()
+        .create_new(true)
+        .write(true)
+        .open(&temporary)?;
+    file.write_all(b"RIFF")?;
+    file.write_all(&riff_bytes.to_le_bytes())?;
+    file.write_all(b"WAVEfmt ")?;
+    file.write_all(&16u32.to_le_bytes())?;
+    file.write_all(&1u16.to_le_bytes())?;
+    file.write_all(&2u16.to_le_bytes())?;
+    file.write_all(&sample_rate.to_le_bytes())?;
+    file.write_all(&(sample_rate * 4).to_le_bytes())?;
+    file.write_all(&4u16.to_le_bytes())?;
+    file.write_all(&16u16.to_le_bytes())?;
+    file.write_all(b"data")?;
+    file.write_all(&data_bytes.to_le_bytes())?;
+    for sample in frames.iter().flatten() {
+        if !sample.is_finite() {
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidInput,
+                "WAV samples must be finite",
+            ));
+        }
+        let value = (sample.clamp(-1.0, 1.0) * i16::MAX as f32).round() as i16;
+        file.write_all(&value.to_le_bytes())?;
+    }
+    file.sync_all()?;
+    drop(file);
+    fs::rename(&temporary, output_path)?;
+    Ok(output_path.to_path_buf())
 }
 
 pub const SPLEETER_SAMPLE_RATE: u32 = 44_100;
@@ -169,7 +233,7 @@ fn invalid_data(error: impl Into<Box<dyn std::error::Error + Send + Sync>>) -> i
 
 #[cfg(test)]
 mod tests {
-    use super::{decode_for_analysis, resample_for_spleeter, DecodedAudio};
+    use super::{decode_for_analysis, resample_for_spleeter, write_pcm16_wav, DecodedAudio};
     use std::{fs, path::PathBuf};
 
     fn fixture(name: &str) -> PathBuf {
@@ -232,6 +296,24 @@ mod tests {
             );
             assert_eq!(after_entries, before_entries);
         }
+    }
+
+    #[test]
+    fn writes_a_cache_owned_pcm_wav_that_round_trips() {
+        let directory =
+            std::env::temp_dir().join(format!("hibiki-whisper-wav-{}", std::process::id()));
+        let _ = fs::remove_dir_all(&directory);
+        fs::create_dir(&directory).unwrap();
+        let path = directory.join("vocals.wav");
+        let frames = vec![[0.25, -0.25]; 800];
+
+        write_pcm16_wav(&path, 16_000, &frames).unwrap();
+        let decoded = decode_for_analysis(&path).unwrap();
+
+        assert_eq!(decoded.sample_rate, 16_000);
+        assert_eq!(decoded.stereo_frames.len(), frames.len());
+        assert!(!path.with_extension("wav.tmp").exists());
+        fs::remove_dir_all(directory).unwrap();
     }
 
     #[test]

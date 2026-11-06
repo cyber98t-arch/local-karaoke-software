@@ -2,6 +2,7 @@ use std::path::{Path, PathBuf};
 
 use crate::{
     aligned_lyrics_pipeline::align_lyrics_to_cache,
+    analysis_audio::write_pcm16_wav,
     analysis_job::{AnalysisIdentity, AnalysisStage},
     analysis_pipeline::{AnalysisStageRunner, StageOutcome},
     analysis_worker::{AnalysisWorkerBackend, AnalysisWorkerService},
@@ -76,7 +77,15 @@ where
                 )?;
             }
             AnalysisStage::Transcription => {
-                let vocals_path = self.cache_directory()?.join("vocals.flac");
+                let directory = self.cache_directory()?;
+                let (sample_rate, vocals) = load_cached_vocals(&directory)
+                    .map_err(|error| format!("cached vocals could not be loaded: {error}"))?;
+                let vocals_path = write_pcm16_wav(
+                    &directory.join("transcription-input.wav"),
+                    sample_rate,
+                    &vocals,
+                )
+                .map_err(|error| format!("transcription WAV could not be prepared: {error}"))?;
                 transcribe_japanese_to_cache(
                     self.transcription,
                     self.cache_root,

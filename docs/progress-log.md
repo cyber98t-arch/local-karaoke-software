@@ -717,3 +717,8 @@
 - Registered path-free Tauri commands for status lookup and cancellation. Two focused tests passed; no source/model/cache path is serialized to React.
 - The start command remains intentionally unregistered until native model/runtime preflight is connected, so the UI cannot report fake analysis progress.
 
+## 2026-11-06 — Cache-owned Whisper PCM input added
+
+- The concrete runner now converts the validated cached vocal stem to an atomic 16-bit stereo PCM WAV below the identity cache before invoking transcription, avoiding an unsupported assumption that the CPU CLI accepts FLAC directly.
+- A round-trip decode test and the full four-stage injected integration test passed. Temporary output is removed by atomic rename and no file is created beside the original music.
+
