@@ -740,3 +740,10 @@
 - Each stage updates the Rust-owned path-free job registry before work begins. Cooperative cancellation is passed into the existing pipeline, while terminal results and actionable failures are retained for status/retry handling.
 - Builds without `native-onnx` return an explicit unsupported-build error rather than simulated progress. Default and `native-onnx` cargo checks passed, along with the command-state tests.
 
+## 2026-11-06 — Selected-song analysis controls connected
+
+- Added a typed React/Tauri analysis client for queued, four running stages, completed, retryable/non-retryable failure, and cancelled states; no filesystem path crosses this boundary.
+- The selected-song card now requires accepted authoritative lyrics before starting, polls every active song, shows stage-specific Japanese progress, updates the library row and real queue count, supports cooperative cancellation, and exposes retry only for retryable failures.
+- The completed state enables singing. Cancelled work remains visibly terminal rather than claiming it can resume through the existing terminal cache snapshot.
+- All 15 song-library UI tests passed, including new start/stage, cancel, and retry cases. Frontend lint, production build, default cargo check, native-ONNX cargo check, and `git diff --check` also passed.
+

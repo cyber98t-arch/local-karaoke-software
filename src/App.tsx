@@ -4,6 +4,12 @@ import { songs } from "./data/songs";
 import { tauriAudioClient, type AudioClient, type AudioDevice, type InputProbeResult } from "./tauri/audioClient";
 import { tauriLibraryClient, type IndexedSong, type LibraryClient } from "./tauri/libraryClient";
 import { tauriLyricsClient, type LyricsClient } from "./tauri/lyricsClient";
+import {
+  tauriAnalysisClient,
+  type AnalysisClient,
+  type AnalysisJobState,
+  type AnalysisStage,
+} from "./tauri/analysisClient";
 import type { Song } from "./types";
 
 const stateLabel: Record<Song["state"], string> = {
@@ -13,6 +19,22 @@ const stateLabel: Record<Song["state"], string> = {
 };
 
 const importedAccents = ["#f0b65a", "#5dd3c8", "#7ba7ff", "#bb8af7", "#ff819f"];
+
+const analysisStage: Record<AnalysisStage, { label: string; progress: number }> = {
+  separation: { label: "音源をボーカルと伴奏に分離中", progress: 15 },
+  melody: { label: "正解メロディを抽出中", progress: 45 },
+  transcription: { label: "歌声を文字起こし中", progress: 70 },
+  alignment: { label: "歌詞のタイミングを同期中", progress: 90 },
+};
+
+function analysisPresentation(state: AnalysisJobState | undefined) {
+  if (!state) return null;
+  if (state.status === "queued") return { label: "解析開始を準備中", progress: 5 };
+  if (state.status === "running") return analysisStage[state.stage];
+  if (state.status === "completed") return { label: "解析が完了しました", progress: 100 };
+  if (state.status === "cancelled") return { label: "解析を中止しました", progress: 0 };
+  return { label: `${analysisStage[state.stage].label.replace("中", "")}に失敗`, progress: analysisStage[state.stage].progress };
+}
 
 function formatDuration(durationMs: number) {
   const totalSeconds = Math.floor(durationMs / 1000);
@@ -37,9 +59,10 @@ type AppProps = {
   libraryClient?: Partial<LibraryClient>;
   audioClient?: Partial<AudioClient>;
   lyricsClient?: Partial<LyricsClient>;
+  analysisClient?: Partial<AnalysisClient>;
 };
 
-function App({ libraryClient = tauriLibraryClient, audioClient, lyricsClient }: AppProps) {
+function App({ libraryClient = tauriLibraryClient, audioClient, lyricsClient, analysisClient }: AppProps) {
   const [query, setQuery] = useState("");
   const [selectedId, setSelectedId] = useState("1");
   const [librarySongs, setLibrarySongs] = useState<Song[]>(songs);
@@ -55,6 +78,9 @@ function App({ libraryClient = tauriLibraryClient, audioClient, lyricsClient }: 
   const [lyricsDraft, setLyricsDraft] = useState("");
   const [lyricsStatus, setLyricsStatus] = useState<"idle" | "saving" | "selecting" | "accepted">("idle");
   const [lyricsError, setLyricsError] = useState<string | null>(null);
+  const [lyricsAcceptedFor, setLyricsAcceptedFor] = useState<Set<string>>(() => new Set());
+  const [analysisStates, setAnalysisStates] = useState<Record<string, AnalysisJobState>>({});
+  const [analysisError, setAnalysisError] = useState<Record<string, string>>({});
   const loadLibraryCatalog = libraryClient
     ? libraryClient.loadLibraryCatalog
     : tauriLibraryClient.loadLibraryCatalog;
@@ -68,12 +94,58 @@ function App({ libraryClient = tauriLibraryClient, audioClient, lyricsClient }: 
   const listAudioDevices = audioClient ? audioClient.listAudioDevices : tauriAudioClient.listAudioDevices;
   const inputDevices = audioDevices.filter((device) => device.direction === "input");
   const outputDevices = audioDevices.filter((device) => device.direction === "output");
+  const selectedAnalysis = selected ? analysisStates[selected.id] : undefined;
+  const selectedAnalysisView = analysisPresentation(selectedAnalysis);
+  const activeAnalysisIds = Object.entries(analysisStates)
+    .filter(([, state]) => state.status === "queued" || state.status === "running")
+    .map(([songId]) => songId)
+    .sort()
+    .join(",");
+  const activeAnalysisCount = activeAnalysisIds ? activeAnalysisIds.split(",").length : 0;
 
   useEffect(() => {
     setLyricsDraft("");
     setLyricsStatus("idle");
     setLyricsError(null);
   }, [selectedId]);
+
+  useEffect(() => {
+    if (!activeAnalysisIds) return;
+    const songIds = activeAnalysisIds.split(",");
+    let active = true;
+    const getStatus = analysisClient?.getAnalysisStatus ?? tauriAnalysisClient.getAnalysisStatus;
+
+    async function poll() {
+      const results = await Promise.allSettled(songIds.map((songId) => getStatus(songId)));
+      if (!active) return;
+      setAnalysisStates((current) => {
+        const next = { ...current };
+        results.forEach((result, index) => {
+          if (result.status === "fulfilled" && result.value) next[songIds[index]] = result.value.state;
+        });
+        return next;
+      });
+    }
+
+    void poll();
+    const timer = window.setInterval(poll, 750);
+    return () => {
+      active = false;
+      window.clearInterval(timer);
+    };
+  }, [activeAnalysisIds, analysisClient]);
+
+  useEffect(() => {
+    setLibrarySongs((current) => current.map((song) => {
+      const state = analysisStates[song.id];
+      if (!state) return song;
+      if (state?.status === "completed") return { ...song, state: "ready", progress: undefined };
+      if (state?.status === "queued" || state?.status === "running") {
+        return { ...song, state: "processing", progress: analysisPresentation(state)?.progress };
+      }
+      return song.state === "processing" ? { ...song, state: "waiting", progress: undefined } : song;
+    }));
+  }, [analysisStates]);
 
   useEffect(() => {
     if (!listAudioDevices) {
@@ -188,6 +260,7 @@ function App({ libraryClient = tauriLibraryClient, audioClient, lyricsClient }: 
     setLyricsStatus("saving");
     try {
       await (lyricsClient?.setPastedLyrics ?? tauriLyricsClient.setPastedLyrics)(selected.id, lyricsDraft);
+      setLyricsAcceptedFor((current) => new Set(current).add(selected.id));
       setLyricsStatus("accepted");
     } catch {
       setLyricsStatus("idle");
@@ -201,10 +274,34 @@ function App({ libraryClient = tauriLibraryClient, audioClient, lyricsClient }: 
     setLyricsStatus("selecting");
     try {
       const result = await (lyricsClient?.selectLyricsFile ?? tauriLyricsClient.selectLyricsFile)(selected.id);
+      if (result.selected) setLyricsAcceptedFor((current) => new Set(current).add(selected.id));
       setLyricsStatus(result.selected ? "accepted" : "idle");
     } catch {
       setLyricsStatus("idle");
       setLyricsError("歌詞ファイルを読み込めませんでした。UTF-8の.txtファイルを選択してください。");
+    }
+  }
+
+  async function startSelectedAnalysis() {
+    if (!selected) return;
+    setAnalysisError((current) => ({ ...current, [selected.id]: "" }));
+    try {
+      const status = await (analysisClient?.startAnalysis ?? tauriAnalysisClient.startAnalysis)(selected.id);
+      setAnalysisStates((current) => ({ ...current, [selected.id]: status.state }));
+    } catch (error) {
+      setAnalysisError((current) => ({
+        ...current,
+        [selected.id]: typeof error === "string" ? error : "解析を開始できませんでした。モデルと開発環境を確認してください。",
+      }));
+    }
+  }
+
+  async function cancelSelectedAnalysis() {
+    if (!selected) return;
+    try {
+      await (analysisClient?.cancelAnalysis ?? tauriAnalysisClient.cancelAnalysis)(selected.id);
+    } catch {
+      setAnalysisError((current) => ({ ...current, [selected.id]: "解析の中止を受け付けられませんでした。" }));
     }
   }
 
@@ -213,7 +310,7 @@ function App({ libraryClient = tauriLibraryClient, audioClient, lyricsClient }: 
       <aside className="sidebar">
         <nav aria-label="メインメニュー">
           <button className="nav-item active"><Disc3 size={19} />楽曲を選ぶ</button>
-          <button className="nav-item"><ListMusic size={19} />解析キュー<span className="badge">2</span></button>
+          <button className="nav-item"><ListMusic size={19} />解析キュー{activeAnalysisCount > 0 && <span className="badge">{activeAnalysisCount}</span>}</button>
           <button className="nav-item"><Settings2 size={19} />設定</button>
         </nav>
         <div className="device-card">
@@ -285,6 +382,23 @@ function App({ libraryClient = tauriLibraryClient, audioClient, lyricsClient }: 
               </div>
               {lyricsStatus === "accepted" && <small className="lyrics-success" role="status">歌詞をローカルで受け付けました</small>}
               {lyricsError && <small className="lyrics-error" role="alert">{lyricsError}</small>}
+            </div>
+            <div className="analysis-control">
+              {selectedAnalysisView && <div className="analysis-progress" role="status">
+                <div><strong>{selectedAnalysisView.label}</strong><span>{selectedAnalysisView.progress}%</span></div>
+                <progress max="100" value={selectedAnalysisView.progress}>{selectedAnalysisView.progress}%</progress>
+              </div>}
+              {selectedAnalysis?.status === "failed" && <small className="analysis-error" role="alert">{selectedAnalysis.message}</small>}
+              {analysisError[selected.id] && <small className="analysis-error" role="alert">{analysisError[selected.id]}</small>}
+              {(selectedAnalysis?.status === "queued" || selectedAnalysis?.status === "running")
+                ? <button className="secondary-button analysis-action" onClick={cancelSelectedAnalysis}>解析を中止</button>
+                : selectedAnalysis?.status !== "completed" && selectedAnalysis?.status !== "cancelled" && <button
+                    className="analysis-action"
+                    disabled={!lyricsAcceptedFor.has(selected.id) || (selectedAnalysis?.status === "failed" && !selectedAnalysis.retryable)}
+                    onClick={startSelectedAnalysis}
+                  >{selectedAnalysis?.status === "failed" ? "解析を再試行" : "この曲を解析"}</button>}
+              {!lyricsAcceptedFor.has(selected.id) && !selectedAnalysis && <small>解析を始めるには、先に正しい歌詞を指定してください。</small>}
+              {selectedAnalysis?.status === "cancelled" && <small>中止した解析は再開できません。再解析方法は今後の更新で追加します。</small>}
             </div>
             <button className="sing-button" disabled={selected.state !== "ready"}><Mic2 size={19} />この曲を歌う</button>
             <small className="score-note">歌唱中は総合点を表示しません。結果は終了後に確認できます。</small>

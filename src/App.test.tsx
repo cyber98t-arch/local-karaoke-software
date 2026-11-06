@@ -174,5 +174,101 @@ describe("song library", () => {
     await waitFor(() => expect(selectLyricsFile).toHaveBeenCalledOnce());
     expect(screen.queryByText("歌詞をローカルで受け付けました")).not.toBeInTheDocument();
   });
+
+  it("starts four-stage analysis only after authoritative lyrics are accepted", async () => {
+    const songId = "e".repeat(64);
+    const loadLibraryCatalog = vi.fn().mockResolvedValue({
+      songCount: 1,
+      songs: [{ id: songId, title: "解析する曲", artist: "ローカル歌手", durationMs: 60_000 }],
+    });
+    const setPastedLyrics = vi.fn().mockResolvedValue({ sha256: "f".repeat(64), byteSize: 9 });
+    const startAnalysis = vi.fn().mockResolvedValue({ songId, state: { status: "queued" } });
+    const getAnalysisStatus = vi.fn().mockResolvedValue({
+      songId,
+      state: { status: "running", stage: "separation" },
+    });
+    render(<App
+      libraryClient={{ loadLibraryCatalog }}
+      audioClient={{}}
+      lyricsClient={{ setPastedLyrics }}
+      analysisClient={{ startAnalysis, getAnalysisStatus }}
+    />);
+
+    const startButton = await screen.findByRole("button", { name: "この曲を解析" });
+    expect(startButton).toBeDisabled();
+    fireEvent.change(screen.getByLabelText("正しい歌詞"), { target: { value: "今日は" } });
+    fireEvent.click(screen.getByRole("button", { name: "貼り付けた歌詞を使用" }));
+    await waitFor(() => expect(startButton).toBeEnabled());
+    fireEvent.click(startButton);
+
+    await waitFor(() => expect(startAnalysis).toHaveBeenCalledWith(songId));
+    expect(await screen.findByText("音源をボーカルと伴奏に分離中")).toBeInTheDocument();
+    expect(screen.getByRole("progressbar")).toHaveAttribute("value", "15");
+  });
+
+  it("allows an active analysis to be cancelled", async () => {
+    const songId = "a".repeat(64);
+    const loadLibraryCatalog = vi.fn().mockResolvedValue({
+      songCount: 1,
+      songs: [{ id: songId, title: "中止する曲", artist: "ローカル歌手", durationMs: 60_000 }],
+    });
+    const setPastedLyrics = vi.fn().mockResolvedValue({ sha256: "b".repeat(64), byteSize: 9 });
+    const startAnalysis = vi.fn().mockResolvedValue({
+      songId,
+      state: { status: "running", stage: "melody" },
+    });
+    const getAnalysisStatus = vi.fn().mockResolvedValue({
+      songId,
+      state: { status: "running", stage: "melody" },
+    });
+    const cancelAnalysis = vi.fn().mockResolvedValue({
+      songId,
+      state: { status: "running", stage: "melody" },
+    });
+    render(<App
+      libraryClient={{ loadLibraryCatalog }}
+      audioClient={{}}
+      lyricsClient={{ setPastedLyrics }}
+      analysisClient={{ startAnalysis, getAnalysisStatus, cancelAnalysis }}
+    />);
+
+    fireEvent.change(await screen.findByLabelText("正しい歌詞"), { target: { value: "今日は" } });
+    fireEvent.click(screen.getByRole("button", { name: "貼り付けた歌詞を使用" }));
+    await waitFor(() => expect(screen.getByRole("button", { name: "この曲を解析" })).toBeEnabled());
+    fireEvent.click(screen.getByRole("button", { name: "この曲を解析" }));
+    fireEvent.click(await screen.findByRole("button", { name: "解析を中止" }));
+
+    expect(cancelAnalysis).toHaveBeenCalledWith(songId);
+  });
+
+  it("offers retry only when a failed stage is retryable", async () => {
+    const songId = "c".repeat(64);
+    const loadLibraryCatalog = vi.fn().mockResolvedValue({
+      songCount: 1,
+      songs: [{ id: songId, title: "再試行する曲", artist: "ローカル歌手", durationMs: 60_000 }],
+    });
+    const setPastedLyrics = vi.fn().mockResolvedValue({ sha256: "d".repeat(64), byteSize: 9 });
+    const startAnalysis = vi.fn().mockResolvedValue({ songId, state: { status: "queued" } });
+    const getAnalysisStatus = vi.fn().mockResolvedValue({
+      songId,
+      state: { status: "failed", stage: "transcription", message: "whisper-cli timed out", retryable: true },
+    });
+    render(<App
+      libraryClient={{ loadLibraryCatalog }}
+      audioClient={{}}
+      lyricsClient={{ setPastedLyrics }}
+      analysisClient={{ startAnalysis, getAnalysisStatus }}
+    />);
+
+    fireEvent.change(await screen.findByLabelText("正しい歌詞"), { target: { value: "今日は" } });
+    fireEvent.click(screen.getByRole("button", { name: "貼り付けた歌詞を使用" }));
+    await waitFor(() => expect(screen.getByRole("button", { name: "この曲を解析" })).toBeEnabled());
+    fireEvent.click(screen.getByRole("button", { name: "この曲を解析" }));
+
+    const retry = await screen.findByRole("button", { name: "解析を再試行" });
+    expect(screen.getByRole("alert")).toHaveTextContent("whisper-cli timed out");
+    fireEvent.click(retry);
+    await waitFor(() => expect(startAnalysis).toHaveBeenCalledTimes(2));
+  });
 });
 
