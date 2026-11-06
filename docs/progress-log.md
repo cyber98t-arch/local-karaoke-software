@@ -684,3 +684,9 @@
 - GitHub reported artifact ID `13466262062`, archive SHA-256 `976d2a0644da6669856b4804501bfe85e3ba27e8e4af6d32018bbcf8339e8aae`, and a seven-day development retention window. The archive digest is distinct from the executable digest above.
 - This verifies reproducible development-build provenance only. The executable was not published, bundled into the application, or adopted as a release artifact, and no model was downloaded by the workflow.
 
+## 2026-11-06 — Windows whisper.cpp development publication approved
+
+- The user approved D-025 to publish only the already verified CPU-only executable, upstream MIT license, and provenance as a clearly labeled development prerelease.
+- Added a manual publication workflow that downloads artifact `whisper-cpp-v1.9.5-windows-x64-cpu-dev` from source run `42136432004` rather than rebuilding it. Before publication it requires the approved 2,115,584-byte size and SHA-256 `e8c1a1390c22ec4bb48c5a32ccd65942303c8633b09d6f897e1a1562d19ba7f2`, and validates the pinned CPU-only provenance.
+- The workflow will create prerelease tag `whisper-cpp-v1.9.5-windows-x64-cpu-dev-v1`. It does not publish an application, bundle the executable, download a model, or change the GPU strategy.
+

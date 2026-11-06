@@ -274,9 +274,11 @@
 
 ### D-025 — Publish verified Windows whisper.cpp development executable
 
-- Status: Waiting
+- Status: Approved
 - Question: May the exact verified CPU-only Windows `whisper-cli.exe` be published as a clearly labeled development-only GitHub prerelease asset so Windows integration can be tested without asking the user to build it locally?
 - Recommended option: Publish exactly the 2,115,584-byte executable from workflow run `42136432004`, SHA-256 `e8c1a1390c22ec4bb48c5a32ccd65942303c8633b09d6f897e1a1562d19ba7f2`, together with upstream MIT license and complete pinned build provenance. Label it development-only and do not treat it as an application release or stable distribution.
 - Alternative: Keep the executable only as a seven-day Actions artifact and require another workflow run or local build whenever Windows integration must be tested. This avoids publication but makes the verified binary short-lived and restores manual setup work.
 - Scope if approved: A development prerelease asset and documented integrity metadata only. Do not bundle it into the application, create an installer/application release, download the 148 MB model, change the CPU-only strategy, or enable a GPU provider.
 - Reason approval is required: Publishing a native executable creates a public release asset and crosses the repository's explicit publishing gate. Bundling remains a later, separate approval even though D-020 selected the eventual packaging direction.
+- Decision: Publish exactly the verified CPU-only executable with its MIT license and complete provenance as a clearly labeled development-only prerelease. Do not bundle it into the application or treat it as a stable/application release.
+- Source: User approval on 2026-11-06.

@@ -1,0 +1,93 @@
+name: Publish verified Windows whisper.cpp development CLI
+
+on:
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  publish:
+    runs-on: windows-2022
+    timeout-minutes: 10
+    env:
+      SOURCE_RUN_ID: "42136432004"
+      ARTIFACT_NAME: whisper-cpp-v1.9.5-windows-x64-cpu-dev
+      RELEASE_TAG: whisper-cpp-v1.9.5-windows-x64-cpu-dev-v1
+      EXPECTED_SIZE: "2115584"
+      EXPECTED_SHA256: e8c1a1390c22ec4bb48c5a32ccd65942303c8633b09d6f897e1a1562d19ba7f2
+      EXPECTED_UPSTREAM_COMMIT: d1be6fde11ac6e0407606b4e42fe72d34add8037
+    steps:
+      - name: Download the verified development artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.ARTIFACT_NAME }}
+          path: artifact
+          github-token: ${{ github.token }}
+          run-id: ${{ env.SOURCE_RUN_ID }}
+
+      - name: Verify executable and provenance
+        shell: pwsh
+        run: |
+          $requiredFiles = @(
+            "artifact/whisper-cli.exe"
+            "artifact/LICENSE-whisper.cpp.txt"
+            "artifact/provenance.json"
+          )
+          foreach ($file in $requiredFiles) {
+            if (-not (Test-Path -LiteralPath $file -PathType Leaf)) {
+              throw "Required artifact file is missing: $file"
+            }
+          }
+
+          $binary = Get-Item -LiteralPath "artifact/whisper-cli.exe"
+          $hash = (Get-FileHash -LiteralPath $binary.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+          if ($binary.Length -ne [int64]$env:EXPECTED_SIZE) {
+            throw "Executable byte size does not match the approved artifact."
+          }
+          if ($hash -ne $env:EXPECTED_SHA256) {
+            throw "Executable SHA-256 does not match the approved artifact."
+          }
+
+          $provenance = Get-Content -LiteralPath "artifact/provenance.json" -Raw | ConvertFrom-Json
+          if ($provenance.upstreamCommit -ne $env:EXPECTED_UPSTREAM_COMMIT -or
+              $provenance.upstreamTag -ne "v1.9.5" -or
+              $provenance.runner -ne "windows-2022" -or
+              $provenance.architecture -ne "x86_64" -or
+              $provenance.configuration -ne "Release" -or
+              $provenance.buildSharedLibs -ne $false -or
+              @($provenance.gpuProviders).Count -ne 0 -or
+              $provenance.binary -ne "whisper-cli.exe" -or
+              [int64]$provenance.byteSize -ne [int64]$env:EXPECTED_SIZE -or
+              $provenance.sha256 -ne $env:EXPECTED_SHA256 -or
+              $provenance.licenseSpdx -ne "MIT") {
+            throw "Artifact provenance does not match the approved CPU-only development build."
+          }
+
+      - name: Publish development prerelease
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          @"
+          Development-only CPU build of `whisper.cpp` `whisper-cli` for Windows x64 integration testing.
+
+          - Upstream: `ggml-org/whisper.cpp` v1.9.5
+          - Commit: `d1be6fde11ac6e0407606b4e42fe72d34add8037`
+          - Binary size: `2,115,584` bytes
+          - Binary SHA-256: `e8c1a1390c22ec4bb48c5a32ccd65942303c8633b09d6f897e1a1562d19ba7f2`
+          - Configuration: Windows x86_64 Release, static libraries, CPU only
+          - License: MIT
+
+          This is not an application release, installer, stable distribution, or model download. Verify the executable hash before development use.
+          "@ | Set-Content -LiteralPath "release-notes.md" -Encoding utf8
+
+          gh release create $env:RELEASE_TAG `
+            --target $env:GITHUB_SHA `
+            --title "whisper.cpp v1.9.5 Windows x64 CPU development CLI" `
+            --notes-file "release-notes.md" `
+            --prerelease `
+            "artifact/whisper-cli.exe" `
+            "artifact/LICENSE-whisper.cpp.txt" `
+            "artifact/provenance.json"
