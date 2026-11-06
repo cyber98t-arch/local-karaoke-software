@@ -1,4 +1,4 @@
-use crate::{catalog::Catalog, library_service::index_library};
+use crate::{cache::content_sha256, catalog::Catalog, library_service::index_library};
 use serde::Serialize;
 use std::{
     fs,
@@ -69,6 +69,47 @@ impl LibraryState {
             .sources()
             .map_err(|_| "The local library catalog could not be read.".to_owned())?;
         Ok(sources_to_result(sources))
+    }
+
+    pub fn resolve_source_for_analysis(&self, song_id: &str) -> Result<PathBuf, String> {
+        validate_song_id(song_id)?;
+        if !self
+            .catalog_path
+            .try_exists()
+            .map_err(|_| "The local library catalog could not be checked.".to_owned())?
+        {
+            return Err("The selected song is not in the local library.".to_owned());
+        }
+        let catalog = Catalog::open(&self.catalog_path)
+            .map_err(|_| "The local library catalog could not be opened.".to_owned())?;
+        let source = catalog
+            .source_by_content_sha256(song_id)
+            .map_err(|_| "The local library catalog could not be read.".to_owned())?
+            .ok_or_else(|| "The selected song is not in the local library.".to_owned())?;
+        let path = PathBuf::from(source.source_path);
+        let metadata = fs::metadata(&path)
+            .map_err(|_| "The selected song file is no longer available.".to_owned())?;
+        if !metadata.is_file() {
+            return Err("The selected song source is not a file.".to_owned());
+        }
+        let actual = content_sha256(&path)
+            .map_err(|_| "The selected song file could not be read.".to_owned())?;
+        if actual != song_id {
+            return Err("The selected song has changed; re-index the library.".to_owned());
+        }
+        Ok(path)
+    }
+}
+
+fn validate_song_id(song_id: &str) -> Result<(), String> {
+    if song_id.len() == 64
+        && song_id
+            .bytes()
+            .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
+    {
+        Ok(())
+    } else {
+        Err("song id must be a lowercase SHA-256".to_owned())
     }
 }
 
@@ -344,5 +385,45 @@ mod tests {
         assert!(!serde_json::to_string(&result)
             .expect("catalog result should serialize")
             .contains("private-song.flac"));
+    }
+
+    #[test]
+    fn resolves_an_unchanged_source_for_analysis_without_modifying_it() {
+        let directory = TestDirectory::new();
+        let library = directory.path.join("music");
+        fs::create_dir(&library).unwrap();
+        let source = library.join("song.flac");
+        fs::copy(fixture("metadata.flac"), &source).unwrap();
+        let before = fs::read(&source).unwrap();
+        let state = LibraryState::new(directory.path.join("catalog.sqlite3"));
+        state.select_library(&library).unwrap();
+        let indexed = state.index_selected_library().unwrap();
+
+        let resolved = state
+            .resolve_source_for_analysis(&indexed.songs[0].id)
+            .unwrap();
+
+        assert_eq!(resolved, source.canonicalize().unwrap());
+        assert_eq!(fs::read(source).unwrap(), before);
+    }
+
+    #[test]
+    fn rejects_a_source_that_changed_after_indexing() {
+        let directory = TestDirectory::new();
+        let library = directory.path.join("music");
+        fs::create_dir(&library).unwrap();
+        let source = library.join("song.flac");
+        fs::copy(fixture("metadata.flac"), &source).unwrap();
+        let state = LibraryState::new(directory.path.join("catalog.sqlite3"));
+        state.select_library(&library).unwrap();
+        let indexed = state.index_selected_library().unwrap();
+        fs::write(&source, b"changed outside the application").unwrap();
+
+        assert_eq!(
+            state
+                .resolve_source_for_analysis(&indexed.songs[0].id)
+                .unwrap_err(),
+            "The selected song has changed; re-index the library."
+        );
     }
 }

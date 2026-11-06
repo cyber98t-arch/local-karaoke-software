@@ -694,3 +694,9 @@
 - GitHub reports the executable as 2,115,584 bytes with asset digest SHA-256 `e8c1a1390c22ec4bb48c5a32ccd65942303c8633b09d6f897e1a1562d19ba7f2`, matching the approved build. The release remains development-only; it is not bundled into the application or an installer.
 - PowerShell interpreted a Markdown backtick before the leading `e` of the hash as an escape character in the human-readable release body. The uploaded executable and provenance are correct; the workflow source now uses a literal here-string and plain text so future release notes cannot acquire that control character.
 
+## 2026-11-06 — Read-only analysis source resolution added
+
+- Added a catalog lookup by content SHA-256 and a Rust-only library boundary that resolves an indexed song to its source path for analysis without returning that path to React.
+- Before analysis use, the boundary verifies that the source is still a file and recomputes its SHA-256 read-only. Missing or externally changed sources fail with an actionable re-index message instead of analyzing stale catalog identity.
+- Three focused tests passed for catalog identity lookup, unchanged source resolution with byte-for-byte preservation, and rejection after external mutation. No analysis process, model acquisition, or source-directory write was started by this step.
+

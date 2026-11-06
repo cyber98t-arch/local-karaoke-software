@@ -74,6 +74,31 @@ impl Catalog {
             .collect();
         sources
     }
+
+    pub fn source_by_content_sha256(
+        &self,
+        content_sha256: &str,
+    ) -> rusqlite::Result<Option<CatalogSource>> {
+        let mut query = self.connection.prepare(
+            "SELECT source_path, content_sha256, title, artist, duration_ms
+             FROM library_sources
+             WHERE content_sha256 = ?1
+             ORDER BY source_path
+             LIMIT 1",
+        )?;
+        let mut rows = query.query([content_sha256])?;
+        let Some(row) = rows.next()? else {
+            return Ok(None);
+        };
+        let duration_ms = row.get::<_, i64>(4)?;
+        Ok(Some(CatalogSource {
+            source_path: row.get(0)?,
+            content_sha256: row.get(1)?,
+            title: row.get(2)?,
+            artist: row.get(3)?,
+            duration_ms: duration_ms.max(0) as u64,
+        }))
+    }
 }
 
 fn migrate(connection: &mut Connection) -> rusqlite::Result<()> {
@@ -241,5 +266,33 @@ mod tests {
             .expect("migrated records should be readable");
         assert_eq!(sources.len(), 1);
         assert_eq!(sources[0].source_path, "C:\\Music\\legacy.flac");
+    }
+
+    #[test]
+    fn resolves_a_source_by_content_identity_without_changing_the_catalog() {
+        let directory = TestDirectory::new();
+        let database_path = directory.path.join("catalog.sqlite3");
+        let mut catalog = Catalog::open(&database_path).expect("catalog should open");
+        let source = super::CatalogSource {
+            source_path: "C:\\Music\\private.flac".into(),
+            content_sha256: "c".repeat(64),
+            title: Some("Private".into()),
+            artist: None,
+            duration_ms: 1234,
+        };
+        catalog
+            .replace_sources(std::slice::from_ref(&source))
+            .expect("source should be stored");
+
+        assert_eq!(
+            catalog
+                .source_by_content_sha256(&source.content_sha256)
+                .expect("lookup should succeed"),
+            Some(source)
+        );
+        assert!(catalog
+            .source_by_content_sha256(&"d".repeat(64))
+            .expect("missing lookup should succeed")
+            .is_none());
     }
 }
