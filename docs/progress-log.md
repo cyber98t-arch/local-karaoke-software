@@ -689,4 +689,5 @@
 - The user approved D-025 to publish only the already verified CPU-only executable, upstream MIT license, and provenance as a clearly labeled development prerelease.
 - Added a manual publication workflow that downloads artifact `whisper-cpp-v1.9.5-windows-x64-cpu-dev` from source run `42136432004` rather than rebuilding it. Before publication it requires the approved 2,115,584-byte size and SHA-256 `e8c1a1390c22ec4bb48c5a32ccd65942303c8633b09d6f897e1a1562d19ba7f2`, and validates the pinned CPU-only provenance.
 - The workflow will create prerelease tag `whisper-cpp-v1.9.5-windows-x64-cpu-dev-v1`. It does not publish an application, bundle the executable, download a model, or change the GPU strategy.
+- Initial publication run `42138628748` successfully downloaded and revalidated the exact artifact, then stopped before creating a release because GitHub CLI could not infer a repository without a checkout. The workflow now passes the explicit `GITHUB_REPOSITORY` value; no partial release or tag was created.
 
