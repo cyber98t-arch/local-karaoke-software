@@ -734,3 +734,9 @@
 - Every file must be explicitly configured and match its pinned byte size and SHA-256 before analysis can start. A focused test covers exact acceptance plus size/hash rejection, and default `cargo check` passed.
 - This is a local development preflight only; it does not bundle or automatically download any artifact.
 
+## 2026-11-06 — Background native analysis start command added
+
+- Registered a typed `start_analysis` Tauri command that resolves and rehashes the source internally, requires authoritative local lyrics, verifies all four native artifacts off the UI thread, rejects duplicate active work, and starts the concrete runner on a blocking task.
+- Each stage updates the Rust-owned path-free job registry before work begins. Cooperative cancellation is passed into the existing pipeline, while terminal results and actionable failures are retained for status/retry handling.
+- Builds without `native-onnx` return an explicit unsupported-build error rather than simulated progress. Default and `native-onnx` cargo checks passed, along with the command-state tests.
+

@@ -58,6 +58,9 @@ pub fn run() {
             app.manage(LibraryState::new(application_data.join("catalog.sqlite3")));
             app.manage(lyrics_commands::LyricsState::default());
             app.manage(analysis_commands::AnalysisCommandState::default());
+            app.manage(analysis_commands::AnalysisStorage::new(
+                application_data.join("analysis-cache"),
+            ));
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
@@ -71,7 +74,8 @@ pub fn run() {
             lyrics_commands::set_pasted_lyrics,
             lyrics_commands::select_lyrics_file,
             analysis_commands::get_analysis_status,
-            analysis_commands::cancel_analysis
+            analysis_commands::cancel_analysis,
+            analysis_commands::start_analysis
         ])
         .run(tauri::generate_context!())
         .expect("failed to run Hibiki");
