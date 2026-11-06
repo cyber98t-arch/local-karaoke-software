@@ -249,6 +249,7 @@ describe("song library", () => {
     });
     const setPastedLyrics = vi.fn().mockResolvedValue({ sha256: "d".repeat(64), byteSize: 9 });
     const startAnalysis = vi.fn().mockResolvedValue({ songId, state: { status: "queued" } });
+    const retryAnalysis = vi.fn().mockResolvedValue({ songId, state: { status: "queued" } });
     const getAnalysisStatus = vi.fn().mockResolvedValue({
       songId,
       state: { status: "failed", stage: "transcription", message: "whisper-cli timed out", retryable: true },
@@ -257,7 +258,7 @@ describe("song library", () => {
       libraryClient={{ loadLibraryCatalog }}
       audioClient={{}}
       lyricsClient={{ setPastedLyrics }}
-      analysisClient={{ startAnalysis, getAnalysisStatus }}
+      analysisClient={{ startAnalysis, retryAnalysis, getAnalysisStatus }}
     />);
 
     fireEvent.change(await screen.findByLabelText("正しい歌詞"), { target: { value: "今日は" } });
@@ -268,7 +269,8 @@ describe("song library", () => {
     const retry = await screen.findByRole("button", { name: "解析を再試行" });
     expect(screen.getByRole("alert")).toHaveTextContent("whisper-cli timed out");
     fireEvent.click(retry);
-    await waitFor(() => expect(startAnalysis).toHaveBeenCalledTimes(2));
+    await waitFor(() => expect(retryAnalysis).toHaveBeenCalledWith(songId));
+    expect(startAnalysis).toHaveBeenCalledOnce();
   });
 });
 

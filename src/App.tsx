@@ -286,7 +286,10 @@ function App({ libraryClient = tauriLibraryClient, audioClient, lyricsClient, an
     if (!selected) return;
     setAnalysisError((current) => ({ ...current, [selected.id]: "" }));
     try {
-      const status = await (analysisClient?.startAnalysis ?? tauriAnalysisClient.startAnalysis)(selected.id);
+      const operation = selectedAnalysis?.status === "failed"
+        ? (analysisClient?.retryAnalysis ?? tauriAnalysisClient.retryAnalysis)
+        : (analysisClient?.startAnalysis ?? tauriAnalysisClient.startAnalysis);
+      const status = await operation(selected.id);
       setAnalysisStates((current) => ({ ...current, [selected.id]: status.state }));
     } catch (error) {
       setAnalysisError((current) => ({

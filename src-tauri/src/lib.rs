@@ -75,7 +75,8 @@ pub fn run() {
             lyrics_commands::select_lyrics_file,
             analysis_commands::get_analysis_status,
             analysis_commands::cancel_analysis,
-            analysis_commands::start_analysis
+            analysis_commands::start_analysis,
+            analysis_commands::retry_analysis
         ])
         .run(tauri::generate_context!())
         .expect("failed to run Hibiki");

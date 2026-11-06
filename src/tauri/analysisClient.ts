@@ -16,12 +16,14 @@ export type AnalysisStatus = {
 
 export type AnalysisClient = {
   startAnalysis(songId: string): Promise<AnalysisStatus>;
+  retryAnalysis(songId: string): Promise<AnalysisStatus>;
   getAnalysisStatus(songId: string): Promise<AnalysisStatus | null>;
   cancelAnalysis(songId: string): Promise<AnalysisStatus>;
 };
 
 export const tauriAnalysisClient: AnalysisClient = {
   startAnalysis: (songId) => invoke("start_analysis", { songId }),
+  retryAnalysis: (songId) => invoke("retry_analysis", { songId }),
   getAnalysisStatus: (songId) => invoke("get_analysis_status", { songId }),
   cancelAnalysis: (songId) => invoke("cancel_analysis", { songId }),
 };

@@ -109,6 +109,18 @@ impl AnalysisCommandState {
         })
     }
 
+    pub fn ensure_retryable(&self, song_id: &str) -> Result<(), String> {
+        match self.status(song_id)?.map(|status| status.state) {
+            Some(AnalysisJobState::Failed {
+                retryable: true, ..
+            }) => Ok(()),
+            Some(AnalysisJobState::Failed { .. }) => {
+                Err("This analysis failure is not retryable.".to_owned())
+            }
+            _ => Err("Only a retryable failed analysis can be retried.".to_owned()),
+        }
+    }
+
     #[cfg(feature = "native-onnx")]
     fn fail_current(&self, song_id: &str, message: String) -> Result<(), String> {
         let stage = self
@@ -192,6 +204,18 @@ pub async fn start_analysis(
             state: AnalysisJobState::Queued,
         })
     }
+}
+
+#[tauri::command]
+pub async fn retry_analysis(
+    song_id: String,
+    library: tauri::State<'_, crate::library_commands::LibraryState>,
+    lyrics: tauri::State<'_, crate::lyrics_commands::LyricsState>,
+    jobs: tauri::State<'_, AnalysisCommandState>,
+    storage: tauri::State<'_, AnalysisStorage>,
+) -> Result<AnalysisStatus, String> {
+    jobs.ensure_retryable(&song_id)?;
+    start_analysis(song_id, library, lyrics, jobs, storage).await
 }
 
 #[cfg(feature = "native-onnx")]
@@ -327,7 +351,7 @@ mod tests {
     }
 
     #[test]
-    fn cancellation_is_cooperative_and_terminal_jobs_can_be_retried() {
+    fn cancellation_is_cooperative_and_only_retryable_failures_can_retry() {
         let state = AnalysisCommandState::default();
         let cancellation = state.begin(&song_id()).unwrap();
         state.cancel(&song_id()).unwrap();
@@ -337,6 +361,18 @@ mod tests {
             .update(&song_id(), AnalysisJobState::Cancelled)
             .unwrap();
         assert!(state.cancel(&song_id()).is_err());
-        assert!(state.begin(&song_id()).is_ok());
+        assert!(state.ensure_retryable(&song_id()).is_err());
+
+        state
+            .update(
+                &song_id(),
+                AnalysisJobState::Failed {
+                    stage: AnalysisStage::Transcription,
+                    message: "whisper timed out".into(),
+                    retryable: true,
+                },
+            )
+            .unwrap();
+        assert!(state.ensure_retryable(&song_id()).is_ok());
     }
 }

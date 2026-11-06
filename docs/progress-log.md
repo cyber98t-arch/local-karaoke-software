@@ -754,3 +754,9 @@
 - HTTP redirect checks returned 200 for the published Spleeter ONNX, CREPE ONNX, pinned Whisper base model, and CPU-only Windows `whisper-cli` URLs. No artifact body was downloaded during this container check.
 - The script does not bundle models, select a GPU provider, publish an application, or write beside source music. Actual PowerShell execution and the first UI-driven four-stage run remain Windows-only verification.
 
+## 2026-11-06 — Explicit analysis retry command added
+
+- Added and registered a separate path-free `retry_analysis` Tauri command instead of treating the ordinary start command as an implicit retry boundary.
+- Rust accepts this command only for a recorded retryable failure; cancelled, active, completed, missing, and non-retryable states are rejected. The UI calls this command only for the displayed retry action.
+- Two focused Rust command-state tests and all 15 UI tests passed. Frontend lint/build, default and native-ONNX cargo checks, and `git diff --check` also passed.
+
