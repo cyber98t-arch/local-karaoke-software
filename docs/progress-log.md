@@ -676,3 +676,11 @@
 - The user dispatched run `42135598802`. All build and upload steps succeeded in 1 minute 28 seconds. GitHub reported one 901,923-byte artifact with archive SHA-256 `548da9d9a17b52211ebeb7fc79eba5962fb6cf564b1c54ef8bcadafbca3de992`, expiring 2026-11-13.
 - GitHub requires authentication to download even a public repository's Actions artifact and detailed step log, while this environment has no API token. Updated the workflow to duplicate provenance into the public Job Summary so a second run can be inspected without downloading or publishing the artifact.
 
+## 2026-11-06 — Windows whisper.cpp executable provenance verified
+
+- The user manually dispatched the updated workflow as run `42136432004` from commit `9a92ec6ba94c32c39dff5630bd86c7af82f27d64`. The Windows build and seven-day artifact upload completed successfully.
+- The Job Summary reports `whisper-cli.exe` at exactly 2,115,584 bytes with SHA-256 `e8c1a1390c22ec4bb48c5a32ccd65942303c8633b09d6f897e1a1562d19ba7f2`.
+- Provenance matches the approved boundary: upstream `ggml-org/whisper.cpp` tag `v1.9.5` at commit `d1be6fde11ac6e0407606b4e42fe72d34add8037`; `windows-2022`; x86_64 Release; Visual Studio 17 2022; CMake 3.31.6; static libraries; no GPU providers; MIT license.
+- GitHub reported artifact ID `13466262062`, archive SHA-256 `976d2a0644da6669856b4804501bfe85e3ba27e8e4af6d32018bbcf8339e8aae`, and a seven-day development retention window. The archive digest is distinct from the executable digest above.
+- This verifies reproducible development-build provenance only. The executable was not published, bundled into the application, or adopted as a release artifact, and no model was downloaded by the workflow.
+
