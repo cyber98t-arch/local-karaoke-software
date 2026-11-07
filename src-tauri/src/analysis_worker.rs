@@ -96,6 +96,22 @@ pub struct WorkerResponse {
 
 pub trait AnalysisWorkerBackend {
     fn execute(&self, request: &WorkerRequest) -> Result<WorkerResponse, String>;
+
+    fn execute_cancellable(
+        &self,
+        request: &WorkerRequest,
+        cancellation_requested: &mut dyn FnMut() -> bool,
+    ) -> Result<WorkerExecution, String> {
+        if cancellation_requested() {
+            return Ok(WorkerExecution::Cancelled);
+        }
+        self.execute(request).map(WorkerExecution::Completed)
+    }
+}
+
+pub enum WorkerExecution {
+    Completed(WorkerResponse),
+    Cancelled,
 }
 
 pub struct LocalProcessWorker {
@@ -358,6 +374,28 @@ where
         model_path: &Path,
         expected_model_sha256: &str,
     ) -> Result<TranscriptionResult, String> {
+        self.run_japanese_transcription_cancellable(
+            cache_root,
+            identity,
+            request_id,
+            input_audio_path,
+            model_path,
+            expected_model_sha256,
+            &mut || false,
+        )?
+        .ok_or_else(|| "transcription was cancelled without a cancellation request".to_owned())
+    }
+
+    pub fn run_japanese_transcription_cancellable(
+        &self,
+        cache_root: &Path,
+        identity: &crate::analysis_job::AnalysisIdentity,
+        request_id: &str,
+        input_audio_path: &Path,
+        model_path: &Path,
+        expected_model_sha256: &str,
+        cancellation_requested: &mut dyn FnMut() -> bool,
+    ) -> Result<Option<TranscriptionResult>, String> {
         if !is_safe_token(request_id) {
             return Err("worker request id must be a nonempty safe token".to_owned());
         }
@@ -384,7 +422,13 @@ where
                 .join("transcription")
                 .join(request_id),
         };
-        let response = self.backend.execute(&request)?;
+        let response = match self
+            .backend
+            .execute_cancellable(&request, cancellation_requested)?
+        {
+            WorkerExecution::Completed(response) => response,
+            WorkerExecution::Cancelled => return Ok(None),
+        };
         validate_response_identity(&request, &response)?;
         if !response.success {
             return Err(response
@@ -398,7 +442,7 @@ where
             .transcription
             .ok_or_else(|| "worker succeeded without transcription metadata".to_owned())?;
         validate_transcription(&result)?;
-        Ok(result)
+        Ok(Some(result))
     }
 }
 

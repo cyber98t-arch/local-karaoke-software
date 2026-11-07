@@ -19,14 +19,29 @@ pub fn transcribe_japanese_to_cache<B: AnalysisWorkerBackend>(
     identity: &AnalysisIdentity,
     input: TranscriptionInput<'_>,
 ) -> Result<TranscriptCacheArtifact, String> {
-    let result = worker.run_japanese_transcription(
+    transcribe_japanese_to_cache_cancellable(worker, cache_root, identity, input, &mut || false)?
+        .ok_or_else(|| "transcription was cancelled without a cancellation request".to_owned())
+}
+
+pub fn transcribe_japanese_to_cache_cancellable<B: AnalysisWorkerBackend>(
+    worker: &AnalysisWorkerService<B>,
+    cache_root: &Path,
+    identity: &AnalysisIdentity,
+    input: TranscriptionInput<'_>,
+    cancellation_requested: &mut dyn FnMut() -> bool,
+) -> Result<Option<TranscriptCacheArtifact>, String> {
+    let Some(result) = worker.run_japanese_transcription_cancellable(
         cache_root,
         identity,
         input.request_id,
         input.audio_path,
         input.model_path,
         &input.model.model_sha256,
-    )?;
+        cancellation_requested,
+    )?
+    else {
+        return Ok(None);
+    };
     let directory = identity.cache_directory(cache_root)?;
     commit_transcript(
         &directory,
@@ -34,17 +49,21 @@ pub fn transcribe_japanese_to_cache<B: AnalysisWorkerBackend>(
         result.duration_ms,
         &result.segments,
     )
+    .map(Some)
     .map_err(|error| format!("transcript cache commit failed: {error}"))
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{transcribe_japanese_to_cache, TranscriptionInput};
+    use super::{
+        transcribe_japanese_to_cache, transcribe_japanese_to_cache_cancellable, TranscriptionInput,
+    };
     use crate::{
         analysis_job::AnalysisIdentity,
         analysis_worker::{
             AnalysisWorkerBackend, AnalysisWorkerService, TranscriptionResult,
-            TranscriptionSegment, WorkerRequest, WorkerResponse, ANALYSIS_WORKER_PROTOCOL_VERSION,
+            TranscriptionSegment, WorkerExecution, WorkerRequest, WorkerResponse,
+            ANALYSIS_WORKER_PROTOCOL_VERSION,
         },
         transcript_cache::TranscriptIdentity,
     };
@@ -74,6 +93,21 @@ mod tests {
                 }),
                 error: None,
             })
+        }
+    }
+
+    struct CancelledWorker;
+    impl AnalysisWorkerBackend for CancelledWorker {
+        fn execute(&self, _request: &WorkerRequest) -> Result<WorkerResponse, String> {
+            panic!("the cancellable entry point should be used")
+        }
+
+        fn execute_cancellable(
+            &self,
+            _request: &WorkerRequest,
+            _cancellation_requested: &mut dyn FnMut() -> bool,
+        ) -> Result<WorkerExecution, String> {
+            Ok(WorkerExecution::Cancelled)
         }
     }
     static NEXT: AtomicU64 = AtomicU64::new(0);
@@ -131,5 +165,46 @@ mod tests {
         assert_eq!(artifact.segment_count, 1);
         assert!(output.join("transcript.json").is_file());
         assert_eq!(fs::read(&audio).unwrap(), before);
+    }
+
+    #[test]
+    fn cancellation_does_not_commit_a_partial_transcript() {
+        let cache = TestDirectory::new();
+        let files = TestDirectory::new();
+        let audio = files.0.join("audio.wav");
+        let model_path = files.0.join("model.bin");
+        fs::write(&audio, b"read-only fixture").unwrap();
+        fs::write(&model_path, b"model").unwrap();
+        let identity = AnalysisIdentity {
+            source_sha256: "d".repeat(64),
+            pipeline_version: "transcription-v1".to_owned(),
+            model_ids: vec!["whisper-base-v1".to_owned()],
+            parameters_sha256: "e".repeat(64),
+        };
+        let model = TranscriptIdentity {
+            model_artifact_id: "whisper-base-v1".to_owned(),
+            model_sha256: "f".repeat(64),
+            worker_protocol_version: ANALYSIS_WORKER_PROTOCOL_VERSION,
+        };
+        let result = transcribe_japanese_to_cache_cancellable(
+            &AnalysisWorkerService::new(CancelledWorker),
+            &cache.0,
+            &identity,
+            TranscriptionInput {
+                request_id: "cancelled-transcription",
+                audio_path: &audio,
+                model_path: &model_path,
+                model: &model,
+            },
+            &mut || true,
+        )
+        .unwrap();
+
+        assert!(result.is_none());
+        assert!(!identity
+            .cache_directory(&cache.0)
+            .unwrap()
+            .join("transcript.json")
+            .exists());
     }
 }

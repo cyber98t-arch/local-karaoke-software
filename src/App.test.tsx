@@ -239,6 +239,7 @@ describe("song library", () => {
     fireEvent.click(await screen.findByRole("button", { name: "解析を中止" }));
 
     expect(cancelAnalysis).toHaveBeenCalledWith(songId);
+    expect(screen.getByRole("button", { name: "中止処理中…" })).toBeDisabled();
   });
 
   it("offers retry only when a failed stage is retryable", async () => {

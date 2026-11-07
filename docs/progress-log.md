@@ -799,3 +799,10 @@
 - The backend now canonicalizes the verified input, model, and existing output directory before invoking the CLI. On Windows, Rust canonicalization supplies the verbatim long-path form without changing the cache layout or writing outside the application cache.
 - CLI failure reporting now extracts leading `error:` lines instead of returning only a usage tail. Three focused backend tests, default/native cargo checks, targeted rustfmt checking, and `git diff --check` passed; Windows transcription rerun remains the proof of the long-path diagnosis.
 
+## 2026-11-07 — Windows native four-stage analysis completed
+
+- After the shared-ORT and long-path fixes, the user confirmed that a representative UI-started song reached the enabled `この曲を歌う` state. This proves native Windows separation, melody extraction, Whisper transcription, lyric alignment, cache handoffs, typed Tauri status polling, and terminal UI completion together.
+- The user then reported that cancellation after entering incorrect lyrics took too long to become visible. The cancellation flag previously reached only stage boundaries and could not interrupt the supervised `whisper-cli` wait loop.
+- Added a cancellable worker execution result. The Whisper backend now polls cancellation every 20 ms, kills and waits for its child process, returns a typed cancelled outcome, and never commits a partial `transcript.json`. The UI changes immediately to disabled `中止処理中…` while awaiting the terminal status poll.
+- Four Whisper backend tests (including a bounded real child-process cancellation), two transcript pipeline tests, the full real-cache handoff test, all 15 UI tests, lint/build, default/native cargo checks, and `git diff --check` passed.
+

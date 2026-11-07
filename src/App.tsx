@@ -81,6 +81,7 @@ function App({ libraryClient = tauriLibraryClient, audioClient, lyricsClient, an
   const [lyricsAcceptedFor, setLyricsAcceptedFor] = useState<Set<string>>(() => new Set());
   const [analysisStates, setAnalysisStates] = useState<Record<string, AnalysisJobState>>({});
   const [analysisError, setAnalysisError] = useState<Record<string, string>>({});
+  const [cancellationRequested, setCancellationRequested] = useState<Set<string>>(() => new Set());
   const loadLibraryCatalog = libraryClient
     ? libraryClient.loadLibraryCatalog
     : tauriLibraryClient.loadLibraryCatalog;
@@ -118,13 +119,30 @@ function App({ libraryClient = tauriLibraryClient, audioClient, lyricsClient, an
     async function poll() {
       const results = await Promise.allSettled(songIds.map((songId) => getStatus(songId)));
       if (!active) return;
+      const terminalIds = new Set(results.flatMap((result, index) =>
+        result.status === "fulfilled"
+          && result.value
+          && result.value.state.status !== "queued"
+          && result.value.state.status !== "running"
+          ? [songIds[index]]
+          : [],
+      ));
       setAnalysisStates((current) => {
         const next = { ...current };
         results.forEach((result, index) => {
-          if (result.status === "fulfilled" && result.value) next[songIds[index]] = result.value.state;
+          if (result.status === "fulfilled" && result.value) {
+            next[songIds[index]] = result.value.state;
+          }
         });
         return next;
       });
+      if (terminalIds.size > 0) {
+        setCancellationRequested((requested) => {
+          const updated = new Set(requested);
+          terminalIds.forEach((songId) => updated.delete(songId));
+          return updated;
+        });
+      }
     }
 
     void poll();
@@ -284,6 +302,11 @@ function App({ libraryClient = tauriLibraryClient, audioClient, lyricsClient, an
 
   async function startSelectedAnalysis() {
     if (!selected) return;
+    setCancellationRequested((current) => {
+      const next = new Set(current);
+      next.delete(selected.id);
+      return next;
+    });
     setAnalysisError((current) => ({ ...current, [selected.id]: "" }));
     try {
       const operation = selectedAnalysis?.status === "failed"
@@ -301,9 +324,15 @@ function App({ libraryClient = tauriLibraryClient, audioClient, lyricsClient, an
 
   async function cancelSelectedAnalysis() {
     if (!selected) return;
+    setCancellationRequested((current) => new Set(current).add(selected.id));
     try {
       await (analysisClient?.cancelAnalysis ?? tauriAnalysisClient.cancelAnalysis)(selected.id);
     } catch {
+      setCancellationRequested((current) => {
+        const next = new Set(current);
+        next.delete(selected.id);
+        return next;
+      });
       setAnalysisError((current) => ({ ...current, [selected.id]: "解析の中止を受け付けられませんでした。" }));
     }
   }
@@ -394,7 +423,11 @@ function App({ libraryClient = tauriLibraryClient, audioClient, lyricsClient, an
               {selectedAnalysis?.status === "failed" && <small className="analysis-error" role="alert">{selectedAnalysis.message}</small>}
               {analysisError[selected.id] && <small className="analysis-error" role="alert">{analysisError[selected.id]}</small>}
               {(selectedAnalysis?.status === "queued" || selectedAnalysis?.status === "running")
-                ? <button className="secondary-button analysis-action" onClick={cancelSelectedAnalysis}>解析を中止</button>
+                ? <button
+                    className="secondary-button analysis-action"
+                    disabled={cancellationRequested.has(selected.id)}
+                    onClick={cancelSelectedAnalysis}
+                  >{cancellationRequested.has(selected.id) ? "中止処理中…" : "解析を中止"}</button>
                 : selectedAnalysis?.status !== "completed" && selectedAnalysis?.status !== "cancelled" && <button
                     className="analysis-action"
                     disabled={!lyricsAcceptedFor.has(selected.id) || (selectedAnalysis?.status === "failed" && !selectedAnalysis.retryable)}

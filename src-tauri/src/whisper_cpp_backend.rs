@@ -9,8 +9,8 @@ use std::{
 
 use crate::{
     analysis_worker::{
-        AnalysisWorkerBackend, TranscriptionResult, TranscriptionSegment, WorkerOperation,
-        WorkerRequest, WorkerResponse, ANALYSIS_WORKER_PROTOCOL_VERSION,
+        AnalysisWorkerBackend, TranscriptionResult, TranscriptionSegment, WorkerExecution,
+        WorkerOperation, WorkerRequest, WorkerResponse, ANALYSIS_WORKER_PROTOCOL_VERSION,
     },
     cache::content_sha256,
 };
@@ -52,6 +52,29 @@ impl WhisperCppBackend {
 
 impl AnalysisWorkerBackend for WhisperCppBackend {
     fn execute(&self, request: &WorkerRequest) -> Result<WorkerResponse, String> {
+        match self.execute_with_cancellation(request, &mut || false)? {
+            WorkerExecution::Completed(response) => Ok(response),
+            WorkerExecution::Cancelled => {
+                Err("whisper.cpp cancelled without a cancellation request".to_owned())
+            }
+        }
+    }
+
+    fn execute_cancellable(
+        &self,
+        request: &WorkerRequest,
+        cancellation_requested: &mut dyn FnMut() -> bool,
+    ) -> Result<WorkerExecution, String> {
+        self.execute_with_cancellation(request, cancellation_requested)
+    }
+}
+
+impl WhisperCppBackend {
+    fn execute_with_cancellation(
+        &self,
+        request: &WorkerRequest,
+        cancellation_requested: &mut dyn FnMut() -> bool,
+    ) -> Result<WorkerExecution, String> {
         self.verify_cli()?;
         let WorkerOperation::TranscribeJapanese {
             input_audio_path,
@@ -65,6 +88,9 @@ impl AnalysisWorkerBackend for WhisperCppBackend {
         };
         if language != "ja" || self.timeout.is_zero() {
             return Err("invalid whisper.cpp execution settings".to_owned());
+        }
+        if cancellation_requested() {
+            return Ok(WorkerExecution::Cancelled);
         }
         verify_file(
             input_audio_path,
@@ -99,6 +125,11 @@ impl AnalysisWorkerBackend for WhisperCppBackend {
             if let Some(status) = child.try_wait().map_err(|e| e.to_string())? {
                 break status;
             }
+            if cancellation_requested() {
+                let _ = child.kill();
+                let _ = child.wait();
+                return Ok(WorkerExecution::Cancelled);
+            }
             if started.elapsed() >= self.timeout {
                 let _ = child.kill();
                 let _ = child.wait();
@@ -111,7 +142,7 @@ impl AnalysisWorkerBackend for WhisperCppBackend {
             return Err(format!("whisper.cpp failed: {}", failure_detail(&detail)));
         }
         let transcription = parse_whisper_json(&prefix.with_extension("json"))?;
-        Ok(WorkerResponse {
+        Ok(WorkerExecution::Completed(WorkerResponse {
             protocol_version: ANALYSIS_WORKER_PROTOCOL_VERSION,
             request_id: request.request_id.clone(),
             success: true,
@@ -119,7 +150,7 @@ impl AnalysisWorkerBackend for WhisperCppBackend {
             separation: None,
             transcription: Some(transcription),
             error: None,
-        })
+        }))
     }
 }
 
@@ -203,9 +234,12 @@ fn tail(value: &str, max_chars: usize) -> String {
 #[cfg(test)]
 mod tests {
     use super::{failure_detail, parse_whisper_json, WhisperCppBackend};
-    use crate::analysis_worker::{AnalysisWorkerBackend, WorkerOperation, WorkerRequest};
+    use crate::{
+        analysis_worker::{AnalysisWorkerBackend, WorkerExecution, WorkerOperation, WorkerRequest},
+        cache::content_sha256,
+    };
     use std::fs;
-    use std::time::Duration;
+    use std::time::{Duration, Instant};
 
     #[test]
     fn parses_pinned_whisper_json_shape_into_millisecond_segments() {
@@ -261,5 +295,59 @@ mod tests {
             failure_detail(stderr),
             "error: input file not found 'long.wav' error: no input files specified"
         );
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn stops_a_running_cli_when_cancellation_is_requested() {
+        use std::os::unix::fs::PermissionsExt;
+
+        let directory =
+            std::env::temp_dir().join(format!("hibiki-whisper-cancel-{}", std::process::id()));
+        let _ = fs::remove_dir_all(&directory);
+        fs::create_dir(&directory).unwrap();
+        let cli = directory.join("whisper-cli");
+        fs::write(&cli, b"#!/bin/sh\nsleep 10\n").unwrap();
+        let mut permissions = fs::metadata(&cli).unwrap().permissions();
+        permissions.set_mode(0o755);
+        fs::set_permissions(&cli, permissions).unwrap();
+        let input = directory.join("input.wav");
+        let model = directory.join("model.bin");
+        fs::write(&input, b"input").unwrap();
+        fs::write(&model, b"model").unwrap();
+        let request = WorkerRequest {
+            protocol_version: 2,
+            request_id: "cancel-test".into(),
+            operation: WorkerOperation::TranscribeJapanese {
+                input_audio_path: input.clone(),
+                model_path: model.clone(),
+                expected_source_sha256: content_sha256(&input).unwrap(),
+                expected_model_sha256: content_sha256(&model).unwrap(),
+                language: "ja".into(),
+            },
+            output_directory: directory.join("output"),
+        };
+        let backend = WhisperCppBackend::new(
+            cli.clone(),
+            content_sha256(&cli).unwrap(),
+            fs::metadata(&cli).unwrap().len(),
+            Duration::from_secs(30),
+        );
+        let mut checks = 0;
+        let started = Instant::now();
+        let result = backend
+            .execute_cancellable(&request, &mut || {
+                checks += 1;
+                checks > 1
+            })
+            .unwrap();
+
+        assert!(matches!(result, WorkerExecution::Cancelled));
+        assert!(started.elapsed() < Duration::from_secs(2));
+        assert!(!request
+            .output_directory
+            .join("whisper-result.json")
+            .exists());
+        fs::remove_dir_all(directory).unwrap();
     }
 }

@@ -13,7 +13,7 @@ use crate::{
     spleeter_inference::SpectrogramInference,
     stem_cache::load_cached_vocals,
     transcript_cache::{load_transcript_segments, TranscriptIdentity},
-    transcript_pipeline::{transcribe_japanese_to_cache, TranscriptionInput},
+    transcript_pipeline::{transcribe_japanese_to_cache_cancellable, TranscriptionInput},
 };
 
 pub struct LocalAnalysisRunner<'a, S, P, W> {
@@ -86,7 +86,7 @@ where
                     &vocals,
                 )
                 .map_err(|error| format!("transcription WAV could not be prepared: {error}"))?;
-                transcribe_japanese_to_cache(
+                let artifact = transcribe_japanese_to_cache_cancellable(
                     self.transcription,
                     self.cache_root,
                     self.identity,
@@ -96,7 +96,11 @@ where
                         model_path: self.whisper_model_path,
                         model: self.transcript_model,
                     },
+                    cancellation_requested,
                 )?;
+                if artifact.is_none() {
+                    return Ok(StageOutcome::Cancelled);
+                }
             }
             AnalysisStage::Alignment => {
                 let transcript =
