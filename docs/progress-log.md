@@ -774,3 +774,9 @@
 - The Windows launcher now checks for an existing port-1420 listener and reports its process instead of allowing an opaque Vite/Tauri failure.
 - Dev Container JSON parsing, frontend lint, production build, and `git diff --check` passed. Coexistence with the user's running Windows VS Code instance remains the required real-host confirmation.
 
+## 2026-11-07 — Native Windows dev server moved off retained VS Code listener
+
+- The launcher identified the actual conflict as `Code` PID 7016 retaining a listener on port 1420 even after automatic forwarding was disabled.
+- Moved the coordinated Vite strict port and Tauri `devUrl` to 1421, and updated the launcher preflight and developer instructions. The stale VS Code listener on 1420 can now remain without requiring VS Code or the Dev Container to close or rebuild.
+- Tauri/Vite configuration JSON parsing, frontend lint, production build, and `git diff --check` passed. Windows coexistence on port 1421 awaits the next launcher run.
+

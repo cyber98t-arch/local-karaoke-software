@@ -28,6 +28,10 @@ written only to the application analysis cache.
 This script is for the development environment only. It does not bundle models,
 publish an application, or enable a GPU provider.
 
+The native development server uses localhost port 1421. VS Code automatic port
+forwarding is disabled; an older forwarding listener remaining on port 1420 can
+therefore coexist without closing VS Code.
+
 ## Run the older focused CREPE checks
 
 This is the single queue for native Windows checks that cannot run in the Dev
