@@ -2,6 +2,18 @@
 
 Updated: 2026-11-06
 
+## Probe Phase 5 hardware without changing the system
+
+Before deciding the GPU-provider strategy, run this read-only probe once from
+the repository root and return its JSON output:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\windows\probe-phase5-hardware.ps1
+```
+
+The probe reads Windows, CPU, RAM, display-adapter, and driver metadata through
+CIM. It does not install or download anything and does not write a file.
+
 ## Run the Phase 4 native development app
 
 The selected-song UI is now connected to the real four-stage local analysis

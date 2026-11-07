@@ -825,3 +825,9 @@
 - Native Windows evidence covers the complete four-stage UI flow, responsive cancellation, and corrected-lyrics revisions. The latest automated baseline covers 16 frontend tests, 108 Rust library tests, frontend lint/build, default and native-ONNX cargo checks, and `git diff --check`.
 - Phase 4 is complete. Representative contour listening can still improve later tuning, but generated-tone accuracy, native CREPE execution, cache persistence, and Windows end-to-end completion satisfy the prototype acceptance boundary. GPU provider selection remains Phase 5 and requires a new explicit decision.
 
+## 2026-11-07 — Phase 5 GPU preflight opened
+
+- Rechecked current official ONNX Runtime provider guidance without changing dependencies or downloading provider binaries. DirectML remains broadly compatible across Intel, AMD, and NVIDIA DirectX 12 hardware but is in sustained engineering; Windows ML is the recommended new Windows direction, the built-in OpenVINO EP is deprecated in favor of its Plugin EP, and CUDA retains NVIDIA-specific CUDA/cuDNN compatibility requirements.
+- Opened D-027 as Waiting with a bounded recommendation: first measure an optional development-only DirectML path through the existing Rust ONNX Runtime boundary, retain CPU as mandatory fallback, and defer packaging/adoption until numerical, performance, memory, initialization, footprint, and failure evidence exists.
+- Added `scripts/windows/probe-phase5-hardware.ps1`, a read-only CIM hardware report requiring no downloads, installs, registry changes, or output file. GPU implementation remains blocked on that hardware evidence and explicit approval.
+

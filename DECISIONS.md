@@ -294,3 +294,15 @@
 - Reason approval is required: This changes the persistent cache layout and job identity, which is an explicit human approval gate.
 - Decision: Keep validated separation, melody, and transcript artifacts under the existing audio-analysis identity. Store alignment artifacts and job-attempt snapshots under a child directory keyed by the exact authoritative-lyrics SHA-256 so corrected lyrics can reuse heavy analysis without changing earlier terminal history.
 - Source: User approval on 2026-11-07.
+
+### D-027 — Phase 5 cross-vendor GPU provider prototype
+
+- Status: Waiting
+- Question: After the read-only hardware probe, should Phase 5 prototype DirectML as an optional cross-vendor ONNX Runtime provider while retaining the current CPU provider as the mandatory fallback?
+- Recommended option: Add DirectML only behind a development feature and test the same Spleeter and CREPE fixtures on the available Windows GPU. Record actual provider selection, numerical output differences, elapsed time, peak memory, initialization cost, provider DLL footprint, and forced-failure CPU fallback before considering distribution.
+- Reason for recommendation: DirectML can cover Intel, AMD, and NVIDIA DirectX 12 hardware through the current ONNX Runtime model/session boundary. It is in sustained engineering, so the experiment must also document the later Windows ML migration path rather than treating DirectML as a permanent packaging decision.
+- Alternative: Adopt Windows ML immediately. Microsoft recommends it for new Windows deployments and Windows 11 24H2+ can select providers automatically, but this would introduce a new WinRT/C API integration and distribution boundary instead of measuring the smallest extension to the existing Rust `ort` path.
+- Alternative: Start with vendor-specific OpenVINO and CUDA providers. These may outperform a cross-vendor layer on Intel and NVIDIA respectively, but do not cover AMD with one path and add separate plugin/runtime/driver packaging matrices. The built-in OpenVINO EP is also deprecated in favor of its standalone Plugin EP.
+- Initial scope if approved: Development-only provider registration, capability/error reporting, CPU fallback, generated/permissive fixtures, and measurement on the probed hardware. Do not accelerate Whisper, change models/cache formats, bundle provider binaries, publish an application, or remove CPU support.
+- Evidence required before approval: Output of `scripts/windows/probe-phase5-hardware.ps1`, including Windows build, adapter names, and driver versions.
+- Reason approval is required: Phase 5 changes the GPU strategy and native runtime/provider packaging boundary.
