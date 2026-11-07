@@ -230,10 +230,13 @@ fn run_native_analysis(
 ) -> Result<(), String> {
     use crate::{
         analysis_job::{AnalysisIdentity, AnalysisStage},
-        analysis_pipeline::{run_analysis_pipeline, AnalysisStageRunner, StageOutcome},
+        analysis_pipeline::{
+            run_analysis_pipeline_in_directory, AnalysisStageRunner, StageOutcome,
+        },
         analysis_worker::{AnalysisWorkerService, ANALYSIS_WORKER_PROTOCOL_VERSION},
         crepe_inference::NativeCrepeSession,
         local_analysis_runner::LocalAnalysisRunner,
+        lyric_revision::lyric_revision_directory,
         melody_cache::MelodyModelIdentity,
         spleeter_inference::NativeOrtSession,
         transcript_cache::TranscriptIdentity,
@@ -269,6 +272,7 @@ fn run_native_analysis(
         crate::analysis_runtime::WHISPER_CLI_BYTES,
         Duration::from_secs(60 * 60),
     ));
+    let revision_directory = lyric_revision_directory(cache_root, &identity, authoritative_lyrics)?;
     let runner = LocalAnalysisRunner {
         separation: &mut separation,
         pitch: &mut pitch,
@@ -280,6 +284,7 @@ fn run_native_analysis(
         transcript_model: &transcript_model,
         whisper_model_path: &config.whisper_model,
         authoritative_lyrics,
+        lyric_revision_directory: &revision_directory,
         request_id: "song-analysis",
     };
     struct ReportingRunner<'a, R> {
@@ -303,9 +308,10 @@ fn run_native_analysis(
         registry,
         song_id,
     };
-    let final_state = run_analysis_pipeline(cache_root, &identity, &mut reporting, || {
-        cancellation.load(Ordering::Acquire)
-    })?;
+    let final_state =
+        run_analysis_pipeline_in_directory(&revision_directory, &mut reporting, || {
+            cancellation.load(Ordering::Acquire)
+        })?;
     registry.update(song_id, final_state)
 }
 

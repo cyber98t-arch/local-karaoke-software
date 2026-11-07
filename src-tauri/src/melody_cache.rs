@@ -37,6 +37,13 @@ pub struct MelodyCacheArtifact {
     pub point_count: usize,
 }
 
+pub fn load_cached_melody(
+    cache_directory: &Path,
+    model: &MelodyModelIdentity,
+) -> io::Result<MelodyCacheArtifact> {
+    validate_existing(&cache_directory.join("melody.json"), model)
+}
+
 pub fn commit_melody(
     cache_directory: &Path,
     model: &MelodyModelIdentity,

@@ -141,6 +141,13 @@ pub fn append_job_state(
     next_state: &AnalysisJobState,
 ) -> Result<PathBuf, String> {
     let directory = identity.cache_directory(cache_root)?;
+    append_job_state_in_directory(&directory, next_state)
+}
+
+pub fn append_job_state_in_directory(
+    directory: &Path,
+    next_state: &AnalysisJobState,
+) -> Result<PathBuf, String> {
     fs::create_dir_all(&directory).map_err(|error| error.to_string())?;
 
     let latest = latest_state_snapshot(&directory)?;
@@ -212,6 +219,10 @@ pub fn latest_job_state(
     identity: &AnalysisIdentity,
 ) -> Result<Option<AnalysisJobState>, String> {
     let directory = identity.cache_directory(cache_root)?;
+    latest_job_state_in_directory(&directory)
+}
+
+pub fn latest_job_state_in_directory(directory: &Path) -> Result<Option<AnalysisJobState>, String> {
     if !directory.exists() {
         return Ok(None);
     }

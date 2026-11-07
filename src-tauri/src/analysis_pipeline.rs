@@ -1,7 +1,8 @@
 use std::path::Path;
 
 use crate::analysis_job::{
-    append_job_state, latest_job_state, AnalysisIdentity, AnalysisJobState, AnalysisStage,
+    append_job_state_in_directory, latest_job_state_in_directory, AnalysisIdentity,
+    AnalysisJobState, AnalysisStage,
 };
 
 const STAGES: [AnalysisStage; 4] = [
@@ -29,16 +30,29 @@ pub fn run_analysis_pipeline<R, C>(
     cache_root: &Path,
     identity: &AnalysisIdentity,
     runner: &mut R,
+    cancellation_requested: C,
+) -> Result<AnalysisJobState, String>
+where
+    R: AnalysisStageRunner,
+    C: FnMut() -> bool,
+{
+    let directory = identity.cache_directory(cache_root)?;
+    run_analysis_pipeline_in_directory(&directory, runner, cancellation_requested)
+}
+
+pub fn run_analysis_pipeline_in_directory<R, C>(
+    state_directory: &Path,
+    runner: &mut R,
     mut cancellation_requested: C,
 ) -> Result<AnalysisJobState, String>
 where
     R: AnalysisStageRunner,
     C: FnMut() -> bool,
 {
-    let latest = latest_job_state(cache_root, identity)?;
+    let latest = latest_job_state_in_directory(state_directory)?;
     let first_stage = match latest {
         None => {
-            append_job_state(cache_root, identity, &AnalysisJobState::Queued)?;
+            append_job_state_in_directory(state_directory, &AnalysisJobState::Queued)?;
             AnalysisStage::Separation
         }
         Some(AnalysisJobState::Queued) => AnalysisStage::Separation,
@@ -64,28 +78,28 @@ where
     for stage in STAGES.into_iter().skip(first_index) {
         if cancellation_requested() {
             let state = AnalysisJobState::Cancelled;
-            append_job_state(cache_root, identity, &state)?;
+            append_job_state_in_directory(state_directory, &state)?;
             return Ok(state);
         }
         let running = AnalysisJobState::Running { stage };
-        append_job_state(cache_root, identity, &running)?;
+        append_job_state_in_directory(state_directory, &running)?;
         match runner.run_stage(stage, &mut cancellation_requested) {
             Ok(StageOutcome::Completed) => {}
             Ok(StageOutcome::Cancelled) => {
                 let cancelled = AnalysisJobState::Cancelled;
-                append_job_state(cache_root, identity, &cancelled)?;
+                append_job_state_in_directory(state_directory, &cancelled)?;
                 return Ok(cancelled);
             }
             Err(message) => {
                 let mut failed = running;
                 failed.fail(message, true)?;
-                append_job_state(cache_root, identity, &failed)?;
+                append_job_state_in_directory(state_directory, &failed)?;
                 return Ok(failed);
             }
         }
     }
     let completed = AnalysisJobState::Completed;
-    append_job_state(cache_root, identity, &completed)?;
+    append_job_state_in_directory(state_directory, &completed)?;
     Ok(completed)
 }
 

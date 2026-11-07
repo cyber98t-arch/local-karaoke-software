@@ -138,10 +138,9 @@ build the pinned CPU-only `whisper.cpp` CLI and retain hash/provenance/license
 evidence for seven days. This is development inspection only, not publication,
 bundling, model acquisition, or a release.
 
-D-026 waiting 2026-11-07: approve or reject lyric-SHA-keyed alignment artifacts
-and job attempts so corrected lyrics can reuse validated stems, melody, and
-Whisper transcript without overwriting terminal history or repeating expensive
-audio analysis.
+D-026 approved 2026-11-07: lyric-SHA-keyed alignment artifacts and job attempts
+allow corrected lyrics to reuse validated stems, melody, and Whisper transcript
+without overwriting terminal history or repeating expensive audio analysis.
 
 ## D-007 ONNX feasibility research criteria
 

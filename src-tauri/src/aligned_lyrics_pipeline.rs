@@ -13,8 +13,16 @@ pub fn align_lyrics_to_cache(
     cache_root: &Path,
     identity: &AnalysisIdentity,
 ) -> Result<AlignedLyricsArtifact, String> {
-    let alignment = align_japanese_lyrics(authoritative_lyrics, transcript)?;
     let directory = identity.cache_directory(cache_root)?;
+    align_lyrics_to_directory(authoritative_lyrics, transcript, &directory)
+}
+
+pub fn align_lyrics_to_directory(
+    authoritative_lyrics: &str,
+    transcript: &[TranscriptionSegment],
+    directory: &Path,
+) -> Result<AlignedLyricsArtifact, String> {
+    let alignment = align_japanese_lyrics(authoritative_lyrics, transcript)?;
     commit_aligned_lyrics(&directory, &alignment)
         .map_err(|error| format!("aligned lyrics cache commit failed: {error}"))
 }

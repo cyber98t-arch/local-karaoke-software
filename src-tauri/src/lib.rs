@@ -17,6 +17,7 @@ pub mod library_commands;
 pub mod library_service;
 pub mod local_analysis_runner;
 pub mod lyric_alignment;
+pub mod lyric_revision;
 pub mod lyrics_commands;
 pub mod lyrics_input;
 pub mod melody_cache;
