@@ -813,3 +813,9 @@
 - The selected-song UI remembers the accepted lyric SHA used to start each in-memory analysis. After cancellation, completion, or failure, saving a different lyric SHA exposes `修正した歌詞で再解析` and starts a new revision; retry remains reserved for a retryable failure of the same lyric revision.
 - All 16 UI tests and 108 Rust library tests passed. Frontend lint/build, default cargo check, native-ONNX cargo check, and `git diff --check` also passed. Native Windows cancellation and corrected-lyrics reuse remain Windows-only verification.
 
+## 2026-11-07 — Windows cancellation and corrected-lyrics revision verified
+
+- The user completed the queued native Windows check after pulling the D-026 implementation.
+- The application accepted cancellation of the analysis started with incorrect lyrics, accepted corrected lyrics for the same song, exposed the corrected-lyrics reanalysis flow, and completed it successfully.
+- This closes the outstanding native verification for responsive cancellation and lyric-revision reanalysis. The automated integration test remains the evidence that validated separation, melody, and transcript inference are skipped for the second revision; no source-music mutation was reported.
+
