@@ -760,3 +760,10 @@
 - Rust accepts this command only for a recorded retryable failure; cancelled, active, completed, missing, and non-retryable states are rejected. The UI calls this command only for the displayed retry action.
 - Two focused Rust command-state tests and all 15 UI tests passed. Frontend lint/build, default and native-ONNX cargo checks, and `git diff --check` also passed.
 
+## 2026-11-07 — Windows native development launch verified
+
+- The user ran `scripts/windows/start-phase4-native-dev.ps1` from Windows PowerShell after pulling `main`.
+- The script verified the exact Spleeter and CREPE ONNX files, downloaded the missing 147,951,465-byte Whisper base model and 2,115,584-byte CPU-only `whisper-cli`, and verified all four pinned SHA-256 values.
+- Tauri invoked Cargo with `--no-default-features --features native-onnx`; the Windows MSVC development build completed in 38.65 seconds and launched `hibiki-karaoke.exe` with Vite ready on port 1420.
+- This proves the consolidated acquisition/preflight/build/launch path on Windows. A UI-started representative song still needs to complete separation, melody extraction, transcription, and alignment before the native end-to-end path is considered verified.
+
