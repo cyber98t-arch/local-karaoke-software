@@ -806,3 +806,10 @@
 - Added a cancellable worker execution result. The Whisper backend now polls cancellation every 20 ms, kills and waits for its child process, returns a typed cancelled outcome, and never commits a partial `transcript.json`. The UI changes immediately to disabled `中止処理中…` while awaiting the terminal status poll.
 - Four Whisper backend tests (including a bounded real child-process cancellation), two transcript pipeline tests, the full real-cache handoff test, all 15 UI tests, lint/build, default/native cargo checks, and `git diff --check` passed.
 
+## 2026-11-07 — Corrected lyrics receive isolated analysis revisions
+
+- D-026 was approved. Exact authoritative-lyrics SHA-256 now keys a child directory below the existing audio-analysis identity; job snapshots and `aligned-lyrics.json` are isolated per lyric revision while validated stems, melody, and transcript remain shared.
+- The concrete runner validates existing heavy artifacts before skipping inference. An injected integration test completed a second lyric revision with separation, pitch, and transcription backends configured to panic if called, proving that only alignment was recomputed and that both revision artifacts remained present. Source bytes stayed unchanged.
+- The selected-song UI remembers the accepted lyric SHA used to start each in-memory analysis. After cancellation, completion, or failure, saving a different lyric SHA exposes `修正した歌詞で再解析` and starts a new revision; retry remains reserved for a retryable failure of the same lyric revision.
+- All 16 UI tests and 108 Rust library tests passed. Frontend lint/build, default cargo check, native-ONNX cargo check, and `git diff --check` also passed. Native Windows cancellation and corrected-lyrics reuse remain Windows-only verification.
+

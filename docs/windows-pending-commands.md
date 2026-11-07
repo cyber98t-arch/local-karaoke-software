@@ -25,6 +25,13 @@ and click **この曲を解析**. The UI reports separation, melody extraction,
 transcription, and alignment without exposing a source path. Derived files are
 written only to the application analysis cache.
 
+For the current native verification, start an analysis with intentionally
+incorrect lyrics, press **解析を中止**, and confirm it reaches the cancelled
+state promptly. Save corrected lyrics for the same song, confirm
+**修正した歌詞で再解析** appears, and run it. The corrected revision should
+finish much faster by validating and reusing the existing stems, melody, and
+transcript; only lyric alignment and revision-local job snapshots are new.
+
 This script is for the development environment only. It does not bundle models,
 publish an application, or enable a GPU provider.
 
