@@ -767,3 +767,10 @@
 - Tauri invoked Cargo with `--no-default-features --features native-onnx`; the Windows MSVC development build completed in 38.65 seconds and launched `hibiki-karaoke.exe` with Vite ready on port 1420.
 - This proves the consolidated acquisition/preflight/build/launch path on Windows. A UI-started representative song still needs to complete separation, melody extraction, transcription, and alignment before the native end-to-end path is considered verified.
 
+## 2026-11-07 — VS Code and Windows dev-server port ownership separated
+
+- The user reported that the Windows application only behaved normally after closing VS Code. Repository inspection found that the Dev Container explicitly forwarded host port 1420 while the Windows Tauri/Vite process requires the same strict port.
+- Removed automatic/explicit Dev Container forwarding and set `remote.autoForwardPorts` to false. Container browser preview remains available through a deliberate manual forward, while opening VS Code no longer claims or repeatedly opens the native application's port.
+- The Windows launcher now checks for an existing port-1420 listener and reports its process instead of allowing an opaque Vite/Tauri failure.
+- Dev Container JSON parsing, frontend lint, production build, and `git diff --check` passed. Coexistence with the user's running Windows VS Code instance remains the required real-host confirmation.
+

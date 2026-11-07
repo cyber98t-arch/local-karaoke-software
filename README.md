@@ -7,7 +7,12 @@ A Windows-first, local-only AI karaoke application. This repository currently co
 1. Install Docker Desktop and VS Code with the Dev Containers extension.
 2. Open this repository in VS Code.
 3. Choose **Dev Containers: Reopen in Container**.
-4. After setup completes, run `npm run dev` and open the forwarded port 1420.
+4. After setup completes, run `npm run dev`. If a browser preview is needed,
+   manually forward port 1420 from VS Code's **Ports** view.
+
+Automatic Dev Container port forwarding is intentionally disabled. This keeps
+VS Code from reserving or repeatedly opening Windows port 1420 while the native
+Windows Tauri development app is running.
 
 The Linux container provides repeatable editing, web UI builds, tests, Python tooling, Rust checks, and Codex CLI. Windows application launch, microphone latency, GPU providers, and installer verification run on the Windows host; see `docs/windows-test-plan.md`.
 

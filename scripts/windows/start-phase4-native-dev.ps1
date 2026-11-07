@@ -97,6 +97,14 @@ if ($VerifyOnly) {
     exit 0
 }
 
+$existingListener = Get-NetTCPConnection -LocalPort 1420 -State Listen -ErrorAction SilentlyContinue |
+    Select-Object -First 1
+if ($null -ne $existingListener) {
+    $owner = Get-Process -Id $existingListener.OwningProcess -ErrorAction SilentlyContinue
+    $ownerName = if ($null -eq $owner) { "PID $($existingListener.OwningProcess)" } else { "$($owner.ProcessName) (PID $($owner.Id))" }
+    throw "Port 1420 is already used by $ownerName. Stop an older dev server or VS Code port forwarding, then run this script again."
+}
+
 Write-Host "Starting the Tauri development app with native CPU ONNX analysis enabled..."
 & npm run tauri -- dev --features native-onnx
 if ($LASTEXITCODE -ne 0) {
