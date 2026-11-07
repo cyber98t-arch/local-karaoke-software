@@ -819,3 +819,9 @@
 - The application accepted cancellation of the analysis started with incorrect lyrics, accepted corrected lyrics for the same song, exposed the corrected-lyrics reanalysis flow, and completed it successfully.
 - This closes the outstanding native verification for responsive cancellation and lyric-revision reanalysis. The automated integration test remains the evidence that validated separation, melody, and transcript inference are skipped for the second revision; no source-music mutation was reported.
 
+## 2026-11-07 — Phase 4 acceptance audit completed
+
+- Audited every Phase 4 acceptance criterion against current code, automated checks, pinned artifact metadata, and native Windows observations. The concrete four-stage CPU path completes before playback; all source access remains read-only; derived writes are cache-owned and atomic; typed progress/failure/cancellation/retry state is path-free; cache identity includes source, pipeline, models, and parameters; and model provenance is pinned separately from song caches.
+- Native Windows evidence covers the complete four-stage UI flow, responsive cancellation, and corrected-lyrics revisions. The latest automated baseline covers 16 frontend tests, 108 Rust library tests, frontend lint/build, default and native-ONNX cargo checks, and `git diff --check`.
+- Phase 4 is complete. Representative contour listening can still improve later tuning, but generated-tone accuracy, native CREPE execution, cache persistence, and Windows end-to-end completion satisfy the prototype acceptance boundary. GPU provider selection remains Phase 5 and requires a new explicit decision.
+

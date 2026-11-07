@@ -6,7 +6,7 @@
 | 1. Song-selection UI skeleton | Complete | Searchable/selectable mock library with analysis states | No new gate |
 | 2. Read-only library and cache catalog | Complete | Scan MP3/FLAC/WAV without changing sources; content-addressed catalog | Approved: D-003 SQLite catalog + JSON artifact manifests |
 | 3. Playback and microphone probe | Complete | Windows audio device selection, playback, loopback-free mic monitoring | Approved: D-005 CPAL + default Windows WASAPI |
-| 4. Analysis pipeline prototype | In progress | Local separation, melody extraction, Japanese lyric alignment, progress reporting | D-006 models and D-007 CPU ONNX separation approved |
+| 4. Analysis pipeline prototype | Complete | Local separation, melody extraction, Japanese lyric alignment, progress reporting | D-006 models and D-007 CPU ONNX separation approved |
 | 5. GPU provider matrix | Not started | DirectML/CUDA/other supported providers with measured CPU fallback | Decision required after hardware probes |
 | 6. Singing and scoring UI | Not started | Low-latency live pitch/timing feedback; no live total score | Scoring weights require approval |
 | 7. Result and lyric correction | Not started | Post-song total/breakdown and editable synced Japanese lyrics | UX acceptance review |
@@ -167,5 +167,15 @@ D-014 approved 2026-11-05: implement CREPE tiny with the existing native CPU
 ONNX Runtime plus Rust-owned 16 kHz mono conversion, centered normalized frames,
 and local-average pitch decoding. The pure signal path and injected inference
 boundary and validated, identity-derived `melody.json` output are implemented.
-Native Windows model execution awaits a separately supplied artifact.
+Native Windows model execution and cache persistence are verified with the
+pinned development artifact.
+
+Phase 4 completed 2026-11-07: the concrete CPU-native four-stage runner is
+connected to path-free Tauri start/status/cancel/retry commands and the selected
+song UI. Windows verification completed separation, CREPE melody extraction,
+Whisper transcription, lyric alignment, responsive cancellation, and corrected
+lyrics reanalysis. Automated tests cover source-byte preservation, cache-only
+atomic artifacts, identity/provenance validation, resumable typed job states,
+heavy-artifact reuse, and frontend state transitions. GPU providers remain the
+separately gated Phase 5 and are not required for Phase 4 correctness.
 
