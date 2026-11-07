@@ -282,3 +282,13 @@
 - Reason approval is required: Publishing a native executable creates a public release asset and crosses the repository's explicit publishing gate. Bundling remains a later, separate approval even though D-020 selected the eventual packaging direction.
 - Decision: Publish exactly the verified CPU-only executable with its MIT license and complete provenance as a clearly labeled development-only prerelease. Do not bundle it into the application or treat it as a stable/application release.
 - Source: User approval on 2026-11-06.
+
+### D-026 — Lyric-revision analysis attempts and alignment cache identity
+
+- Status: Waiting
+- Question: Should corrected authoritative lyrics create a new lyric-revision attempt while reusing validated separation, melody, and transcript artifacts?
+- Recommended option: Keep expensive audio-derived artifacts under the existing content/pipeline/model identity. Key alignment artifacts and job-attempt snapshots additionally by the exact authoritative-lyrics SHA-256. A corrected lyric revision then skips valid heavy stages and recomputes only alignment; a cancelled or completed earlier lyric revision remains immutable and cannot block the correction.
+- Alternative: Include the lyric SHA-256 in the entire analysis identity. This is simpler but repeats separation, CREPE, and Whisper work for every typo correction on ordinary laptops.
+- Rejected alternative: Delete or overwrite the previous terminal snapshots and `aligned-lyrics.json`. This weakens atomic history, risks mixing lyric revisions, and makes recovery/auditing unreliable.
+- Migration scope: Treat the current single `aligned-lyrics.json` and root-level job snapshots as development-v1 legacy cache. Do not delete source music or user-selected files. Preserve or ignore legacy derived cache safely; write new revisioned artifacts only below the application cache.
+- Reason approval is required: This changes the persistent cache layout and job identity, which is an explicit human approval gate.
