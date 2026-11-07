@@ -73,15 +73,18 @@ impl AnalysisWorkerBackend for WhisperCppBackend {
         )?;
         verify_file(model_path, expected_model_sha256, "Whisper model")?;
         fs::create_dir_all(&request.output_directory).map_err(|e| e.to_string())?;
-        let prefix = request.output_directory.join("whisper-result");
+        let cli_input = cli_path(input_audio_path, "transcription input")?;
+        let cli_model = cli_path(model_path, "Whisper model")?;
+        let cli_output_directory = cli_path(&request.output_directory, "transcription output")?;
+        let prefix = cli_output_directory.join("whisper-result");
         let stderr_path = request.output_directory.join("whisper-stderr.txt");
         let stderr = File::create(&stderr_path).map_err(|e| e.to_string())?;
         let mut child = Command::new(&self.cli_path)
             .args([
                 "-m",
-                &model_path.to_string_lossy(),
+                &cli_model.to_string_lossy(),
                 "-f",
-                &input_audio_path.to_string_lossy(),
+                &cli_input.to_string_lossy(),
             ])
             .args(["-l", "ja", "-oj", "-of"])
             .arg(&prefix)
@@ -105,7 +108,7 @@ impl AnalysisWorkerBackend for WhisperCppBackend {
         };
         if !status.success() {
             let detail = fs::read_to_string(stderr_path).unwrap_or_default();
-            return Err(format!("whisper.cpp failed: {}", tail(&detail, 2000)));
+            return Err(format!("whisper.cpp failed: {}", failure_detail(&detail)));
         }
         let transcription = parse_whisper_json(&prefix.with_extension("json"))?;
         Ok(WorkerResponse {
@@ -118,6 +121,10 @@ impl AnalysisWorkerBackend for WhisperCppBackend {
             error: None,
         })
     }
+}
+
+fn cli_path(path: &Path, label: &str) -> Result<PathBuf, String> {
+    fs::canonicalize(path).map_err(|error| format!("{label} path could not be normalized: {error}"))
 }
 
 fn verify_file(path: &Path, expected: &str, label: &str) -> Result<(), String> {
@@ -169,6 +176,19 @@ fn parse_whisper_json(path: &Path) -> Result<TranscriptionResult, String> {
     })
 }
 
+fn failure_detail(value: &str) -> String {
+    let errors = value
+        .lines()
+        .map(str::trim)
+        .filter(|line| line.starts_with("error:"))
+        .take(4)
+        .collect::<Vec<_>>();
+    if !errors.is_empty() {
+        return errors.join(" ");
+    }
+    tail(value, 2000)
+}
+
 fn tail(value: &str, max_chars: usize) -> String {
     value
         .chars()
@@ -182,7 +202,7 @@ fn tail(value: &str, max_chars: usize) -> String {
 
 #[cfg(test)]
 mod tests {
-    use super::{parse_whisper_json, WhisperCppBackend};
+    use super::{failure_detail, parse_whisper_json, WhisperCppBackend};
     use crate::analysis_worker::{AnalysisWorkerBackend, WorkerOperation, WorkerRequest};
     use std::fs;
     use std::time::Duration;
@@ -232,5 +252,14 @@ mod tests {
         );
         assert!(!request.output_directory.exists());
         fs::remove_dir_all(directory).unwrap();
+    }
+
+    #[test]
+    fn reports_actionable_cli_errors_instead_of_the_usage_tail() {
+        let stderr = "error: input file not found 'long.wav'\nerror: no input files specified\nusage: whisper-cli [options]\nvery long help";
+        assert_eq!(
+            failure_detail(stderr),
+            "error: input file not found 'long.wav' error: no input files specified"
+        );
     }
 }

@@ -792,3 +792,10 @@
 - Root cause was independent `ort::init()` calls in the Spleeter and CREPE session constructors. Added one process-wide fallible `OnceLock` environment and made both model sessions retain clones of that shared environment; model sessions and tensor contracts remain independent.
 - Five focused injected inference tests passed, along with default and native-ONNX cargo checks, targeted rustfmt checking, and `git diff --check`. The new native shared-environment test is compiled behind `native-onnx`; Windows UI rerun remains the runtime proof.
 
+## 2026-11-07 — whisper.cpp long-path invocation hardened
+
+- After the shared-ORT fix, the representative UI run advanced to transcription. `whisper-cli` then returned its usage text, but the backend retained only the final 2,000 characters and hid the leading actionable error.
+- The pinned v1.9.5 CLI source confirms all fixed arguments are valid and shows usage after missing input/model checks. The identity-derived Windows cache path contains three 64-character components and can exceed the traditional path limit, while Rust had already verified that same input file.
+- The backend now canonicalizes the verified input, model, and existing output directory before invoking the CLI. On Windows, Rust canonicalization supplies the verbatim long-path form without changing the cache layout or writing outside the application cache.
+- CLI failure reporting now extracts leading `error:` lines instead of returning only a usage tail. Three focused backend tests, default/native cargo checks, targeted rustfmt checking, and `git diff --check` passed; Windows transcription rerun remains the proof of the long-path diagnosis.
+
