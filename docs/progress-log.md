@@ -831,3 +831,10 @@
 - Opened D-027 as Waiting with a bounded recommendation: first measure an optional development-only DirectML path through the existing Rust ONNX Runtime boundary, retain CPU as mandatory fallback, and defer packaging/adoption until numerical, performance, memory, initialization, footprint, and failure evidence exists.
 - Added `scripts/windows/probe-phase5-hardware.ps1`, a read-only CIM hardware report requiring no downloads, installs, registry changes, or output file. GPU implementation remains blocked on that hardware evidence and explicit approval.
 
+## 2026-11-07 — Phase 5 AMD hardware evidence received
+
+- The user ran the read-only hardware probe successfully on Windows 11 Home build 26200 with an AMD Ryzen 9 9950X3D, approximately 32 GB system memory, an AMD Radeon RX 9070 XT, and AMD integrated graphics. Both adapters reported status OK with current driver identities recorded in D-027.
+- This is suitable hardware for the recommended cross-vendor DirectML prototype and also meets the Windows 11 24H2-or-newer boundary where Windows ML is a future comparison path.
+- Legacy CIM `AdapterRAM` output is not accepted as authoritative VRAM capacity evidence. Any benchmark must identify the actual adapter used and measure process/system memory separately.
+- D-027 remains Waiting for explicit approval; no provider dependency, binary, model, cache identity, or runtime code has changed.
+

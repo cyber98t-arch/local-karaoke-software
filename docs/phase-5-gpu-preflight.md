@@ -49,6 +49,19 @@ It reads Windows, CPU, memory, display-adapter, and driver metadata through CIM
 and prints JSON. It does not install drivers, download dependencies, initialize
 a model, modify the registry, or write a report file.
 
+Received 2026-11-07:
+
+- Windows 11 Home build 26200, 64-bit
+- AMD Ryzen 9 9950X3D, 32 logical processors
+- Approximately 32 GB system memory
+- AMD Radeon RX 9070 XT, driver `32.0.32015.7029`, status OK
+- AMD Radeon integrated graphics, driver `32.0.21045.16010`, status OK
+
+The `Win32_VideoController.AdapterRAM` field is legacy-width metadata and is not
+used as authoritative VRAM capacity evidence. Provider measurements must name
+the selected adapter explicitly so the discrete and integrated GPUs cannot be
+confused.
+
 ## Primary references
 
 - ONNX Runtime execution providers: <https://onnxruntime.ai/docs/execution-providers/>
