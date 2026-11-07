@@ -78,7 +78,8 @@ function App({ libraryClient = tauriLibraryClient, audioClient, lyricsClient, an
   const [lyricsDraft, setLyricsDraft] = useState("");
   const [lyricsStatus, setLyricsStatus] = useState<"idle" | "saving" | "selecting" | "accepted">("idle");
   const [lyricsError, setLyricsError] = useState<string | null>(null);
-  const [lyricsAcceptedFor, setLyricsAcceptedFor] = useState<Set<string>>(() => new Set());
+  const [acceptedLyricsHashes, setAcceptedLyricsHashes] = useState<Record<string, string>>({});
+  const [analysisLyricsHashes, setAnalysisLyricsHashes] = useState<Record<string, string>>({});
   const [analysisStates, setAnalysisStates] = useState<Record<string, AnalysisJobState>>({});
   const [analysisError, setAnalysisError] = useState<Record<string, string>>({});
   const [cancellationRequested, setCancellationRequested] = useState<Set<string>>(() => new Set());
@@ -96,6 +97,13 @@ function App({ libraryClient = tauriLibraryClient, audioClient, lyricsClient, an
   const inputDevices = audioDevices.filter((device) => device.direction === "input");
   const outputDevices = audioDevices.filter((device) => device.direction === "output");
   const selectedAnalysis = selected ? analysisStates[selected.id] : undefined;
+  const selectedLyricsHash = selected ? acceptedLyricsHashes[selected.id] : undefined;
+  const selectedAnalysisLyricsHash = selected ? analysisLyricsHashes[selected.id] : undefined;
+  const selectedLyricsChanged = Boolean(
+    selectedLyricsHash
+      && selectedAnalysisLyricsHash
+      && selectedLyricsHash !== selectedAnalysisLyricsHash,
+  );
   const selectedAnalysisView = analysisPresentation(selectedAnalysis);
   const activeAnalysisIds = Object.entries(analysisStates)
     .filter(([, state]) => state.status === "queued" || state.status === "running")
@@ -277,8 +285,8 @@ function App({ libraryClient = tauriLibraryClient, audioClient, lyricsClient, an
     setLyricsError(null);
     setLyricsStatus("saving");
     try {
-      await (lyricsClient?.setPastedLyrics ?? tauriLyricsClient.setPastedLyrics)(selected.id, lyricsDraft);
-      setLyricsAcceptedFor((current) => new Set(current).add(selected.id));
+      const accepted = await (lyricsClient?.setPastedLyrics ?? tauriLyricsClient.setPastedLyrics)(selected.id, lyricsDraft);
+      setAcceptedLyricsHashes((current) => ({ ...current, [selected.id]: accepted.sha256 }));
       setLyricsStatus("accepted");
     } catch {
       setLyricsStatus("idle");
@@ -292,7 +300,9 @@ function App({ libraryClient = tauriLibraryClient, audioClient, lyricsClient, an
     setLyricsStatus("selecting");
     try {
       const result = await (lyricsClient?.selectLyricsFile ?? tauriLyricsClient.selectLyricsFile)(selected.id);
-      if (result.selected) setLyricsAcceptedFor((current) => new Set(current).add(selected.id));
+      if (result.selected && result.lyrics) {
+        setAcceptedLyricsHashes((current) => ({ ...current, [selected.id]: result.lyrics!.sha256 }));
+      }
       setLyricsStatus(result.selected ? "accepted" : "idle");
     } catch {
       setLyricsStatus("idle");
@@ -301,7 +311,7 @@ function App({ libraryClient = tauriLibraryClient, audioClient, lyricsClient, an
   }
 
   async function startSelectedAnalysis() {
-    if (!selected) return;
+    if (!selected || !selectedLyricsHash) return;
     setCancellationRequested((current) => {
       const next = new Set(current);
       next.delete(selected.id);
@@ -309,10 +319,11 @@ function App({ libraryClient = tauriLibraryClient, audioClient, lyricsClient, an
     });
     setAnalysisError((current) => ({ ...current, [selected.id]: "" }));
     try {
-      const operation = selectedAnalysis?.status === "failed"
+      const operation = selectedAnalysis?.status === "failed" && !selectedLyricsChanged
         ? (analysisClient?.retryAnalysis ?? tauriAnalysisClient.retryAnalysis)
         : (analysisClient?.startAnalysis ?? tauriAnalysisClient.startAnalysis);
       const status = await operation(selected.id);
+      setAnalysisLyricsHashes((current) => ({ ...current, [selected.id]: selectedLyricsHash }));
       setAnalysisStates((current) => ({ ...current, [selected.id]: status.state }));
     } catch (error) {
       setAnalysisError((current) => ({
@@ -428,13 +439,13 @@ function App({ libraryClient = tauriLibraryClient, audioClient, lyricsClient, an
                     disabled={cancellationRequested.has(selected.id)}
                     onClick={cancelSelectedAnalysis}
                   >{cancellationRequested.has(selected.id) ? "中止処理中…" : "解析を中止"}</button>
-                : selectedAnalysis?.status !== "completed" && selectedAnalysis?.status !== "cancelled" && <button
+                : (selectedAnalysis?.status !== "completed" && selectedAnalysis?.status !== "cancelled" || selectedLyricsChanged) && <button
                     className="analysis-action"
-                    disabled={!lyricsAcceptedFor.has(selected.id) || (selectedAnalysis?.status === "failed" && !selectedAnalysis.retryable)}
+                    disabled={!selectedLyricsHash || (selectedAnalysis?.status === "failed" && !selectedAnalysis.retryable && !selectedLyricsChanged)}
                     onClick={startSelectedAnalysis}
-                  >{selectedAnalysis?.status === "failed" ? "解析を再試行" : "この曲を解析"}</button>}
-              {!lyricsAcceptedFor.has(selected.id) && !selectedAnalysis && <small>解析を始めるには、先に正しい歌詞を指定してください。</small>}
-              {selectedAnalysis?.status === "cancelled" && <small>中止した解析は再開できません。再解析方法は今後の更新で追加します。</small>}
+                  >{selectedLyricsChanged ? "修正した歌詞で再解析" : selectedAnalysis?.status === "failed" ? "解析を再試行" : "この曲を解析"}</button>}
+              {!selectedLyricsHash && !selectedAnalysis && <small>解析を始めるには、先に正しい歌詞を指定してください。</small>}
+              {selectedAnalysis?.status === "cancelled" && !selectedLyricsChanged && <small>歌詞を修正して保存すると、新しいリビジョンとして解析できます。</small>}
             </div>
             <button className="sing-button" disabled={selected.state !== "ready"}><Mic2 size={19} />この曲を歌う</button>
             <small className="score-note">歌唱中は総合点を表示しません。結果は終了後に確認できます。</small>

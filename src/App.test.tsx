@@ -273,5 +273,40 @@ describe("song library", () => {
     await waitFor(() => expect(retryAnalysis).toHaveBeenCalledWith(songId));
     expect(startAnalysis).toHaveBeenCalledOnce();
   });
+
+  it("starts a new analysis revision after cancelled lyrics are corrected", async () => {
+    const songId = "9".repeat(64);
+    const loadLibraryCatalog = vi.fn().mockResolvedValue({
+      songCount: 1,
+      songs: [{ id: songId, title: "歌詞を直す曲", artist: "ローカル歌手", durationMs: 60_000 }],
+    });
+    const setPastedLyrics = vi.fn()
+      .mockResolvedValueOnce({ sha256: "1".repeat(64), byteSize: 9 })
+      .mockResolvedValueOnce({ sha256: "2".repeat(64), byteSize: 12 });
+    const startAnalysis = vi.fn().mockResolvedValue({ songId, state: { status: "queued" } });
+    const getAnalysisStatus = vi.fn().mockResolvedValue({
+      songId,
+      state: { status: "cancelled" },
+    });
+    render(<App
+      libraryClient={{ loadLibraryCatalog }}
+      audioClient={{}}
+      lyricsClient={{ setPastedLyrics }}
+      analysisClient={{ startAnalysis, getAnalysisStatus }}
+    />);
+
+    fireEvent.change(await screen.findByLabelText("正しい歌詞"), { target: { value: "今日は" } });
+    fireEvent.click(screen.getByRole("button", { name: "貼り付けた歌詞を使用" }));
+    await waitFor(() => expect(screen.getByRole("button", { name: "この曲を解析" })).toBeEnabled());
+    fireEvent.click(screen.getByRole("button", { name: "この曲を解析" }));
+    expect(await screen.findByText("歌詞を修正して保存すると、新しいリビジョンとして解析できます。")).toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText("正しい歌詞"), { target: { value: "今日は！" } });
+    fireEvent.click(screen.getByRole("button", { name: "貼り付けた歌詞を使用" }));
+    const reanalyze = await screen.findByRole("button", { name: "修正した歌詞で再解析" });
+    fireEvent.click(reanalyze);
+
+    await waitFor(() => expect(startAnalysis).toHaveBeenCalledTimes(2));
+  });
 });
 
