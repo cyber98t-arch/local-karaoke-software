@@ -14,6 +14,27 @@ powershell -ExecutionPolicy Bypass -File .\scripts\windows\probe-phase5-hardware
 The probe reads Windows, CPU, RAM, display-adapter, and driver metadata through
 CIM. It does not install or download anything and does not write a file.
 
+## Run the approved DirectML generated-fixture probes
+
+After pulling the D-027 implementation, run this once from the repository root:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\windows\run-phase5-directml-probes.ps1
+```
+
+The first DirectML build downloads the pinned 32,457,673-byte (30.95 MiB)
+compressed ONNX Runtime development archive through Cargo. The script uses the
+already verified local Spleeter and CREPE models, runs generated/permissive
+fixtures, requires DirectML to be the selected provider, prints elapsed times
+and output hashes, and leaves CPU fallback intact. It does not open source music
+or publish/bundle provider DLLs.
+
+To launch the development app later with DirectML preferred and CPU fallback:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\windows\start-phase4-native-dev.ps1 -DirectML
+```
+
 ## Run the Phase 4 native development app
 
 The selected-song UI is now connected to the real four-stage local analysis

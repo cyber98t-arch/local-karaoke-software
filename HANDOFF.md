@@ -1,7 +1,7 @@
 # Current handoff
 
 - Updated: 2026-11-07
-- Current phase: Phase 4 complete. Do not begin Phase 5 GPU-provider work without its explicit decision.
+- Current phase: Phase 4 complete; Phase 5 D-027 DirectML prototype is approved and in progress. Provider distribution remains unapproved.
 - Current implementation: D-024 and D-025 are complete. Phase 4 now has a hash-revalidating source resolver, concrete four-stage native runner, direct Rust `whisper-cli` backend, pinned artifact preflight, background Tauri start/status/cancel/retry commands, and selected-song controls with path-free typed state.
 - Recent implementation commits: `e12184f` isolates job/alignment artifacts by exact lyric revision and reuses validated heavy artifacts; `02abf9f` lets the selected-song UI start a new revision after corrected lyrics are saved.
 - Repository state: CREPE has Rust-owned 16 kHz conversion, centered normalized frames, native/injected ONNX inference, local-average decoding, and identity-derived cache-only persistence. The exact development artifact is available from GitHub prerelease `model-crepe-tiny-onnx-dev-v1`; no automatic download path uses it.
@@ -26,9 +26,9 @@
 - Windows native launch: The user verified all four exact artifacts, compiled with `native-onnx`, and launched `hibiki-karaoke.exe` successfully using `scripts/windows/start-phase4-native-dev.ps1`.
 - VS Code coexistence: Verified on Windows. Native Vite/Tauri use coordinated port 1421 and npm explicitly selects tracked `vite.config.ts`; the user confirmed the app works while VS Code remains open, without rebuilding the container.
 - Corrected lyrics: D-026 is approved. Exact authoritative-lyrics SHA-256 keys `lyric-revisions/<sha256>/`; each revision owns immutable job snapshots and `aligned-lyrics.json`, while validated stems, melody, and transcript stay under the shared audio identity. The UI offers a new analysis only after the accepted lyric SHA changes.
-- Next safe action: Request the explicit D-027 decision for a development-only DirectML prototype on the recorded RX 9070 XT system. Do not implement GPU providers, bundle artifacts, or publish an application release before approval.
+- Next safe action: Commit/push the provider boundary, then run `scripts/windows/run-phase5-directml-probes.ps1` on the recorded RX 9070 XT system. Do not bundle provider DLLs or publish an application release.
 - Windows command queue: The user ran `scripts/windows/run-pending-phase4-checks.ps1`; exact-model verification and the generated-vocal probe passed, while the optional representative-vocal probe was safely skipped because no cached `vocals.flac` existed. Future Windows-only commands should be appended to `docs/windows-pending-commands.md` rather than sent piecemeal in chat.
-- Blockers and decisions: D-027 hardware evidence is recorded and the decision is Waiting for explicit approval of the bounded DirectML prototype. The Windows Whisper development executable is published and verified, but application bundling and application release remain unapproved. Confidence thresholds, full timed-lyric correction UX, Viterbi smoothing, stable model/application publishing, GPU strategy, and release remain unapproved. The user's untracked `sample music/`, `screenshot/`, and attached `docs/ui-mockups/seimitsusaitenai-09.png` must never be staged.
+- Blockers and decisions: D-027 is approved for development measurement only. DirectML binary bundling/distribution and application adoption remain unapproved and require results plus another review. Confidence thresholds, full timed-lyric correction UX, Viterbi smoothing, stable model/application publishing, and release remain unapproved. The user's untracked `sample music/`, `screenshot/`, and attached `docs/ui-mockups/seimitsusaitenai-09.png` must never be staged.
 
 ## Resume checklist
 

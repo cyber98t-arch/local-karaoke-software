@@ -7,7 +7,7 @@
 | 2. Read-only library and cache catalog | Complete | Scan MP3/FLAC/WAV without changing sources; content-addressed catalog | Approved: D-003 SQLite catalog + JSON artifact manifests |
 | 3. Playback and microphone probe | Complete | Windows audio device selection, playback, loopback-free mic monitoring | Approved: D-005 CPAL + default Windows WASAPI |
 | 4. Analysis pipeline prototype | Complete | Local separation, melody extraction, Japanese lyric alignment, progress reporting | D-006 models and D-007 CPU ONNX separation approved |
-| 5. GPU provider matrix | Not started | DirectML/CUDA/other supported providers with measured CPU fallback | Decision required after hardware probes |
+| 5. GPU provider matrix | In progress | DirectML/CUDA/other supported providers with measured CPU fallback | D-027 DirectML prototype approved; distribution remains unapproved |
 | 6. Singing and scoring UI | Not started | Low-latency live pitch/timing feedback; no live total score | Scoring weights require approval |
 | 7. Result and lyric correction | Not started | Post-song total/breakdown and editable synced Japanese lyrics | UX acceptance review |
 | 8. Packaging and VMware qualification | Not started | Windows installer and CPU-only Windows 11 Home VM evidence | Release approval |

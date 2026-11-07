@@ -838,3 +838,11 @@
 - Legacy CIM `AdapterRAM` output is not accepted as authoritative VRAM capacity evidence. Any benchmark must identify the actual adapter used and measure process/system memory separately.
 - D-027 remains Waiting for explicit approval; no provider dependency, binary, model, cache identity, or runtime code has changed.
 
+## 2026-11-07 — DirectML provider boundary implemented
+
+- D-027 was approved. Added a separate `native-onnx-directml` development feature while leaving `native-onnx` CPU-only, plus strict `cpu`/`directml` request parsing and shared session construction for Spleeter and CREPE.
+- DirectML sessions use the required sequential execution and disabled memory-pattern settings. Provider registration and model-load failure create a new CPU session and retain the fallback reason; successful sessions retain the selected provider for explicit reporting.
+- Added generated-fixture Windows probes that require DirectML to be active and print elapsed time plus output hashes. The launcher accepts `-DirectML` and otherwise preserves its existing CPU behavior.
+- The pinned Windows x64 DirectML archive is 32,457,673 compressed bytes by HTTP HEAD, with SHA-256 `f99aaef23f12986abb05924c944d8433521263ad756b462df762a5a982c98405` recorded in the pinned `ort-sys` distribution table. No archive body was downloaded in the container.
+- All 109 Rust library tests passed; default and CPU-native cargo checks and `git diff --check` passed. DirectML compilation and runtime selection remain Windows-only verification.
+

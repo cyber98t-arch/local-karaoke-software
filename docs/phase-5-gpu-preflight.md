@@ -1,6 +1,9 @@
 # Phase 5 GPU-provider preflight
 
-Status: **hardware evidence and explicit D-027 approval required before implementation**
+Status: **D-027 development prototype approved; Windows DirectML verification pending**
+
+D-027 was approved on 2026-11-07 for a development-only DirectML prototype.
+Provider-binary distribution and application adoption remain unapproved.
 
 ## Current boundary
 
@@ -61,6 +64,18 @@ The `Win32_VideoController.AdapterRAM` field is legacy-width metadata and is not
 used as authoritative VRAM capacity evidence. Provider measurements must name
 the selected adapter explicitly so the discrete and integrated GPUs cannot be
 confused.
+
+## Development runtime artifact
+
+The pinned `ort-sys` 2.0.0-rc.15 distribution table resolves the Windows x64
+DirectML build to:
+
+- URL: `https://cdn.pyke.io/0/pyke:ort-rs/ms@1.31.0/x86_64-pc-windows-msvc+directml.tar.lzma2`
+- Compressed bytes observed by HTTP HEAD: `32,457,673` (30.95 MiB)
+- SHA-256 recorded by `ort-sys`: `f99aaef23f12986abb05924c944d8433521263ad756b462df762a5a982c98405`
+
+Cargo downloads it only when the `native-onnx-directml` development feature is
+built. This is not approval to bundle or redistribute its extracted DLLs.
 
 ## Primary references
 
