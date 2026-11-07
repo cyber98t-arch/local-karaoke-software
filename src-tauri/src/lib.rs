@@ -24,6 +24,7 @@ pub mod melody_pipeline;
 pub mod metadata;
 pub mod model_cache;
 pub mod model_manifest;
+pub mod onnx_runtime;
 pub mod separation_pipeline;
 pub mod spleeter_inference;
 pub mod spleeter_signal;

@@ -786,3 +786,9 @@
 - The npm development and production-build commands now explicitly select tracked `vite.config.ts`; stale ignored generated configuration can no longer override the repository's coordinated Tauri/Vite port.
 - After pulling the fix, the user confirmed that the native Windows application started and worked with VS Code left open. This closes the Windows/VS Code port-coexistence verification.
 
+## 2026-11-07 — Native ONNX environment shared across analysis models
+
+- The first UI-started representative analysis reached native runtime construction and failed with `only one environment is allowed per process` before model work began.
+- Root cause was independent `ort::init()` calls in the Spleeter and CREPE session constructors. Added one process-wide fallible `OnceLock` environment and made both model sessions retain clones of that shared environment; model sessions and tensor contracts remain independent.
+- Five focused injected inference tests passed, along with default and native-ONNX cargo checks, targeted rustfmt checking, and `git diff --check`. The new native shared-environment test is compiled behind `native-onnx`; Windows UI rerun remains the runtime proof.
+

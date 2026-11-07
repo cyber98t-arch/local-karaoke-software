@@ -20,6 +20,7 @@
 - Authoritative lyrics: D-023 accepts bounded pasted text or read-only UTF-8 `.txt`, hashes exact display text, and makes no lyric-network request. Three focused tests pass.
 - Lyric UI boundary: Rust owns native paths and lyric bodies; React receives acceptance metadata only. The analysis UI likewise exchanges song hashes and typed state only.
 - Analysis UI: Accepted lyrics unlock background analysis; all active jobs are polled across song selection changes; the four stages, completion, actionable failure, cancellation, and retryable failure are represented without simulated progress.
+- Native ORT lifecycle: Spleeter and CREPE now share one process-wide CPU `Environment` while keeping separate sessions. This fixes the first representative UI-run failure (`only one environment is allowed per process`); Windows rerun is pending.
 - Windows native launch: The user verified all four exact artifacts, compiled with `native-onnx`, and launched `hibiki-karaoke.exe` successfully using `scripts/windows/start-phase4-native-dev.ps1`.
 - VS Code coexistence: Verified on Windows. Native Vite/Tauri use coordinated port 1421 and npm explicitly selects tracked `vite.config.ts`; the user confirmed the app works while VS Code remains open, without rebuilding the container.
 - Next safe action: Have the user pull/reload VS Code, relaunch with the script while VS Code remains open, then select a representative song, accept authoritative lyrics, click `この曲を解析`, and report the terminal UI state plus console output. Do not yet bundle artifacts or enable a GPU provider.

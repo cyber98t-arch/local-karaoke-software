@@ -59,10 +59,7 @@ impl NativeCrepeSession {
         if !model_path.is_file() {
             return Err("CREPE ONNX model must be an existing file".to_owned());
         }
-        let environment = ort::init()
-            .with_name("hibiki-cpu-pitch")
-            .build()
-            .map_err(|error| error.to_string())?;
+        let environment = crate::onnx_runtime::cpu_environment()?;
         let session = Session::builder(&environment)
             .map_err(|error| error.to_string())?
             .commit_from_file(model_path)
