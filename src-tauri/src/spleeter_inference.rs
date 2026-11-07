@@ -5,6 +5,8 @@ use ndarray::Ix4;
 use ort::{environment::Environment, session::Session, value::TensorRef};
 use std::path::Path;
 
+#[cfg(feature = "native-onnx")]
+use crate::onnx_runtime::{ProviderRequest, ProviderSelection};
 use crate::{
     analysis_audio::{decode_for_analysis, resample_for_spleeter},
     spleeter_signal::{inverse_stft, masked_spectra, model_input, stft},
@@ -68,23 +70,33 @@ where
 pub struct NativeOrtSession {
     _environment: Environment,
     session: Session,
+    provider: ProviderSelection,
 }
 
 #[cfg(feature = "native-onnx")]
 impl NativeOrtSession {
     pub fn from_file(model_path: &Path) -> Result<Self, String> {
+        Self::from_file_with_provider(model_path, ProviderRequest::Cpu)
+    }
+
+    pub fn from_file_with_provider(
+        model_path: &Path,
+        provider: ProviderRequest,
+    ) -> Result<Self, String> {
         if !model_path.is_file() {
             return Err("ONNX model must be an existing file".to_owned());
         }
-        let environment = crate::onnx_runtime::cpu_environment()?;
-        let session = Session::builder(&environment)
-            .map_err(|error| error.to_string())?
-            .commit_from_file(model_path)
-            .map_err(|error| error.to_string())?;
+        let (environment, session, provider) =
+            crate::onnx_runtime::build_session(model_path, provider)?;
         Ok(Self {
             _environment: environment,
             session,
+            provider,
         })
+    }
+
+    pub fn provider_selection(&self) -> &ProviderSelection {
+        &self.provider
     }
 }
 

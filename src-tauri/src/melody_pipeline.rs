@@ -117,7 +117,12 @@ mod tests {
     #[test]
     #[ignore = "requires HIBIKI_CREPE_ONNX_MODEL and performs native melody inference"]
     fn extracts_generated_vocals_with_verified_native_model() {
-        use crate::{cache::content_sha256, crepe_inference::NativeCrepeSession};
+        use crate::{
+            cache::content_sha256,
+            crepe_inference::NativeCrepeSession,
+            onnx_runtime::{ProviderRequest, ProviderRequest::*},
+        };
+        use std::time::Instant;
 
         const MODEL_SHA256: &str =
             "03fb909a5618fa9f19942e20de749bc8e658a1ac0df4a778b354c15b6f7a59d4";
@@ -147,15 +152,27 @@ mod tests {
             sha256: MODEL_SHA256.to_owned(),
         };
         let output = identity.cache_directory(&cache.0).unwrap();
-        let mut runtime = NativeCrepeSession::from_file(&model_path)
+        let provider =
+            ProviderRequest::parse(std::env::var("HIBIKI_ONNX_PROVIDER").ok().as_deref())
+                .expect("provider request should be valid");
+        let mut runtime = NativeCrepeSession::from_file_with_provider(&model_path, provider)
             .expect("verified research model should load");
+        if provider == DirectMl {
+            assert_eq!(runtime.provider_selection().active, DirectMl);
+        }
+        let selected_provider = runtime.provider_selection().clone();
+        let started = Instant::now();
 
         let artifact =
             extract_melody_to_cache(&mut runtime, &vocals, 44_100, &cache.0, &identity, &model)
                 .expect("native melody pipeline should commit");
+        let elapsed = started.elapsed();
 
         assert_eq!(artifact.point_count, 201);
         assert!(output.join("melody.json").is_file());
+        eprintln!("native melody provider: {:?}", selected_provider.active);
+        eprintln!("native melody elapsed: {elapsed:.2?}");
+        eprintln!("melody SHA-256: {}", artifact.sha256);
     }
 
     #[cfg(feature = "native-onnx")]

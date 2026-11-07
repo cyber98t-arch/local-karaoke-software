@@ -1,7 +1,8 @@
 [CmdletBinding()]
 param(
     [switch]$VerifyOnly,
-    [switch]$SkipDownload
+    [switch]$SkipDownload,
+    [switch]$DirectML
 )
 
 $ErrorActionPreference = "Stop"
@@ -105,8 +106,17 @@ if ($null -ne $existingListener) {
     throw "Port 1421 is already used by $ownerName. Stop the listed process, then run this script again."
 }
 
-Write-Host "Starting the Tauri development app with native CPU ONNX analysis enabled..."
-& npm run tauri -- dev --features native-onnx
+$nativeFeature = if ($DirectML) { "native-onnx-directml" } else { "native-onnx" }
+$provider = if ($DirectML) { "directml" } else { "cpu" }
+[Environment]::SetEnvironmentVariable("HIBIKI_ONNX_PROVIDER", $provider, "Process")
+if ($DirectML) {
+    Write-Host "Starting the Tauri development app with DirectML preferred and CPU fallback enabled..."
+    Write-Host "The first DirectML build downloads a pinned 30.95 MiB compressed ONNX Runtime development archive through Cargo."
+}
+else {
+    Write-Host "Starting the Tauri development app with native CPU ONNX analysis enabled..."
+}
+& npm run tauri -- dev --features $nativeFeature
 if ($LASTEXITCODE -ne 0) {
     throw "Tauri development app exited with code $LASTEXITCODE."
 }

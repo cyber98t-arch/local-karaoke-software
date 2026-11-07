@@ -4,6 +4,7 @@ use std::{
 };
 
 use crate::cache::content_sha256;
+use crate::onnx_runtime::ProviderRequest;
 
 pub const SPLEETER_SHA256: &str =
     "8d58651b5979075c954bcbe96c6776b2dc41e7852fb6f2d054b83a696a8db26f";
@@ -23,6 +24,7 @@ pub struct NativeAnalysisConfig {
     pub crepe_model: PathBuf,
     pub whisper_model: PathBuf,
     pub whisper_cli: PathBuf,
+    pub onnx_provider: ProviderRequest,
 }
 
 impl NativeAnalysisConfig {
@@ -32,6 +34,9 @@ impl NativeAnalysisConfig {
             crepe_model: required_path("HIBIKI_CREPE_ONNX_MODEL")?,
             whisper_model: required_path("HIBIKI_WHISPER_MODEL")?,
             whisper_cli: required_path("HIBIKI_WHISPER_CLI")?,
+            onnx_provider: ProviderRequest::parse(
+                env::var("HIBIKI_ONNX_PROVIDER").ok().as_deref(),
+            )?,
         };
         config.verify()?;
         Ok(config)

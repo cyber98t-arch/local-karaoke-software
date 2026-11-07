@@ -297,7 +297,7 @@
 
 ### D-027 — Phase 5 cross-vendor GPU provider prototype
 
-- Status: Waiting
+- Status: Approved
 - Question: After the read-only hardware probe, should Phase 5 prototype DirectML as an optional cross-vendor ONNX Runtime provider while retaining the current CPU provider as the mandatory fallback?
 - Recommended option: Add DirectML only behind a development feature and test the same Spleeter and CREPE fixtures on the available Windows GPU. Record actual provider selection, numerical output differences, elapsed time, peak memory, initialization cost, provider DLL footprint, and forced-failure CPU fallback before considering distribution.
 - Reason for recommendation: DirectML can cover Intel, AMD, and NVIDIA DirectX 12 hardware through the current ONNX Runtime model/session boundary. It is in sustained engineering, so the experiment must also document the later Windows ML migration path rather than treating DirectML as a permanent packaging decision.
@@ -307,3 +307,5 @@
 - Evidence required before approval: Output of `scripts/windows/probe-phase5-hardware.ps1`, including Windows build, adapter names, and driver versions.
 - Hardware evidence received 2026-11-07: Windows 11 Home build 26200 on AMD Ryzen 9 9950X3D with 32 logical processors and approximately 32 GB system memory. Display adapters are AMD Radeon RX 9070 XT (`32.0.32015.7029`, status OK) and AMD Radeon integrated graphics (`32.0.21045.16010`, status OK). The legacy CIM `AdapterRAM` values are not treated as reliable VRAM capacity evidence.
 - Reason approval is required: Phase 5 changes the GPU strategy and native runtime/provider packaging boundary.
+- Decision: Implement the bounded development-only DirectML prototype described above, preserving CPU as the mandatory fallback and requiring another review before provider binaries are bundled or distributed.
+- Source: User approval on 2026-11-07.

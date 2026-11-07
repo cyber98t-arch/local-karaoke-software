@@ -102,7 +102,12 @@ mod tests {
     #[test]
     #[ignore = "requires HIBIKI_SPLEETER_ONNX_MODEL and performs native separation"]
     fn separates_fixture_with_verified_native_model_into_cache() {
-        use crate::{cache::content_sha256, spleeter_inference::NativeOrtSession};
+        use crate::{
+            cache::content_sha256,
+            onnx_runtime::{ProviderRequest, ProviderRequest::*},
+            spleeter_inference::NativeOrtSession,
+        };
+        use std::time::Instant;
 
         const MODEL_SHA256: &str =
             "8d58651b5979075c954bcbe96c6776b2dc41e7852fb6f2d054b83a696a8db26f";
@@ -127,11 +132,20 @@ mod tests {
         let output = identity
             .cache_directory(&cache.0)
             .expect("identity should derive a cache path");
-        let mut runtime = NativeOrtSession::from_file(&model_path)
+        let provider =
+            ProviderRequest::parse(std::env::var("HIBIKI_ONNX_PROVIDER").ok().as_deref())
+                .expect("provider request should be valid");
+        let mut runtime = NativeOrtSession::from_file_with_provider(&model_path, provider)
             .expect("verified development model should load");
+        if provider == DirectMl {
+            assert_eq!(runtime.provider_selection().active, DirectMl);
+        }
+        let selected_provider = runtime.provider_selection().clone();
+        let started = Instant::now();
 
         let artifacts = separate_source_to_cache(&mut runtime, &source, &cache.0, &identity)
             .expect("native separation should commit both stems");
+        let elapsed = started.elapsed();
 
         assert_eq!(artifacts.vocals_sha256.len(), 64);
         assert!(output.join("vocals.flac").is_file());
@@ -142,6 +156,10 @@ mod tests {
             source_sha256,
             "native separation must not change the source"
         );
+        eprintln!("native separation provider: {:?}", selected_provider.active);
+        eprintln!("native separation elapsed: {elapsed:.2?}");
+        eprintln!("vocals SHA-256: {}", artifacts.vocals_sha256);
+        eprintln!("accompaniment SHA-256: {}", artifacts.accompaniment_sha256);
     }
 
     #[cfg(feature = "native-onnx")]

@@ -264,8 +264,20 @@ fn run_native_analysis(
         model_sha256: crate::analysis_runtime::WHISPER_MODEL_SHA256.into(),
         worker_protocol_version: ANALYSIS_WORKER_PROTOCOL_VERSION,
     };
-    let mut separation = NativeOrtSession::from_file(&config.spleeter_model)?;
-    let mut pitch = NativeCrepeSession::from_file(&config.crepe_model)?;
+    let mut separation =
+        NativeOrtSession::from_file_with_provider(&config.spleeter_model, config.onnx_provider)?;
+    let mut pitch =
+        NativeCrepeSession::from_file_with_provider(&config.crepe_model, config.onnx_provider)?;
+    eprintln!(
+        "Spleeter ONNX provider: {:?}; fallback: {:?}",
+        separation.provider_selection().active,
+        separation.provider_selection().fallback_reason
+    );
+    eprintln!(
+        "CREPE ONNX provider: {:?}; fallback: {:?}",
+        pitch.provider_selection().active,
+        pitch.provider_selection().fallback_reason
+    );
     let transcription = AnalysisWorkerService::new(WhisperCppBackend::new(
         config.whisper_cli.clone(),
         crate::analysis_runtime::WHISPER_CLI_SHA256.into(),
