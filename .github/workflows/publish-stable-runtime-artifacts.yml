@@ -2,7 +2,7 @@ name: Publish stable runtime artifacts
 
 on:
   push:
-    branches: [main]
+    branches: [publish-runtime-artifacts-v1]
     paths:
       - .github/workflows/publish-stable-runtime-artifacts.yml
   workflow_dispatch:
