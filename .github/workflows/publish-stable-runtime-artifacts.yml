@@ -58,8 +58,8 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           RELEASE_TAG: ${{ matrix.tag }}
         run: |
-          gh release view $env:RELEASE_TAG --repo $env:GITHUB_REPOSITORY *> $null
-          if ($LASTEXITCODE -eq 0) {
+          $existing = @(gh release list --repo $env:GITHUB_REPOSITORY --limit 100 --json tagName | ConvertFrom-Json)
+          if ($existing.tagName -contains $env:RELEASE_TAG) {
             throw "Stable release tag already exists and will not be overwritten: $env:RELEASE_TAG"
           }
 
