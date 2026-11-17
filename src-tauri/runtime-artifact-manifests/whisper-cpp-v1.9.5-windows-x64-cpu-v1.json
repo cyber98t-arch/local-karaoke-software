@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "artifactId": "whisper-cpp-v1.9.5-windows-x64-cpu-v1",
+  "fileName": "whisper-cli.exe",
+  "sha256": "e8c1a1390c22ec4bb48c5a32ccd65942303c8633b09d6f897e1a1562d19ba7f2",
+  "byteSize": 2115584,
+  "distributionStatus": "preparedUnpublished",
+  "downloadUrl": null,
+  "sourceRevision": "ggml-org/whisper.cpp-d1be6fde11ac6e0407606b4e42fe72d34add8037",
+  "licenseSpdx": "MIT",
+  "licenseUrl": "https://github.com/ggml-org/whisper.cpp/blob/d1be6fde11ac6e0407606b4e42fe72d34add8037/LICENSE",
+  "requiredNoticeFiles": ["LICENSE-whisper.cpp.txt", "PROVENANCE-whisper-cli-Windows-x64.txt"],
+  "provenanceDocument": ".github/workflows/publish-windows-whisper-dev.yml"
+}

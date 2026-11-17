@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "artifactId": "crepe-tiny-onnx-v1",
+  "fileName": "crepe-tiny-research.onnx",
+  "sha256": "03fb909a5618fa9f19942e20de749bc8e658a1ac0df4a778b354c15b6f7a59d4",
+  "byteSize": 1956735,
+  "distributionStatus": "preparedUnpublished",
+  "downloadUrl": null,
+  "sourceRevision": "marl/crepe-bb29b8d99a89924476d112d27ed470e4ac5617c0-converted-opset13",
+  "licenseSpdx": "MIT",
+  "licenseUrl": "https://github.com/marl/crepe/blob/c9b71ce61491454125a0693f584f7244f29d9884/LICENSE",
+  "requiredNoticeFiles": ["LICENSE-CREPE.txt", "PROVENANCE-CREPE-ONNX.txt"],
+  "provenanceDocument": "docs/model-artifacts/crepe-tiny-onnx-dev-v1.md"
+}

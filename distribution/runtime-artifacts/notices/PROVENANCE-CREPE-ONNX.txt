@@ -1,0 +1,9 @@
+Artifact: crepe-tiny-research.onnx
+Bytes: 1956735
+SHA-256: 03fb909a5618fa9f19942e20de749bc8e658a1ac0df4a778b354c15b6f7a59d4
+Source: marl/crepe revision bb29b8d99a89924476d112d27ed470e4ac5617c0
+Compressed source SHA-256: 9c1d76d405674d2327f5636347d07f551dfd11c6acc0475b7fd85082cdab0add
+Conversion: TensorFlow 2.12.1, tf2onnx 1.16.1, ONNX opset 13
+Script: research/onnx/convert_crepe_tiny.py
+License: MIT; see LICENSE-CREPE.txt
+Full engineering record: docs/model-artifacts/crepe-tiny-onnx-dev-v1.md

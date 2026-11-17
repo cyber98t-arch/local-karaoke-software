@@ -1,0 +1,148 @@
+name: Publish stable runtime artifacts
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/publish-stable-runtime-artifacts.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    name: Publish ${{ matrix.artifact_id }}
+    runs-on: windows-2022
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - artifact_id: spleeter-2stems-onnx-v1
+            tag: runtime-spleeter-2stems-onnx-v1
+            title: Spleeter 2-stem ONNX runtime artifact v1
+            file_name: spleeter-2stems-repro.onnx
+            byte_size: 78652254
+            sha256: 8d58651b5979075c954bcbe96c6776b2dc41e7852fb6f2d054b83a696a8db26f
+            source_url: https://github.com/cyber98t-arch/local-karaoke-software/releases/download/model-spleeter-2stems-onnx-dev-v1/spleeter-2stems-repro.onnx
+            manifest: src-tauri/runtime-artifact-manifests/spleeter-2stems-onnx-v1.json
+            license: distribution/runtime-artifacts/notices/LICENSE-Spleeter.txt
+            provenance: distribution/runtime-artifacts/notices/PROVENANCE-Spleeter-ONNX.txt
+          - artifact_id: crepe-tiny-onnx-v1
+            tag: runtime-crepe-tiny-onnx-v1
+            title: CREPE tiny ONNX runtime artifact v1
+            file_name: crepe-tiny-research.onnx
+            byte_size: 1956735
+            sha256: 03fb909a5618fa9f19942e20de749bc8e658a1ac0df4a778b354c15b6f7a59d4
+            source_url: https://github.com/cyber98t-arch/local-karaoke-software/releases/download/model-crepe-tiny-onnx-dev-v1/crepe-tiny-research.onnx
+            manifest: src-tauri/runtime-artifact-manifests/crepe-tiny-onnx-v1.json
+            license: distribution/runtime-artifacts/notices/LICENSE-CREPE.txt
+            provenance: distribution/runtime-artifacts/notices/PROVENANCE-CREPE-ONNX.txt
+          - artifact_id: whisper-cpp-v1.9.5-windows-x64-cpu-v1
+            tag: runtime-whisper-cpp-v1.9.5-windows-x64-cpu-v1
+            title: whisper.cpp v1.9.5 Windows x64 CPU runtime artifact v1
+            file_name: whisper-cli.exe
+            byte_size: 2115584
+            sha256: e8c1a1390c22ec4bb48c5a32ccd65942303c8633b09d6f897e1a1562d19ba7f2
+            source_url: https://github.com/cyber98t-arch/local-karaoke-software/releases/download/whisper-cpp-v1.9.5-windows-x64-cpu-dev-v1/whisper-cli.exe
+            manifest: src-tauri/runtime-artifact-manifests/whisper-cpp-v1.9.5-windows-x64-cpu-v1.json
+            license: distribution/runtime-artifacts/notices/LICENSE-whisper.cpp.txt
+            provenance: distribution/runtime-artifacts/notices/PROVENANCE-whisper-cli-Windows-x64.txt
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Reject an existing stable tag
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ matrix.tag }}
+        run: |
+          gh release view $env:RELEASE_TAG --repo $env:GITHUB_REPOSITORY *> $null
+          if ($LASTEXITCODE -eq 0) {
+            throw "Stable release tag already exists and will not be overwritten: $env:RELEASE_TAG"
+          }
+
+      - name: Stage and verify the audited payload
+        shell: pwsh
+        env:
+          ARTIFACT_ID: ${{ matrix.artifact_id }}
+          FILE_NAME: ${{ matrix.file_name }}
+          BYTE_SIZE: ${{ matrix.byte_size }}
+          SHA256: ${{ matrix.sha256 }}
+          SOURCE_URL: ${{ matrix.source_url }}
+          MANIFEST_PATH: ${{ matrix.manifest }}
+          LICENSE_PATH: ${{ matrix.license }}
+          PROVENANCE_PATH: ${{ matrix.provenance }}
+          RELEASE_TAG: ${{ matrix.tag }}
+        run: |
+          New-Item -ItemType Directory -Path payload | Out-Null
+          Invoke-WebRequest -Uri $env:SOURCE_URL -OutFile "payload/$env:FILE_NAME"
+          $binary = Get-Item -LiteralPath "payload/$env:FILE_NAME"
+          $hash = (Get-FileHash -LiteralPath $binary.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+          if ($binary.Length -ne [int64]$env:BYTE_SIZE -or $hash -ne $env:SHA256) {
+            throw "Downloaded candidate does not match the audited byte size and SHA-256."
+          }
+
+          $manifest = Get-Content -LiteralPath $env:MANIFEST_PATH -Raw | ConvertFrom-Json
+          if ($manifest.artifactId -ne $env:ARTIFACT_ID -or
+              $manifest.fileName -ne $env:FILE_NAME -or
+              [int64]$manifest.byteSize -ne [int64]$env:BYTE_SIZE -or
+              $manifest.sha256 -ne $env:SHA256 -or
+              $manifest.distributionStatus -ne "preparedUnpublished" -or
+              $null -ne $manifest.downloadUrl) {
+            throw "Checked-in candidate manifest does not match the audited unpublished artifact."
+          }
+          $manifest.distributionStatus = "upstreamAvailable"
+          $manifest.downloadUrl = "https://github.com/$env:GITHUB_REPOSITORY/releases/download/$env:RELEASE_TAG/$env:FILE_NAME"
+          $manifest | ConvertTo-Json -Depth 10 | Set-Content -LiteralPath payload/artifact-manifest.json -Encoding utf8
+          Copy-Item -LiteralPath $env:LICENSE_PATH -Destination payload
+          Copy-Item -LiteralPath $env:PROVENANCE_PATH -Destination payload
+
+      - name: Publish the stable artifact release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ matrix.tag }}
+          RELEASE_TITLE: ${{ matrix.title }}
+          ARTIFACT_ID: ${{ matrix.artifact_id }}
+          FILE_NAME: ${{ matrix.file_name }}
+          BYTE_SIZE: ${{ matrix.byte_size }}
+          SHA256: ${{ matrix.sha256 }}
+        run: |
+          @"
+          Stable runtime artifact for Hibiki Local Karaoke's explicit, hash-verified local acquisition flow.
+
+          - Artifact ID: ``$env:ARTIFACT_ID``
+          - File: ``$env:FILE_NAME``
+          - Bytes: ``$env:BYTE_SIZE``
+          - SHA-256: ``$env:SHA256``
+          - License and provenance: attached
+
+          This is not an application, installer, song, or application release.
+          "@ | Set-Content -LiteralPath release-notes.md -Encoding utf8
+          $assets = @(Get-ChildItem -LiteralPath payload -File | ForEach-Object { $_.FullName })
+          gh release create $env:RELEASE_TAG `
+            --repo $env:GITHUB_REPOSITORY `
+            --target $env:GITHUB_SHA `
+            --title $env:RELEASE_TITLE `
+            --notes-file release-notes.md `
+            --latest=false `
+            $assets
+
+      - name: Verify the public binary download
+        shell: pwsh
+        env:
+          FILE_NAME: ${{ matrix.file_name }}
+          BYTE_SIZE: ${{ matrix.byte_size }}
+          SHA256: ${{ matrix.sha256 }}
+          RELEASE_TAG: ${{ matrix.tag }}
+        run: |
+          $url = "https://github.com/$env:GITHUB_REPOSITORY/releases/download/$env:RELEASE_TAG/$env:FILE_NAME"
+          Invoke-WebRequest -Uri $url -OutFile verified-download.bin
+          $download = Get-Item -LiteralPath verified-download.bin
+          $hash = (Get-FileHash -LiteralPath $download.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+          if ($download.Length -ne [int64]$env:BYTE_SIZE -or $hash -ne $env:SHA256) {
+            throw "Public stable download does not match the audited artifact."
+          }
+          Write-Host "verified stable URL: $url; bytes: $($download.Length); SHA-256: $hash"

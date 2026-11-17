@@ -1,0 +1,9 @@
+Artifact: spleeter-2stems-repro.onnx
+Bytes: 78652254
+SHA-256: 8d58651b5979075c954bcbe96c6776b2dc41e7852fb6f2d054b83a696a8db26f
+Source: Deezer Spleeter 2-stem v1.4.0, 2stems.tar.gz
+Source SHA-256: f3a90b39dd2874269e8b05a48a86745df897b848c61f3958efc80a39152bd692
+Conversion: Spleeter 2.4.2, TensorFlow 2.12.1, tf2onnx 1.16.1, ONNX opset 13
+Script: research/onnx/convert_spleeter_spectrogram.py
+License: MIT; see LICENSE-Spleeter.txt
+Full engineering record: docs/model-artifacts/spleeter-2stems-onnx-dev-v1.md

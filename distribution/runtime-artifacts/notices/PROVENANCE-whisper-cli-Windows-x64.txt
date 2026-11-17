@@ -1,0 +1,8 @@
+Artifact: whisper-cli.exe
+Bytes: 2115584
+SHA-256: e8c1a1390c22ec4bb48c5a32ccd65942303c8633b09d6f897e1a1562d19ba7f2
+Source: ggml-org/whisper.cpp v1.9.5
+Commit: d1be6fde11ac6e0407606b4e42fe72d34add8037
+Build: windows-2022, x86_64, Release, static libraries, CPU only, no GPU providers
+License: MIT; see LICENSE-whisper.cpp.txt
+Development provenance workflow: .github/workflows/publish-windows-whisper-dev.yml
